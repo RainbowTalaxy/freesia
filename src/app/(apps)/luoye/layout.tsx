@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
-import '../globals.css';
-import nextConfig from '../../../next.config.mjs';
+import nextConfig from '../../../../next.config.mjs';
 
 export const metadata: Metadata = {
     title: '落页',
