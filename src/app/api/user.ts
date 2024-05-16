@@ -1,5 +1,6 @@
 import { Rocket } from './fetch';
 import { API_PREFIX } from './fetch/constants';
+import { Result } from './types';
 
 const UserAPI = {
     test: () => Rocket.get<{ id: string }>(`${API_PREFIX}/user/test`),
@@ -9,8 +10,7 @@ const UserAPI = {
             password,
             expireTime,
         }),
-    logout: () =>
-        Rocket.delete<{ success: boolean }>(`${API_PREFIX}/user/logout`),
+    logout: () => Rocket.delete<Result>(`${API_PREFIX}/user/logout`),
 };
 
 export default UserAPI;
