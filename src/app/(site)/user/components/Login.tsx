@@ -35,8 +35,12 @@ export default function Login() {
                 const form = e.target as HTMLFormElement;
                 const username = form.username.value;
                 const password = form.password.value;
-                await API.user.login(username, password)(clientFetch);
-                router.refresh();
+                try {
+                    await API.user.login(username, password)(clientFetch);
+                    router.refresh();
+                } catch (error: any) {
+                    alert(`登陆失败：${error.message}`);
+                }
             }}
         >
             <Label field="username">用户名</Label>

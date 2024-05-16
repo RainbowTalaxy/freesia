@@ -19,7 +19,7 @@ export default async function Page() {
     }
 
     return (
-        <div className="py-[36px] m-auto max-w-[500px]">
+        <div className="px-[24px] py-[36px] m-auto max-w-[540px]">
             <h1 className="mb-[16px] text-[32px] font-bold">用户登陆</h1>
             <p className="mb-[16px]">
                 当前用户：
