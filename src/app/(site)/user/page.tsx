@@ -4,6 +4,7 @@ import Logout from './components/Logout';
 import { Metadata } from 'next';
 import Logger from '@/app/utils/Log';
 import serverFetch from '@/app/api/fetch/server';
+import { Suspense } from 'react';
 
 export const metadata: Metadata = {
     title: '用户登陆',
@@ -25,7 +26,13 @@ export default async function Page() {
                 当前用户：
                 {userId ?? <span className="text-gray-500">暂未登陆</span>}
             </p>
-            {!userId ? <Login /> : <Logout />}
+            {!userId ? (
+                <Suspense>
+                    <Login />
+                </Suspense>
+            ) : (
+                <Logout />
+            )}
         </div>
     );
 }
