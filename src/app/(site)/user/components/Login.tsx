@@ -1,8 +1,7 @@
 'use client';
-
 import API from '@/app/api';
 import clientFetch from '@/app/api/fetch/client';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { HTMLInputTypeAttribute, ReactNode } from 'react';
 
 const Label = ({ field, children }: { field: string; children: ReactNode }) => (
@@ -27,6 +26,8 @@ const Input = ({
 
 export default function Login() {
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const nextUrl = searchParams.get('next_url') ?? null;
 
     return (
         <form
@@ -37,7 +38,11 @@ export default function Login() {
                 const password = form.password.value;
                 try {
                     await API.user.login(username, password)(clientFetch);
-                    router.refresh();
+                    if (nextUrl) {
+                        window.location.href = nextUrl;
+                    } else {
+                        router.refresh();
+                    }
                 } catch (error: any) {
                     alert(`登陆失败：${error.message}`);
                 }

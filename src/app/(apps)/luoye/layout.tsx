@@ -1,18 +1,10 @@
-import type { Metadata } from 'next';
-import nextConfig from '../../../../next.config.mjs';
+import './styles/index.css';
+import { ReactNode } from 'react';
 
-export const metadata: Metadata = {
-    title: '落页',
-    description: '',
-    icons: {
-        icon: `${nextConfig.basePath}/luoye.png`,
-    },
-};
+interface Props {
+    children: ReactNode;
+}
 
-export default function Layout({
-    children,
-}: Readonly<{
-    children: React.ReactNode;
-}>) {
+export default function Layout({ children }: Props) {
     return children;
 }

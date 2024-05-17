@@ -1,0 +1,21 @@
+.container {
+    position: fixed;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    right: 20px;
+    bottom: 32px;
+    padding: 5px 12px;
+    border-radius: 5px;
+    color: var(--ly-primary);
+    background: var(--ly-active-background);
+    transition: transform 0.5s;
+    transform: translateY(100px);
+    pointer-events: none;
+    z-index: 500;
+}
+
+.toastText {
+    display: block;
+    font-size: 14px;
+}

@@ -9,10 +9,16 @@
         "lint": "next lint"
     },
     "dependencies": {
+        "@monaco-editor/react": "^4.6.0",
+        "@types/react-beautiful-dnd": "^13.1.8",
         "clsx": "^2.1.1",
+        "dayjs": "^1.11.11",
+        "monaco-editor": "^0.48.0",
         "next": "^14.1",
         "react": "^18",
-        "react-dom": "^18"
+        "react-beautiful-dnd": "^13.1.1",
+        "react-dom": "^18",
+        "styled-components": "^6.1.11"
     },
     "devDependencies": {
         "@types/node": "^20",

@@ -70,4 +70,4 @@ const LuoyeAPI = {
 };
 
 export default LuoyeAPI;
-export type * from './types/luoye';
+export * from './types/luoye';

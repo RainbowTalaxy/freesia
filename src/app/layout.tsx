@@ -1,12 +1,12 @@
 import type { Metadata } from 'next';
 import './globals.css';
-import nextConfig from '../../next.config.mjs';
+import { BASE_PATH } from './constants';
 
 export const metadata: Metadata = {
     title: 'freesia',
     description: '',
     icons: {
-        icon: `${nextConfig.basePath}/mercy.png`,
+        icon: `${BASE_PATH}/mercy.png`,
     },
 };
 

@@ -1,7 +1,7 @@
 import { cookies } from 'next/headers';
 import { BODY_ENABLED_METHODS, LOCAL_URL } from './constants';
 import { ResponseError } from '../types';
-import Logger from '@/app/utils/logger';
+import Logger from '@/app/utils/Log';
 
 export default async function serverFetch<Data>(
     url: string,

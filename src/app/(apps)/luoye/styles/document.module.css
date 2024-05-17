@@ -1,0 +1,202 @@
+.docView {
+    --h-padding: 24px;
+    --doc-nav-bar: 72px;
+    --toc-width: 160px;
+    position: relative;
+    width: 100%;
+}
+
+.docNavBar {
+    position: fixed;
+    display: flex;
+    align-items: center;
+    top: 0;
+    left: var(--sidebar-width);
+    right: 0;
+    padding: 16px var(--h-padding);
+    height: var(--doc-nav-bar);
+    border-bottom: 1px solid var(--ly-active-background);
+    background: var(--ly-background);
+    z-index: 100;
+}
+
+.docNavTitle {
+    flex: 1;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.docIcon {
+    display: none;
+}
+
+.docNavBar button {
+    margin-left: 10px;
+}
+
+.document {
+    --max-content-width: 1000px;
+    margin: 0 auto;
+    padding: 108px var(--h-padding);
+    max-width: var(--max-content-width);
+}
+
+.document > h2 {
+    scroll-margin-top: calc(var(--doc-nav-bar) + 12px);
+}
+
+.document img {
+    width: 100%;
+    max-height: 600px;
+    object-fit: contain;
+    object-position: center;
+}
+
+.docInfo {
+    margin-top: 24px;
+    font-size: 16px;
+    color: var(--ly-primary);
+    font-variant: tabular-nums;
+    font-feature-settings: 'tnum';
+}
+
+.docInfo > span {
+    font-weight: bold;
+}
+
+/* 隐藏编辑器 */
+.document.hiddenEditor > section {
+    display: none !important;
+}
+
+.document:not(.hiddenEditor) {
+    height: 100%;
+    padding: var(--doc-nav-bar) 0 0 0;
+    max-width: 100%;
+}
+
+.docInputContainer {
+    margin: 0 auto;
+    padding: 24px var(--h-padding);
+    max-width: var(--max-content-width);
+}
+
+/* 编辑器 */
+.docInput {
+    appearance: none;
+    background: none;
+    outline: none;
+    border: none;
+    font-family: inherit;
+    font-size: inherit;
+    cursor: inherit;
+    color: inherit;
+    line-height: inherit;
+    white-space: pre-wrap;
+    word-break: break-all;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+        'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue',
+        Helvetica, Arial, sans-serif;
+    tab-size: 4;
+
+    margin-bottom: 70%;
+    padding: 0;
+}
+
+.docInput::before {
+    position: absolute;
+    content: attr(data-placeholder);
+    color: lightgray;
+    user-select: none;
+    pointer-events: none;
+    white-space: nowrap;
+}
+
+.docNavTitle {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.toc {
+    position: fixed;
+    top: calc(var(--doc-nav-bar) + 36px);
+    right: var(--h-padding);
+    padding: 2px 10px 2px 16px;
+    width: var(--toc-width);
+    max-height: calc(100% - var(--doc-nav-bar) - 72px);
+    border-left: 1px solid var(--ly-primary);
+    color: var(--ly-primary);
+    overflow: auto;
+}
+
+.tocItem {
+    margin-top: 6px;
+}
+
+.toc > div {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* 当文档只读时 */
+.centeredDoc {
+    padding-left: calc(var(--toc-width) + var(--h-padding) + 12px);
+}
+
+@media screen and (max-width: 1400px) and (min-width: 769px) {
+    .document:not(.centeredDoc).hiddenEditor {
+        margin-left: 4%;
+    }
+}
+
+@media screen and (min-width: 1201px) {
+    .document.hiddenEditor {
+        padding-right: calc(var(--toc-width) + var(--h-padding) + 12px);
+    }
+
+    .document.centeredDoc {
+        padding-left: 0;
+        padding-right: 0;
+    }
+}
+
+@media screen and (max-width: 1200px) and (min-width: 769px) {
+    .document {
+        max-width: 100%;
+    }
+
+    .centeredDoc {
+        padding-left: calc(var(--h-padding) + 24% - 100px);
+        padding-right: calc(var(--h-padding) + 24% - 100px);
+    }
+
+    .toc {
+        display: none;
+    }
+}
+
+@media screen and (max-width: 768px) {
+    .docView {
+        --h-padding: 22px;
+    }
+
+    .document.hiddenEditor {
+        padding: 24px var(--h-padding) 108px;
+    }
+
+    .document:not(.hiddenEditor) {
+        height: 100%;
+        padding: 0;
+    }
+
+    .docIcon {
+        display: flex;
+    }
+
+    .toc,
+    .docNavTitle {
+        display: none;
+    }
+}

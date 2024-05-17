@@ -2,7 +2,7 @@ import API from '@/app/api';
 import Login from './components/Login';
 import Logout from './components/Logout';
 import { Metadata } from 'next';
-import Logger from '@/app/utils/logger';
+import Logger from '@/app/utils/Log';
 import serverFetch from '@/app/api/fetch/server';
 
 export const metadata: Metadata = {
