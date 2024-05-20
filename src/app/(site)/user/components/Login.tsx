@@ -1,6 +1,5 @@
 'use client';
-import API from '@/app/api';
-import clientFetch from '@/app/api/fetch/client';
+import API, { clientFetch } from '@/app/api';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { HTMLInputTypeAttribute, ReactNode } from 'react';
 
@@ -37,7 +36,7 @@ export default function Login() {
                 const username = form.username.value;
                 const password = form.password.value;
                 try {
-                    await API.user.login(username, password)(clientFetch);
+                    await clientFetch(API.user.login(username, password));
                     if (nextUrl) {
                         window.location.href = nextUrl;
                     } else {

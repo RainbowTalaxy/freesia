@@ -1,8 +1,7 @@
 import styles from '../styles/home.module.css';
 import type { Metadata, Viewport } from 'next';
-import Server from '@/app/api/server';
+import Server, { serverFetch } from '@/app/api/server';
 import API from '@/app/api';
-import serverFetch from '@/app/api/fetch/server';
 import ContentWithSideBar from '../components/SideBar';
 import { BASE_PATH } from '@/app/constants';
 import ProjectTitle from '../containers/ProjectTitle';
@@ -30,8 +29,8 @@ export default async function Layout({
     let allWorkspaces: WorkspaceItem[] | null = null;
     if (userId) {
         const [_workspaces, _recentDocs] = await Promise.all([
-            API.luoye.workspaceItems()(serverFetch),
-            API.luoye.recentDocs()(serverFetch),
+            serverFetch(API.luoye.workspaceItems()),
+            serverFetch(API.luoye.recentDocs()),
         ]);
         recentDocs = _recentDocs;
         const splitWorkspaces = splitWorkspace(_workspaces, userId);

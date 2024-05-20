@@ -1,8 +1,7 @@
-import Server from '@/app/api/server';
+import Server, { serverFetch } from '@/app/api/server';
 import Welcome from './containers/Welcome';
 import { DocItem, WorkspaceItem } from '@/app/api/luoye';
 import API from '@/app/api';
-import serverFetch from '@/app/api/fetch/server';
 import { splitWorkspace } from '../configs';
 
 export default async function Home() {
@@ -14,8 +13,8 @@ export default async function Home() {
     let allWorkspaces: WorkspaceItem[] | null = null;
     if (userId) {
         const [_workspaces, _recentDocs] = await Promise.all([
-            API.luoye.workspaceItems()(serverFetch),
-            API.luoye.recentDocs()(serverFetch),
+            serverFetch(API.luoye.workspaceItems()),
+            serverFetch(API.luoye.recentDocs()),
         ]);
         recentDocs = _recentDocs;
         const splitWorkspaces = splitWorkspace(_workspaces, userId);

@@ -5,8 +5,7 @@ import { createPortal } from 'react-dom';
 import Toast from '../components/Notification/Toast';
 import { Scope, WorkspaceItem } from '@/app/api/luoye';
 import { Button, Input, TextArea, Toggle } from '@/app/components/form';
-import API from '@/app/api';
-import clientFetch from '@/app/api/fetch/client';
+import API, { clientFetch } from '@/app/api';
 
 interface Props {
     userId: string;
@@ -61,9 +60,9 @@ const WorkspaceForm = ({ userId, workspace, onClose }: Props) => {
                                 };
                                 try {
                                     if (workspace) {
-                                        await API.luoye.updateWorkspace(workspace.id, props)(clientFetch);
+                                        await clientFetch(API.luoye.updateWorkspace(workspace.id, props));
                                     } else {
-                                        await API.luoye.createWorkspace(props)(clientFetch);
+                                        await clientFetch(API.luoye.createWorkspace(props));
                                     }
                                     await onClose(true);
                                 } catch (error: any) {

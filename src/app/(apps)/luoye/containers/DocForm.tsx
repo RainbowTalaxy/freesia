@@ -7,8 +7,7 @@ import { Doc, DocType, Scope, WorkspaceItem } from '@/app/api/luoye';
 import { formDate, time } from '@/app/utils';
 import { Button, Input, Select, Toggle } from '@/app/components/form';
 import { DOCTYPE_OPTIONS, DOCTYPE_OPTIONS_NAME } from '../configs';
-import API from '@/app/api';
-import clientFetch from '@/app/api/fetch/client';
+import API, { clientFetch } from '@/app/api';
 
 interface Props {
     workspace?: {
@@ -99,11 +98,11 @@ const DocForm = ({ workspace, workspaceItems, doc, onClose, onDelete }: Props) =
                                 try {
                                     let newDoc: Doc | null = null;
                                     if (doc) {
-                                        await API.luoye.updateDoc(doc.id, props)(clientFetch);
+                                        await clientFetch(API.luoye.updateDoc(doc.id, props));
                                     } else {
                                         const wId = workspaceRef.current?.value ?? workspace?.id;
                                         if (!wId) return Toast.notify('请选择工作区');
-                                        newDoc = await API.luoye.createDoc(wId, props)(clientFetch);
+                                        newDoc = await clientFetch(API.luoye.createDoc(wId, props));
                                     }
                                     await onClose(true, doc ? doc.id : newDoc?.id);
                                 } catch (error: any) {
@@ -120,7 +119,7 @@ const DocForm = ({ workspace, workspaceItems, doc, onClose, onDelete }: Props) =
                                 onClick={async () => {
                                     if (!confirm('确定要删除吗？')) return;
                                     try {
-                                        await API.luoye.deleteDoc(doc.id)(clientFetch);
+                                        await clientFetch(API.luoye.deleteDoc(doc.id));
                                         onDelete();
                                     } catch (error: any) {
                                         Toast.notify(error.message);

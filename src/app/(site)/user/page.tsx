@@ -2,8 +2,8 @@ import API from '@/app/api';
 import Login from './components/Login';
 import Logout from './components/Logout';
 import { Metadata } from 'next';
-import serverFetch from '@/app/api/fetch/server';
 import { Suspense } from 'react';
+import { serverFetch } from '@/app/api/server';
 
 export const metadata: Metadata = {
     title: '用户登陆',
@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 export default async function Page() {
     let userId: string | null = null;
     try {
-        const user = await API.user.test()(serverFetch);
+        const user = await serverFetch(API.user.test());
         userId = user.id;
     } catch {}
 

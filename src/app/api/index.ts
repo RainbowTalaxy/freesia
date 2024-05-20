@@ -7,3 +7,4 @@ const API = {
 };
 
 export default API;
+export { default as clientFetch } from './fetch/client';

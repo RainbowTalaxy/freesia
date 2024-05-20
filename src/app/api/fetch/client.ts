@@ -1,11 +1,11 @@
+import { request } from '.';
 import { ResponseError } from '../types';
 import { BODY_ENABLED_METHODS } from './constants';
 
 export default async function clientFetch<Data>(
-    url: string,
-    method: string,
-    data?: any,
+    api: ReturnType<typeof request<Data>>,
 ) {
+    let { url, method, data } = api;
     const isBodyEnabled = BODY_ENABLED_METHODS.includes(method);
     if (!isBodyEnabled) {
         url = url + (data ? '?' + new URLSearchParams(data).toString() : '');

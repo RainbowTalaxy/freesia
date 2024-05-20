@@ -6,8 +6,7 @@ import Placeholder from '../../components/PlaceHolder';
 import SVG from '../../components/SVG';
 import { DragDropContext, Draggable, Droppable } from '@hello-pangea/dnd';
 import { useState } from 'react';
-import API from '@/app/api';
-import clientFetch from '@/app/api/fetch/client';
+import API, { clientFetch } from '@/app/api';
 import { splitWorkspace } from '../../configs';
 import Toast from '../../components/Notification/Toast';
 
@@ -89,9 +88,11 @@ const SideBar = ({ userId, workspaceId, tab, defaultWorkspace, workspaces: _work
                     // 先更新状态，避免回弹动画
                     setWorkspaces(reOrdered);
                     try {
-                        const newWorkspaceItems = await API.luoye.updateWorkspaceItems(
-                            reOrdered.map((workspace) => workspace.id).concat(defaultWorkspace.id),
-                        )(clientFetch);
+                        const newWorkspaceItems = await clientFetch(
+                            API.luoye.updateWorkspaceItems(
+                                reOrdered.map((workspace) => workspace.id).concat(defaultWorkspace.id),
+                            ),
+                        );
                         setWorkspaces(splitWorkspace(newWorkspaceItems, userId).workspaces);
                     } catch (error: any) {
                         Toast.notify(error.message);

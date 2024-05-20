@@ -7,8 +7,7 @@ import Placeholder from '../../components/PlaceHolder';
 import SVG from '../../components/SVG';
 import Spacer from '@/app/components/Spacer';
 import { date } from '../../configs';
-import API from '@/app/api';
-import clientFetch from '@/app/api/fetch/client';
+import API, { clientFetch } from '@/app/api';
 import Toast from '../../components/Notification/Toast';
 import WorkspaceForm from '../../containers/WorkspaceForm';
 import DocForm from '../../containers/DocForm';
@@ -105,7 +104,7 @@ const Welcome = ({ userId, defaultWorkspace, workspaces, recentDocs }: Props) =>
                                     const granted = confirm('确定删除该记录吗？');
                                     if (!granted) return;
                                     try {
-                                        await API.luoye.deleteRecentDoc(doc.id)(clientFetch);
+                                        await clientFetch(API.luoye.deleteRecentDoc(doc.id));
                                         // await refetch();
                                         Toast.notify('删除成功');
                                     } catch {
