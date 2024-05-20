@@ -5,7 +5,7 @@ const Path = {
         window.location.href =
             BASE_PATH +
             '/user' +
-            '?nextUrl=' +
+            '?next_url=' +
             encodeURIComponent(window.location.href);
     },
 };

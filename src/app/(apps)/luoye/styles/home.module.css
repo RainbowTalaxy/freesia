@@ -41,6 +41,7 @@
     width: 2.7rem;
     height: 2.7rem;
     font-size: 1.5rem;
+    line-height: 1.65;
     border-radius: 6px;
     background: #ffe4b1;
     text-align: center;
@@ -73,6 +74,7 @@
     border-radius: 4px;
     font-size: 16px;
     font-weight: normal;
+    line-height: 1.65;
     color: var(--ly-primary);
     transition: all 0.3s;
     cursor: pointer;
@@ -154,6 +156,7 @@
     align-items: center;
     font-size: 18px;
     font-weight: bold;
+    line-height: 1.65;
     color: var(--ly-primary);
 }
 
