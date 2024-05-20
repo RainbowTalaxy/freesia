@@ -4,7 +4,7 @@ import { SideBarList, SideBarListItem, hideSidebar } from '../../components/Side
 import { Scope, WorkspaceItem } from '@/app/api/luoye';
 import Placeholder from '../../components/PlaceHolder';
 import SVG from '../../components/SVG';
-import { DragDropContext, Draggable, Droppable } from 'react-beautiful-dnd';
+import { DragDropContext, Draggable, Droppable } from '@hello-pangea/dnd';
 import { useState } from 'react';
 import API from '@/app/api';
 import clientFetch from '@/app/api/fetch/client';
@@ -120,6 +120,7 @@ const SideBar = ({ userId, workspaceId, tab, defaultWorkspace, workspaces: _work
                                     )}
                                 </Draggable>
                             ))}
+                            {provided.placeholder}
                         </SideBarList>
                     )}
                 </Droppable>
