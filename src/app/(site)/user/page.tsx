@@ -2,7 +2,6 @@ import API from '@/app/api';
 import Login from './components/Login';
 import Logout from './components/Logout';
 import { Metadata } from 'next';
-import Logger from '@/app/utils/Log';
 import serverFetch from '@/app/api/fetch/server';
 import { Suspense } from 'react';
 
@@ -15,9 +14,7 @@ export default async function Page() {
     try {
         const user = await API.user.test()(serverFetch);
         userId = user.id;
-    } catch (error: any) {
-        Logger.error(`获取用户信息失败：${error.message}`);
-    }
+    } catch {}
 
     return (
         <div className="px-[24px] py-[36px] m-auto max-w-[540px]">
