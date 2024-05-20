@@ -2,28 +2,20 @@
 import styles from '../styles/layout.module.css';
 import clsx from 'clsx';
 import { CSSProperties, ForwardedRef, ReactNode, forwardRef } from 'react';
-import {
-    DraggableProvidedDragHandleProps,
-    DraggableProvidedDraggableProps,
-} from 'react-beautiful-dnd';
+import { DraggableProvidedDragHandleProps, DraggableProvidedDraggableProps } from '@hello-pangea/dnd';
 
 interface ListProps {
     className?: string;
     children?: ReactNode;
 }
 
-export const SideBarList = forwardRef(
-    (
-        { className, children }: ListProps,
-        ref: ForwardedRef<HTMLUListElement>,
-    ) => {
-        return (
-            <ul ref={ref} className={clsx(styles.sidebarList, className)}>
-                {children}
-            </ul>
-        );
-    },
-);
+export const SideBarList = forwardRef(({ className, children }: ListProps, ref: ForwardedRef<HTMLUListElement>) => {
+    return (
+        <ul ref={ref} className={clsx(styles.sidebarList, className)}>
+            {children}
+        </ul>
+    );
+});
 
 interface ListItemProps {
     className?: string;
@@ -38,34 +30,19 @@ interface ListItemProps {
 
 export const SideBarListItem = forwardRef(
     (
-        {
-            className,
-            active,
-            icon,
-            children,
-            style,
-            onClick,
-            dragHandleProps,
-            draggableProps,
-        }: ListItemProps,
+        { className, active, icon, children, style, onClick, dragHandleProps, draggableProps }: ListItemProps,
         ref: ForwardedRef<HTMLLIElement>,
     ) => {
         return (
             <li
                 ref={ref}
-                className={clsx(
-                    styles.sidebarListItem,
-                    active && styles.active,
-                    className,
-                )}
+                className={clsx(styles.sidebarListItem, active && styles.active, className)}
                 onClick={onClick}
                 style={style}
                 {...dragHandleProps}
                 {...draggableProps}
             >
-                {icon && (
-                    <span className={styles.sidebarListItemIcon}>{icon}</span>
-                )}
+                {icon && <span className={styles.sidebarListItemIcon}>{icon}</span>}
                 {children}
             </li>
         );
@@ -93,22 +70,9 @@ export const hideSidebar = () => {
     sidebar?.classList.remove(REVEAL_CLASS);
 };
 
-const ContentWithSideBar = ({
-    className,
-    sidebar,
-    navbar,
-    children,
-    sidebarVisible = true,
-}: SideBarProps) => {
+const ContentWithSideBar = ({ className, sidebar, navbar, children, sidebarVisible = true }: SideBarProps) => {
     return (
-        <div
-            id={SIDE_BAR_ID}
-            className={clsx(
-                styles.pageView,
-                !sidebarVisible && styles.noSidebar,
-                className,
-            )}
-        >
+        <div id={SIDE_BAR_ID} className={clsx(styles.pageView, !sidebarVisible && styles.noSidebar, className)}>
             {sidebarVisible && (
                 <>
                     <nav className={styles.sidebar}>{sidebar}</nav>
