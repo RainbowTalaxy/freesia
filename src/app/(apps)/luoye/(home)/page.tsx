@@ -1,29 +1,34 @@
 import Server, { serverFetch } from '@/app/api/server';
 import Welcome from './pages/Welcome';
-import { DocItem, WorkspaceItem } from '@/app/api/luoye';
 import API from '@/app/api';
 import { splitWorkspace } from '../configs';
+import { cache } from 'react';
 
-export default async function Home() {
+export const fetchHomeInfo = cache(async () => {
     const userId = await Server.userId();
 
-    let workspaces: WorkspaceItem[] | null = null;
-    let recentDocs: DocItem[] | null = null;
-    let defaultWorkspace: WorkspaceItem | null = null;
-    let allWorkspaces: WorkspaceItem[] | null = null;
-    if (userId) {
-        const [_workspaces, _recentDocs] = await Promise.all([
-            serverFetch(API.luoye.workspaceItems()),
-            serverFetch(API.luoye.recentDocs()),
-        ]);
-        recentDocs = _recentDocs;
-        const splitWorkspaces = splitWorkspace(_workspaces, userId);
-        defaultWorkspace = splitWorkspaces.defaultWorkspace;
-        workspaces = splitWorkspaces.workspaces;
-        allWorkspaces = [defaultWorkspace, ...workspaces];
-    }
+    if (!userId) return null;
 
-    if (!userId || !defaultWorkspace || !workspaces || !recentDocs) return;
+    const _workspaces = await serverFetch(API.luoye.workspaceItems());
+    const splitWorkspaces = splitWorkspace(_workspaces, userId);
+    const defaultWorkspace = splitWorkspaces.defaultWorkspace;
+    const workspaces = splitWorkspaces.workspaces;
+    const allWorkspaces = [defaultWorkspace, ...workspaces];
+    return {
+        userId,
+        defaultWorkspace,
+        workspaces,
+        allWorkspaces,
+    };
+});
+
+export default async function Home() {
+    const homeInfo = await fetchHomeInfo();
+
+    if (!homeInfo) return null;
+
+    const { userId, defaultWorkspace, workspaces } = homeInfo;
+    const recentDocs = await serverFetch(API.luoye.recentDocs());
 
     return (
         <Welcome userId={userId} defaultWorkspace={defaultWorkspace} workspaces={workspaces} recentDocs={recentDocs} />
