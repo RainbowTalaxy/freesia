@@ -16,6 +16,6 @@ export default async function Page({ params }: Props) {
         case 'settings':
             return <Settings />;
         default:
-            return <div>Hello</div>;
+            return null;
     }
 }

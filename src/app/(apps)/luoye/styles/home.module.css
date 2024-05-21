@@ -94,6 +94,7 @@
     align-self: flex-end;
     flex-shrink: 0;
     margin: 0 0 2px 12px;
+    line-height: 1.65;
     color: gray;
 }
 
