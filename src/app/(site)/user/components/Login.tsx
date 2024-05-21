@@ -43,7 +43,7 @@ export default function Login() {
                         router.refresh();
                     }
                 } catch (error: any) {
-                    alert(`登陆失败：${error.message}`);
+                    alert(`登录失败：${error.message}`);
                 }
             }}
         >
@@ -55,7 +55,7 @@ export default function Login() {
                 className="mt-[16px] px-[16px] py-[8px] bg-[#6a8bad] text-white rounded-[6px]"
                 type="submit"
             >
-                登陆
+                登录
             </button>
         </form>
     );

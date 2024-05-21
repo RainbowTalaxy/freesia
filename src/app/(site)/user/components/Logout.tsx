@@ -17,7 +17,7 @@ export default function Logout() {
                 }
             }}
         >
-            退出登陆
+            退出登录
         </button>
     );
 }

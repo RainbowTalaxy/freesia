@@ -1,5 +1,5 @@
 'use client';
-import { useRouter } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { SideBarList, SideBarListItem, hideSidebar } from '../../components/SideBar';
 import { Scope, WorkspaceItem } from '@/app/api/luoye';
 import Placeholder from '../../components/PlaceHolder';
@@ -9,65 +9,46 @@ import { useState } from 'react';
 import API, { clientFetch } from '@/app/api';
 import { splitWorkspace } from '../../configs';
 import Toast from '../../components/Notification/Toast';
-
-enum Tab {
-    DocBin = 'doc-bin',
-    Settings = 'settings',
-}
+import Link from 'next/link';
 
 interface Props {
     userId: string;
-    workspaceId?: string;
-    tab?: string;
     defaultWorkspace: WorkspaceItem;
     workspaces: WorkspaceItem[];
 }
 
-const SideBar = ({ userId, workspaceId, tab, defaultWorkspace, workspaces: _workspaces }: Props) => {
+const SideBar = ({ userId, defaultWorkspace, workspaces: _workspaces }: Props) => {
     // const router = useRouter();
+    const { tab, workspaceId } = useParams<{
+        tab?: string;
+        workspaceId?: string;
+    }>();
     const [workspaces, setWorkspaces] = useState(_workspaces);
 
     return (
         <>
             <SideBarList>
-                <SideBarListItem
-                    active={!workspaceId && !tab}
-                    icon="🍄"
-                    onClick={() => {
-                        // router.push('/luoye');
-                        // hideSidebar();
-                    }}
-                >
-                    开始
-                </SideBarListItem>
-                <SideBarListItem
-                    active={tab === Tab.Settings}
-                    icon="⚙️"
-                    onClick={() => {
-                        // history.push(`?item=${Item.Settings}`);
-                        // hideSidebar();
-                    }}
-                >
-                    设置
-                </SideBarListItem>
-                <SideBarListItem
-                    icon="🪴"
-                    active={workspaceId === defaultWorkspace.id}
-                    // onClick={() => history.push(`?workspace=${defaultWorkspace.id}`)}
-                >
-                    <span>{defaultWorkspace.name || <Placeholder>未命名</Placeholder>}</span>
-                    {defaultWorkspace.scope === Scope.Private && <SVG.Lock />}
-                </SideBarListItem>
-                <SideBarListItem
-                    active={tab === Tab.DocBin}
-                    icon="♻️"
-                    onClick={() => {
-                        // history.push(`?item=${Item.DocBin}`);
-                        // hideSidebar();
-                    }}
-                >
-                    文档回收站
-                </SideBarListItem>
+                <Link href="/luoye">
+                    <SideBarListItem active={!workspaceId && !tab} icon="🍄">
+                        开始
+                    </SideBarListItem>
+                </Link>
+                <Link href="/luoye/settings">
+                    <SideBarListItem active={tab === 'settings'} icon="⚙️">
+                        设置
+                    </SideBarListItem>
+                </Link>
+                <Link href="">
+                    <SideBarListItem icon="🪴" active={workspaceId === defaultWorkspace.id}>
+                        <span>{defaultWorkspace.name || <Placeholder>未命名</Placeholder>}</span>
+                        {defaultWorkspace.scope === Scope.Private && <SVG.Lock />}
+                    </SideBarListItem>
+                </Link>
+                <Link href="/luoye/doc-bin">
+                    <SideBarListItem active={tab === 'doc-bin'} icon="♻️">
+                        文档回收站
+                    </SideBarListItem>
+                </Link>
             </SideBarList>
             <h2>工作区</h2>
             {workspaces.length === 0 && (

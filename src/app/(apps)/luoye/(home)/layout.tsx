@@ -10,18 +10,12 @@ import { splitWorkspace } from '../configs';
 import { ReactNode } from 'react';
 import SideBar from './containers/SideBar';
 
-export default async function Layout({
-    children,
-    params,
-}: Readonly<{
+interface Props {
     children: ReactNode;
-    params: {
-        workspaceId?: string;
-        tab: string;
-    };
-}>) {
+}
+
+export default async function Layout({ children }: Props) {
     const userId = await Server.userId();
-    const { workspaceId, tab } = params;
 
     let workspaces: WorkspaceItem[] | null = null;
     let recentDocs: DocItem[] | null = null;
@@ -47,13 +41,7 @@ export default async function Layout({
                     <>
                         <ProjectTitle className={styles.fixedTitle} userId={userId} />
                         {userId && defaultWorkspace && workspaces && (
-                            <SideBar
-                                userId={userId}
-                                workspaceId={workspaceId}
-                                tab={tab}
-                                defaultWorkspace={defaultWorkspace}
-                                workspaces={workspaces}
-                            />
+                            <SideBar userId={userId} defaultWorkspace={defaultWorkspace} workspaces={workspaces} />
                         )}
                     </>
                 }

@@ -1,5 +1,5 @@
 import Server, { serverFetch } from '@/app/api/server';
-import Welcome from './containers/Welcome';
+import Welcome from './pages/Welcome';
 import { DocItem, WorkspaceItem } from '@/app/api/luoye';
 import API from '@/app/api';
 import { splitWorkspace } from '../configs';
