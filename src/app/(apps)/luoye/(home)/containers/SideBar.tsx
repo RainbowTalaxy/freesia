@@ -38,8 +38,8 @@ const SideBar = ({ userId, defaultWorkspace, workspaces: _workspaces }: Props) =
                         设置
                     </SideBarListItem>
                 </Link>
-                <Link href={`/luoye/workspace/${defaultWorkspace.id}`}>
-                    <SideBarListItem icon="🪴" active={workspaceId === defaultWorkspace.id}>
+                <Link href={`/luoye/workspace`}>
+                    <SideBarListItem icon="🪴" active={tab === 'workspace' || workspaceId === defaultWorkspace.id}>
                         <span>{defaultWorkspace.name || <Placeholder>未命名</Placeholder>}</span>
                         {defaultWorkspace.scope === Scope.Private && <SVG.Lock />}
                     </SideBarListItem>
