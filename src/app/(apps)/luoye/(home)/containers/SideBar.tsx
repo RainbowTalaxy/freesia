@@ -1,6 +1,6 @@
 'use client';
-import { useParams, useRouter } from 'next/navigation';
-import { SideBarList, SideBarListItem, hideSidebar } from '../../components/SideBar';
+import { useParams } from 'next/navigation';
+import { SideBarList, SideBarListItem } from '../../components/SideBar';
 import { Scope, WorkspaceItem } from '@/app/api/luoye';
 import Placeholder from '../../components/PlaceHolder';
 import SVG from '../../components/SVG';
@@ -18,7 +18,6 @@ interface Props {
 }
 
 const SideBar = ({ userId, defaultWorkspace, workspaces: _workspaces }: Props) => {
-    // const router = useRouter();
     const { tab, workspaceId } = useParams<{
         tab?: string;
         workspaceId?: string;
@@ -87,18 +86,19 @@ const SideBar = ({ userId, defaultWorkspace, workspaces: _workspaces }: Props) =
                             {workspaces.map((workspace, index) => (
                                 <Draggable key={workspace.id} draggableId={workspace.id} index={index}>
                                     {(provided) => (
-                                        <SideBarListItem
-                                            icon="🪴"
-                                            ref={provided.innerRef}
-                                            active={workspaceId === workspace.id}
-                                            // onClick={() => history.push(`?workspace=${workspace.id}`)}
-                                            draggableProps={provided.draggableProps}
-                                            dragHandleProps={provided.dragHandleProps}
-                                            style={provided.draggableProps.style}
-                                        >
-                                            <span>{workspace.name || <Placeholder>未命名</Placeholder>}</span>
-                                            {workspace.scope === Scope.Private && <SVG.Lock />}
-                                        </SideBarListItem>
+                                        <Link href={`/luoye/workspace/${workspace.id}`}>
+                                            <SideBarListItem
+                                                icon="🪴"
+                                                ref={provided.innerRef}
+                                                active={workspaceId === workspace.id}
+                                                draggableProps={provided.draggableProps}
+                                                dragHandleProps={provided.dragHandleProps}
+                                                style={provided.draggableProps.style}
+                                            >
+                                                <span>{workspace.name || <Placeholder>未命名</Placeholder>}</span>
+                                                {workspace.scope === Scope.Private && <SVG.Lock />}
+                                            </SideBarListItem>
+                                        </Link>
                                     )}
                                 </Draggable>
                             ))}
