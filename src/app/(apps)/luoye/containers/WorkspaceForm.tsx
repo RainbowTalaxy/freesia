@@ -3,14 +3,14 @@ import clsx from 'clsx';
 import { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import Toast from '../components/Notification/Toast';
-import { Scope, WorkspaceItem } from '@/app/api/luoye';
+import { Scope, Workspace, WorkspaceItem } from '@/app/api/luoye';
 import { Button, Input, TextArea, Toggle } from '@/app/components/form';
 import API, { clientFetch } from '@/app/api';
 
 interface Props {
     userId: string;
     workspace?: Omit<WorkspaceItem, 'joinAt'>;
-    onClose: (success?: boolean) => Promise<void>;
+    onClose: (newWorkspace?: Workspace) => Promise<void>;
 }
 
 const WorkspaceForm = ({ userId, workspace, onClose }: Props) => {
@@ -59,12 +59,15 @@ const WorkspaceForm = ({ userId, workspace, onClose }: Props) => {
                                     scope: scopeRef.current!.checked ? Scope.Public : Scope.Private,
                                 };
                                 try {
+                                    let newWorkspace: Workspace;
                                     if (workspace) {
-                                        await clientFetch(API.luoye.updateWorkspace(workspace.id, props));
+                                        newWorkspace = await clientFetch(
+                                            API.luoye.updateWorkspace(workspace.id, props),
+                                        );
                                     } else {
-                                        await clientFetch(API.luoye.createWorkspace(props));
+                                        newWorkspace = await clientFetch(API.luoye.createWorkspace(props));
                                     }
-                                    await onClose(true);
+                                    await onClose(newWorkspace);
                                 } catch (error: any) {
                                     Toast.notify(error.message);
                                 }

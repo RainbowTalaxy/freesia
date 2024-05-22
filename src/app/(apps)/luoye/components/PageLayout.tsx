@@ -70,7 +70,7 @@ export const hideSidebar = () => {
     sidebar?.classList.remove(REVEAL_CLASS);
 };
 
-const ContentWithSideBar = ({ className, sidebar, navbar, children, sidebarVisible = true }: SideBarProps) => {
+const PageLayout = ({ className, sidebar, navbar, children, sidebarVisible = true }: SideBarProps) => {
     return (
         <div id={SIDE_BAR_ID} className={clsx(styles.pageView, !sidebarVisible && styles.noSidebar, className)}>
             {sidebarVisible && (
@@ -87,4 +87,4 @@ const ContentWithSideBar = ({ className, sidebar, navbar, children, sidebarVisib
     );
 };
 
-export default ContentWithSideBar;
+export default PageLayout;

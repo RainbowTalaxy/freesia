@@ -17,7 +17,7 @@ interface Props {
     };
     workspaceItems?: WorkspaceItem[];
     doc?: Doc;
-    onClose: (success?: boolean, id?: string) => Promise<void>;
+    onClose: (newDoc?: Doc) => Promise<void>;
     onDelete?: () => void;
 }
 
@@ -96,15 +96,15 @@ const DocForm = ({ workspace, workspaceItems, doc, onClose, onDelete }: Props) =
                                     docType,
                                 };
                                 try {
-                                    let newDoc: Doc | null = null;
+                                    let newDoc: Doc;
                                     if (doc) {
-                                        await clientFetch(API.luoye.updateDoc(doc.id, props));
+                                        newDoc = await clientFetch(API.luoye.updateDoc(doc.id, props));
                                     } else {
                                         const wId = workspaceRef.current?.value ?? workspace?.id;
                                         if (!wId) return Toast.notify('请选择工作区');
                                         newDoc = await clientFetch(API.luoye.createDoc(wId, props));
                                     }
-                                    await onClose(true, doc ? doc.id : newDoc?.id);
+                                    await onClose(newDoc);
                                 } catch (error: any) {
                                     Toast.notify(error.message);
                                 }

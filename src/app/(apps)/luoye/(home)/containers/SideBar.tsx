@@ -1,6 +1,6 @@
 'use client';
 import { useParams } from 'next/navigation';
-import { SideBarList, SideBarListItem } from '../../components/SideBar';
+import { SideBarList, SideBarListItem } from '../../components/PageLayout';
 import { Scope, WorkspaceItem } from '@/app/api/luoye';
 import Placeholder from '../../components/PlaceHolder';
 import SVG from '../../components/SVG';

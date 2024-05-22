@@ -11,6 +11,8 @@ import API, { clientFetch } from '@/app/api';
 import Toast from '../../components/Notification/Toast';
 import WorkspaceForm from '../../containers/WorkspaceForm';
 import DocForm from '../../containers/DocForm';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 interface Props {
     userId: string;
@@ -22,6 +24,8 @@ interface Props {
 const WORKSPACE_FOLD_THRESHOLD = 7;
 
 const Welcome = ({ userId, defaultWorkspace, workspaces, recentDocs }: Props) => {
+    const router = useRouter();
+
     const allWorkspaces = useMemo(() => {
         return [defaultWorkspace, ...workspaces];
     }, [defaultWorkspace, workspaces]);
@@ -52,11 +56,7 @@ const Welcome = ({ userId, defaultWorkspace, workspaces, recentDocs }: Props) =>
             <h2 className={styles.header}>工作区</h2>
             <div className={styles.workspaceList}>
                 {foldedWorkspaces.map((workspace) => (
-                    <div
-                        className={styles.workspaceItem}
-                        key={workspace.id}
-                        // onClick={() => history.push(`?workspace=${workspace.id}`)}
-                    >
+                    <Link className={styles.workspaceItem} key={workspace.id} href={`/luoye/workspace/${workspace.id}`}>
                         <div className={styles.workspaceName}>
                             <span>🪴</span>
                             <div>{workspace.name || <Placeholder>未命名</Placeholder>}</div>
@@ -65,7 +65,7 @@ const Welcome = ({ userId, defaultWorkspace, workspaces, recentDocs }: Props) =>
                         <div className={styles.description}>
                             {workspace.description || <Placeholder>暂无描述</Placeholder>}
                         </div>
-                    </div>
+                    </Link>
                 ))}
                 {isWorkspaceFolderVisible && (
                     <div
@@ -87,11 +87,7 @@ const Welcome = ({ userId, defaultWorkspace, workspaces, recentDocs }: Props) =>
             ) : (
                 <div className={styles.docList}>
                     {recentDocs.map((doc) => (
-                        <div
-                            className={styles.docItem}
-                            key={doc.id}
-                            // onClick={() => history.push(`/luoye/doc?id=${doc.id}`)}
-                        >
+                        <Link className={styles.docItem} key={doc.id} href={`/luoye/doc/${doc.id}`}>
                             <div className={styles.docName}>{doc.name || <Placeholder>未命名文档</Placeholder>}</div>
                             {doc.scope === Scope.Private && <SVG.Lock />}
                             <Spacer />
@@ -114,15 +110,15 @@ const Welcome = ({ userId, defaultWorkspace, workspaces, recentDocs }: Props) =>
                             >
                                 删除
                             </div>
-                        </div>
+                        </Link>
                     ))}
                 </div>
             )}
             {userId && isWorkspaceFormVisible && (
                 <WorkspaceForm
                     userId={userId}
-                    onClose={async (success) => {
-                        // if (success) await refetch();
+                    onClose={async (newWorkspace) => {
+                        if (newWorkspace) router.refresh();
                         setWorkspaceFormVisible(false);
                     }}
                 />
@@ -131,10 +127,9 @@ const Welcome = ({ userId, defaultWorkspace, workspaces, recentDocs }: Props) =>
                 <DocForm
                     workspace={defaultWorkspace}
                     workspaceItems={allWorkspaces}
-                    onClose={async (success, newDocId) => {
-                        // if (success) await refetch();
+                    onClose={async (newDoc) => {
+                        if (newDoc) router.push(`/luoye/doc/${newDoc.id}`);
                         setDocFormVisible(false);
-                        // if (newDocId) history.push(`/luoye/doc?id=${newDocId}`);
                     }}
                 />
             )}

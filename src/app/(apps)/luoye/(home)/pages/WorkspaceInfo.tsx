@@ -10,6 +10,7 @@ import SVG from '../../components/SVG';
 import DocForm from '../../containers/DocForm';
 import { useRouter } from 'next/navigation';
 import WorkspaceForm from '../../containers/WorkspaceForm';
+import Link from 'next/link';
 
 interface Props {
     userId: string;
@@ -48,27 +49,22 @@ const WorkspaceInfo = ({ userId, data }: Props) => {
                 </div>
             ) : (
                 <div className={styles.docList}>
-                    {data.docs.map((doc) => (
-                        <div
-                            className={styles.docItem}
-                            key={doc.docId}
-                            // onClick={() => history.push(`/luoye/doc?id=${doc.docId}`)}
-                        >
-                            <div className={styles.docName}>{doc.name || <Placeholder>未命名文档</Placeholder>}</div>
-                            {doc.scope === Scope.Private && <SVG.Lock />}
+                    {data.docs.map((docDir) => (
+                        <Link className={styles.docItem} key={docDir.docId} href={`/luoye/doc/${docDir.docId}`}>
+                            <div className={styles.docName}>{docDir.name || <Placeholder>未命名文档</Placeholder>}</div>
+                            {docDir.scope === Scope.Private && <SVG.Lock />}
                             <Spacer />
-                            <div className={styles.docDate}>{date(doc.updatedAt)}</div>
-                        </div>
+                            <div className={styles.docDate}>{date(docDir.updatedAt)}</div>
+                        </Link>
                     ))}
                 </div>
             )}
             {isDocFormVisible && (
                 <DocForm
                     workspace={data}
-                    onClose={async (success, newDocId) => {
-                        if (success) router.refresh();
+                    onClose={async (newDoc) => {
+                        if (newDoc) router.push(`/luoye/doc/${newDoc.id}`);
                         setDocFormVisible(false);
-                        // if (newDocId) history.push(`/luoye/doc?id=${newDocId}`);
                     }}
                 />
             )}
@@ -76,8 +72,8 @@ const WorkspaceInfo = ({ userId, data }: Props) => {
                 <WorkspaceForm
                     userId={userId}
                     workspace={data}
-                    onClose={async (success) => {
-                        if (success) router.refresh();
+                    onClose={async (newWorkspace) => {
+                        if (newWorkspace) router.refresh();
                         setWorkspaceFormVisible(false);
                     }}
                 />

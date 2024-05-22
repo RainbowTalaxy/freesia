@@ -3,10 +3,10 @@ import styles from '../styles/home.module.css';
 import { PROJECT_ICON, PROJECT_NAME } from '../configs';
 import clsx from 'clsx';
 import SVG from '../components/SVG';
-import { revealSidebar } from '../components/SideBar';
-import { useRouter } from 'next/navigation';
+import { revealSidebar } from '../components/PageLayout';
 import Spacer from '@/app/components/Spacer';
 import { Path } from '@/app/utils';
+import Link from 'next/link';
 
 interface Props {
     className?: string;
@@ -15,25 +15,9 @@ interface Props {
     owner?: string;
     showInfo?: boolean;
     fold?: boolean;
-    navigatePreCheck?: () => boolean;
 }
 
-const ProjectTitle = ({
-    className,
-    userId,
-    marginBottom = 0,
-    owner,
-    fold = false,
-    showInfo = true,
-    navigatePreCheck,
-}: Props) => {
-    const router = useRouter();
-
-    const backToHome = () => {
-        if (navigatePreCheck && !navigatePreCheck()) return;
-        router.push('/luoye');
-    };
-
+const ProjectTitle = ({ className, userId, marginBottom = 0, owner, fold = false, showInfo = true }: Props) => {
     return (
         <div className={clsx(styles.projectTitle, className)} style={{ marginBottom }}>
             {fold && (
@@ -41,12 +25,12 @@ const ProjectTitle = ({
                     <SVG.Hamburger />
                 </span>
             )}
-            <span className={clsx(styles.pageIcon, !fold && styles.showIcon)} onClick={backToHome}>
+            <Link className={clsx(styles.pageIcon, !fold && styles.showIcon)} href="/luoye">
                 {PROJECT_ICON}
-            </span>
-            <h1 className={styles.pageName} onClick={backToHome}>
+            </Link>
+            <Link className={styles.pageName} href="/luoye">
                 {PROJECT_NAME}
-            </h1>
+            </Link>
             <Spacer />
             {showInfo && (
                 <span
