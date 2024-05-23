@@ -52,7 +52,7 @@ const SideBar = ({ userId, defaultWorkspace, workspaces: _workspaces }: Props) =
             <h2>工作区</h2>
             {workspaces.length === 0 && (
                 <SideBarList>
-                    <SideBarListItem>
+                    <SideBarListItem name="暂无工作区">
                         <Placeholder>暂无工作区</Placeholder>
                     </SideBarListItem>
                 </SideBarList>

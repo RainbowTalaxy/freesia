@@ -19,6 +19,8 @@ export const SideBarList = forwardRef(({ className, children }: ListProps, ref: 
 
 interface ListItemProps {
     className?: string;
+    /** 项目名，debug 用 */
+    name?: string;
     active?: boolean;
     icon?: ReactNode;
     children?: ReactNode;

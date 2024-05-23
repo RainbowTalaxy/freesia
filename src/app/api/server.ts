@@ -4,7 +4,7 @@ import serverFetch from './fetch/server';
 const Server = {
     userId: async () => {
         try {
-            const { id: userId } = await serverFetch(API.user.test());
+            const { id: userId } = await serverFetch(API.user.info());
             return userId;
         } catch {
             return null;

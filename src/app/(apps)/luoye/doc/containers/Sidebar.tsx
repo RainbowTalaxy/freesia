@@ -78,6 +78,7 @@ const SideBar = ({ userId, doc, workspace: _workspace }: Props) => {
                                         <Link href={`/luoye/doc/${docDir.docId}`}>
                                             <SideBarListItem
                                                 ref={provided.innerRef}
+                                                name={docDir.name || '未命名'}
                                                 active={docDir.docId === doc.id}
                                                 draggableProps={provided.draggableProps}
                                                 dragHandleProps={provided.dragHandleProps}

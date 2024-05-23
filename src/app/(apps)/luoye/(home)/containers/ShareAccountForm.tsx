@@ -20,7 +20,7 @@ const ShareAccountForm = ({ onClose }: Props) => {
     useEffect(() => {
         (async () => {
             try {
-                const { id } = await clientFetch(API.user.test());
+                const { id } = await clientFetch(API.user.info());
                 idRef.current!.value = id;
             } catch (error: any) {
                 Toast.notify(error.message);

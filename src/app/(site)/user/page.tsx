@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 export default async function Page() {
     let userId: string | null = null;
     try {
-        const user = await serverFetch(API.user.test());
+        const user = await serverFetch(API.user.info());
         userId = user.id;
     } catch {}
 
