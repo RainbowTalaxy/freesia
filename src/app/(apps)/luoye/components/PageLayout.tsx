@@ -3,6 +3,7 @@ import styles from '../styles/layout.module.css';
 import clsx from 'clsx';
 import { CSSProperties, ForwardedRef, ReactNode, forwardRef } from 'react';
 import { DraggableProvidedDragHandleProps, DraggableProvidedDraggableProps } from '@hello-pangea/dnd';
+import Link from 'next/link';
 
 interface ListProps {
     className?: string;
@@ -25,6 +26,7 @@ interface ListItemProps {
     icon?: ReactNode;
     children?: ReactNode;
     style?: CSSProperties;
+    href?: string;
     onClick?: () => void;
     draggableProps?: DraggableProvidedDraggableProps;
     dragHandleProps?: DraggableProvidedDragHandleProps | null;
@@ -32,10 +34,24 @@ interface ListItemProps {
 
 export const SideBarListItem = forwardRef(
     (
-        { className, active, icon, children, style, onClick, dragHandleProps, draggableProps }: ListItemProps,
+        { className, active, icon, children, style, href, onClick, dragHandleProps, draggableProps }: ListItemProps,
         ref: ForwardedRef<HTMLLIElement>,
     ) => {
-        return (
+        return href ? (
+            <li
+                ref={ref}
+                className={clsx(styles.sidebarListItemWrapper, active && styles.active, className)}
+                onClick={onClick}
+                style={style}
+                {...dragHandleProps}
+                {...draggableProps}
+            >
+                <Link className={styles.sidebarListItem} href={href}>
+                    {icon && <span className={styles.sidebarListItemIcon}>{icon}</span>}
+                    {children}
+                </Link>
+            </li>
+        ) : (
             <li
                 ref={ref}
                 className={clsx(styles.sidebarListItem, active && styles.active, className)}

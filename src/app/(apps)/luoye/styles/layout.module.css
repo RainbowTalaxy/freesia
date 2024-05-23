@@ -59,6 +59,7 @@
     list-style: none;
 }
 
+.sidebarListItemWrapper,
 .sidebarListItem,
 .sidebarList li {
     display: flex;
@@ -70,6 +71,16 @@
     cursor: pointer;
     font-variant: tabular-nums;
     font-feature-settings: 'tnum';
+}
+
+li.sidebarListItemWrapper {
+    padding: 0;
+}
+
+.sidebarListItemWrapper > a {
+    margin: 0;
+    padding: 6px 12px;
+    width: 100%;
 }
 
 .sidebar h1,

@@ -27,27 +27,23 @@ const SideBar = ({ userId, defaultWorkspace, workspaces: _workspaces }: Props) =
     return (
         <>
             <SideBarList>
-                <Link href="/luoye">
-                    <SideBarListItem active={!workspaceId && !tab} icon="🍄">
-                        开始
-                    </SideBarListItem>
-                </Link>
-                <Link href="/luoye/settings">
-                    <SideBarListItem active={tab === 'settings'} icon="⚙️">
-                        设置
-                    </SideBarListItem>
-                </Link>
-                <Link href={`/luoye/workspace`}>
-                    <SideBarListItem icon="🪴" active={tab === 'workspace' || workspaceId === defaultWorkspace.id}>
-                        <span>{defaultWorkspace.name || <Placeholder>未命名</Placeholder>}</span>
-                        {defaultWorkspace.scope === Scope.Private && <SVG.Lock />}
-                    </SideBarListItem>
-                </Link>
-                <Link href="/luoye/doc-bin">
-                    <SideBarListItem active={tab === 'doc-bin'} icon="♻️">
-                        文档回收站
-                    </SideBarListItem>
-                </Link>
+                <SideBarListItem href="/luoye" active={!workspaceId && !tab} icon="🍄">
+                    开始
+                </SideBarListItem>
+                <SideBarListItem href="/luoye/settings" active={tab === 'settings'} icon="⚙️">
+                    设置
+                </SideBarListItem>
+                <SideBarListItem
+                    icon="🪴"
+                    href={`/luoye/workspace`}
+                    active={tab === 'workspace' || workspaceId === defaultWorkspace.id}
+                >
+                    <span>{defaultWorkspace.name || <Placeholder>未命名</Placeholder>}</span>
+                    {defaultWorkspace.scope === Scope.Private && <SVG.Lock />}
+                </SideBarListItem>
+                <SideBarListItem href="/luoye/doc-bin" active={tab === 'doc-bin'} icon="♻️">
+                    文档回收站
+                </SideBarListItem>
             </SideBarList>
             <h2>工作区</h2>
             {workspaces.length === 0 && (
@@ -86,19 +82,18 @@ const SideBar = ({ userId, defaultWorkspace, workspaces: _workspaces }: Props) =
                             {workspaces.map((workspace, index) => (
                                 <Draggable key={workspace.id} draggableId={workspace.id} index={index}>
                                     {(provided) => (
-                                        <Link href={`/luoye/workspace/${workspace.id}`}>
-                                            <SideBarListItem
-                                                icon="🪴"
-                                                ref={provided.innerRef}
-                                                active={workspaceId === workspace.id}
-                                                draggableProps={provided.draggableProps}
-                                                dragHandleProps={provided.dragHandleProps}
-                                                style={provided.draggableProps.style}
-                                            >
-                                                <span>{workspace.name || <Placeholder>未命名</Placeholder>}</span>
-                                                {workspace.scope === Scope.Private && <SVG.Lock />}
-                                            </SideBarListItem>
-                                        </Link>
+                                        <SideBarListItem
+                                            icon="🪴"
+                                            href={`/luoye/workspace/${workspace.id}`}
+                                            active={workspaceId === workspace.id}
+                                            ref={provided.innerRef}
+                                            draggableProps={provided.draggableProps}
+                                            dragHandleProps={provided.dragHandleProps}
+                                            style={provided.draggableProps.style}
+                                        >
+                                            <span>{workspace.name || <Placeholder>未命名</Placeholder>}</span>
+                                            {workspace.scope === Scope.Private && <SVG.Lock />}
+                                        </SideBarListItem>
                                     )}
                                 </Draggable>
                             ))}

@@ -75,19 +75,18 @@ const SideBar = ({ userId, doc, workspace: _workspace }: Props) => {
                             {workspace.docs.map((docDir, index) => (
                                 <Draggable key={docDir.docId} draggableId={docDir.docId} index={index}>
                                     {(provided) => (
-                                        <Link href={`/luoye/doc/${docDir.docId}`}>
-                                            <SideBarListItem
-                                                ref={provided.innerRef}
-                                                name={docDir.name || '未命名'}
-                                                active={docDir.docId === doc.id}
-                                                draggableProps={provided.draggableProps}
-                                                dragHandleProps={provided.dragHandleProps}
-                                                style={provided.draggableProps.style}
-                                            >
-                                                <span>{docDir.name || <Placeholder>未命名</Placeholder>}</span>
-                                                {docDir.scope === Scope.Private && <SVG.Lock />}
-                                            </SideBarListItem>
-                                        </Link>
+                                        <SideBarListItem
+                                            ref={provided.innerRef}
+                                            name={docDir.name || '未命名'}
+                                            active={docDir.docId === doc.id}
+                                            draggableProps={provided.draggableProps}
+                                            dragHandleProps={provided.dragHandleProps}
+                                            style={provided.draggableProps.style}
+                                            href={`/luoye/doc/${docDir.docId}`}
+                                        >
+                                            <span>{docDir.name || <Placeholder>未命名</Placeholder>}</span>
+                                            {docDir.scope === Scope.Private && <SVG.Lock />}
+                                        </SideBarListItem>
                                     )}
                                 </Draggable>
                             ))}
