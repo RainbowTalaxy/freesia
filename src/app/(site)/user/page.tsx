@@ -1,20 +1,15 @@
-import API from '@/app/api';
 import Login from './components/Login';
 import Logout from './components/Logout';
 import { Metadata } from 'next';
 import { Suspense } from 'react';
-import { serverFetch } from '@/app/api/server';
+import Server from '@/app/api/server';
 
 export const metadata: Metadata = {
     title: '用户登录',
 };
 
 export default async function Page() {
-    let userId: string | null = null;
-    try {
-        const user = await serverFetch(API.user.info());
-        userId = user.id;
-    } catch {}
+    const userId = await Server.userId();
 
     return (
         <div className="px-[24px] py-[36px] m-auto max-w-[540px]">

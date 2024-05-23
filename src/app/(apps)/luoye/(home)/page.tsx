@@ -3,7 +3,7 @@ import Welcome from './pages/Welcome';
 import API from '@/app/api';
 import { fetchHomeInfo } from './cache';
 
-export default async function Home() {
+export default async function Page() {
     const homeInfo = await fetchHomeInfo();
 
     if (!homeInfo) return null;

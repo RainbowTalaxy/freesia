@@ -5,7 +5,11 @@ import Logger from '@/app/utils/Log';
 import { request } from '.';
 import { cache } from 'react';
 
-async function _rawFetch<Data>(url: string, method: string, data?: string) {
+async function _rawServerFetch<Data>(
+    url: string,
+    method: string,
+    data?: string,
+) {
     const res = await fetch(LOCAL_URL + url, {
         method,
         credentials: 'same-origin',
@@ -23,7 +27,7 @@ async function _rawFetch<Data>(url: string, method: string, data?: string) {
     };
 }
 
-export const rawFetch = cache(_rawFetch);
+const rawServerFetch = cache(_rawServerFetch);
 
 type API<Data> = ReturnType<typeof request<Data>>;
 
@@ -41,13 +45,9 @@ async function serverFetch<Data>(
     if (!isBodyEnabled) {
         url = url + (data ? '?' + new URLSearchParams(data).toString() : '');
     }
-    const options =
-        isBodyEnabled && data !== undefined
-            ? {
-                  body: JSON.stringify(data),
-              }
-            : {};
-    const { result, isOk } = await rawFetch<Data>(url, method, options.body);
+    const reqData =
+        isBodyEnabled && data !== undefined ? JSON.stringify(data) : undefined;
+    const { result, isOk } = await rawServerFetch<Data>(url, method, reqData);
 
     if (!isOk) {
         if (ignoreError) return null;
