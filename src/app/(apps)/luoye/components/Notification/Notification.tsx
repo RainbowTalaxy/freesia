@@ -3,7 +3,7 @@ import styles from '../../styles/notification.module.css';
 import { ReactNode } from 'react';
 import { Root, createRoot } from 'react-dom/client';
 
-const NOTIFICATION_CONTAINER_CLASS = 'notification-container';
+export const NOTIFICATION_CONTAINER_CLASS = 'notification-container';
 
 export interface NotificationOption {
     text?: ReactNode;
@@ -18,16 +18,14 @@ class Notification {
 
     private static get container() {
         if (this._container) return this._container;
-        const root = document.querySelector<HTMLDivElement>('#__docusaurus')!;
-        let container = Array.from(root.children).find((ele) =>
-            ele.classList.contains(NOTIFICATION_CONTAINER_CLASS),
-        ) as HTMLDivElement;
+        let container = document.querySelector<HTMLDivElement>(`.${NOTIFICATION_CONTAINER_CLASS}`)! as HTMLDivElement;
         if (!container) {
             container = document.createElement('div');
             container.classList.add(NOTIFICATION_CONTAINER_CLASS);
             container.classList.add(styles.container);
-            root.append(container);
+            document.body.appendChild(container);
         }
+        container.classList.add(styles.container);
         this._container = container;
         return container;
     }

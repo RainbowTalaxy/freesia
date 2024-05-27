@@ -13,6 +13,7 @@ export const fetchHomeInfo = cache(async () => {
     const defaultWorkspace = splitWorkspaces.defaultWorkspace;
     const workspaces = splitWorkspaces.workspaces;
     const allWorkspaces = [defaultWorkspace, ...workspaces];
+
     return {
         userId,
         defaultWorkspace,

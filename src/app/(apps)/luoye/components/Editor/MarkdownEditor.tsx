@@ -1,18 +1,10 @@
 'use client';
 import styles from '../../styles/editor.module.css';
-import Editor from '@monaco-editor/react';
-import {
-    ForwardedRef,
-    forwardRef,
-    useEffect,
-    useImperativeHandle,
-    useLayoutEffect,
-    useRef,
-} from 'react';
-import { EditorProps, EditorRef } from './Editor';
+import Editor, { loader } from '@monaco-editor/react';
+import { useEffect, useImperativeHandle, useRef } from 'react';
+import { EditorProps } from './Editor';
 import PlaceholderContentWidget from './PlaceholderContentWidget';
 import clsx from 'clsx';
-import loader from '@monaco-editor/loader';
 import * as monaco from 'monaco-editor';
 import { MONACO_TOKEN_CONFIG, MONACO_COLOR_CONFIG } from '../../configs/monaco';
 import Toast from '../Notification/Toast';
@@ -20,6 +12,14 @@ import useKeyboard from '@/app/hooks/useKeyboard';
 import { countText } from '../../configs/editor';
 
 loader.config({ monaco });
+loader.init().then((monaco) => {
+    monaco.editor.defineTheme('luoye', {
+        base: 'vs',
+        inherit: true,
+        rules: MONACO_TOKEN_CONFIG,
+        colors: MONACO_COLOR_CONFIG,
+    });
+});
 
 const options: monaco.editor.IStandaloneEditorConstructionOptions = {
     // 控制是否展示行号
@@ -82,83 +82,57 @@ const options: monaco.editor.IStandaloneEditorConstructionOptions = {
     wordBasedSuggestions: 'off',
 };
 
-const MarkdownEditor = forwardRef(
-    (
-        { className, visible, keyId, onSave }: EditorProps,
-        ref: ForwardedRef<EditorRef>,
-    ) => {
-        const editorRef = useRef<monaco.editor.IStandaloneCodeEditor>();
-        const editorMounted = useRef(false);
+const MarkdownEditor = ({ className, visible, keyId, onSave, textRef, defaultValue }: EditorProps) => {
+    const editorRef = useRef<monaco.editor.IStandaloneCodeEditor>();
+    const editorMounted = useRef(false);
 
-        useKeyboard(
-            's',
-            () => {
-                if (visible && editorRef.current)
-                    onSave(editorRef.current.getValue());
-            },
-            {
-                ctrl: true,
-            },
-        );
+    useKeyboard(
+        's',
+        () => {
+            if (visible && editorRef.current) onSave(editorRef.current.getValue());
+        },
+        {
+            ctrl: true,
+        },
+    );
 
-        useImperativeHandle(
-            ref,
-            () => ({
-                focus: () => editorRef.current?.focus(),
-                setText: (text: string) => {
-                    if (!editorMounted.current)
-                        setTimeout(
-                            () => editorRef.current?.setValue(text),
-                            500,
-                        );
-                    editorRef.current?.setValue(text);
-                },
-                getText: () => {
-                    return editorRef.current?.getValue() || '';
-                },
-            }),
-            [],
-        );
+    useImperativeHandle(
+        textRef,
+        () => ({
+            focus: () => editorRef.current?.focus(),
+            setText: (text: string) => editorRef.current?.setValue(text),
+            getText: () => editorRef.current?.getValue() || '',
+        }),
+        [],
+    );
 
-        useEffect(() => {
-            if (visible && !editorRef.current?.getValue())
-                editorRef.current?.focus();
-            return () => {
-                if (visible) Toast.close();
-            };
-        }, [visible, keyId]);
+    useEffect(() => {
+        if (visible && !editorRef.current?.getValue()) editorRef.current?.focus();
+        return () => {
+            if (visible) Toast.close();
+        };
+    }, [visible, keyId]);
 
-        useLayoutEffect(() => {
-            loader.init().then((monaco) => {
-                monaco.editor.defineTheme('luoye', {
-                    base: 'vs',
-                    inherit: true,
-                    rules: MONACO_TOKEN_CONFIG,
-                    colors: MONACO_COLOR_CONFIG,
-                });
-            });
-        }, []);
-
-        // 编辑器的 visible 样式由外层控制
-        return (
-            <Editor
-                className={clsx(styles.container, className)}
-                defaultLanguage="markdown"
-                defaultValue=""
-                theme="luoye"
-                loading="加载中..."
-                options={options}
-                onMount={(editor) => {
-                    editorRef.current = editor;
-                    new PlaceholderContentWidget('点击此处输入正文', editor);
-                    editorMounted.current = true;
-                }}
-                onChange={(value) => {
-                    if (value) Toast.notify('字数：' + countText(value), false);
-                }}
-            />
-        );
-    },
-);
+    // 编辑器的 visible 样式由外层控制
+    return (
+        <Editor
+            className={clsx(styles.container, className)}
+            defaultLanguage="markdown"
+            defaultValue=""
+            theme="luoye"
+            loading="加载中..."
+            options={options}
+            onMount={(editor) => {
+                editorRef.current = editor;
+                new PlaceholderContentWidget('点击此处输入正文', editor);
+                if (defaultValue) editor.setValue(defaultValue);
+                editorMounted.current = true;
+            }}
+            onChange={(value) => {
+                if (value) Toast.notify('字数：' + countText(value), false);
+            }}
+        />
+    );
+};
 
 export default MarkdownEditor;

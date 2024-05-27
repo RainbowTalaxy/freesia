@@ -46,7 +46,7 @@ export const SideBarListItem = forwardRef(
                 {...dragHandleProps}
                 {...draggableProps}
             >
-                <Link className={styles.sidebarListItem} href={href}>
+                <Link className={styles.sidebarListItem} href={href} prefetch={false}>
                     {icon && <span className={styles.sidebarListItemIcon}>{icon}</span>}
                     {children}
                 </Link>

@@ -1,0 +1,9 @@
+main a,
+main code,
+main a:hover {
+    color: var(--primary);
+}
+
+main pre {
+    background: var(--page);
+}

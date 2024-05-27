@@ -9,7 +9,6 @@ import { useState } from 'react';
 import API, { clientFetch } from '@/app/api';
 import { checkAuth, workSpaceName } from '../../configs';
 import Toast from '../../components/Notification/Toast';
-import Link from 'next/link';
 import WorkspaceForm from '../../containers/WorkspaceForm';
 import DocForm from '../../containers/DocForm';
 

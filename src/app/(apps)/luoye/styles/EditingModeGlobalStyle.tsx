@@ -5,6 +5,10 @@ import documentStyles from './document.module.css';
 import { createGlobalStyle } from 'styled-components';
 
 const EditingModeGlobalStyle = createGlobalStyle`
+    html, body {
+        height: 100%;
+    }
+
     .${homeStyles.container},
     .${layoutStyles.pageView},
     .${layoutStyles.contentView},

@@ -26,7 +26,7 @@
     font-weight: bold;
 }
 
-.docIcon {
+.docNavBar > .docIcon {
     display: none;
 }
 
@@ -191,7 +191,7 @@
         padding: 0;
     }
 
-    .docIcon {
+    .docNavBar > .docIcon {
         display: flex;
     }
 
