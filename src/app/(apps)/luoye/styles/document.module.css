@@ -41,6 +41,11 @@
     max-width: var(--max-content-width);
 }
 
+.document > h1 {
+    margin-bottom: 1rem;
+    font-size: 2rem;
+}
+
 .document > h2 {
     scroll-margin-top: calc(var(--doc-nav-bar) + 12px);
 }
