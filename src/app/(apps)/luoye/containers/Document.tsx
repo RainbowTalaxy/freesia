@@ -127,27 +127,10 @@ const Document = ({ userId, data, workspace }: Props) => {
             >
                 {!isEditing && (
                     <>
-                        <h1>{doc.name || <Placeholder>无标题</Placeholder>}</h1>
+                        <h1 id={doc.name}>{doc.name || <Placeholder>无标题</Placeholder>}</h1>
                         {doc.docType === DocType.Text &&
                             doc.content.split('\n').map((item, index) => <p key={index}>{item}</p>)}
-                        {doc.docType === DocType.Markdown && (
-                            <Markdown
-                                toc={(slugs) => (
-                                    <div className={styles.toc}>
-                                        <div>
-                                            <strong>{doc.name || <Placeholder>无标题</Placeholder>}</strong>
-                                        </div>
-                                        {slugs.map((item) => (
-                                            <div key={item.slug} className={styles.tocItem}>
-                                                <a href={`#${item.slug}`}>{item.title}</a>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                            >
-                                {doc.content}
-                            </Markdown>
-                        )}
+                        {doc.docType === DocType.Markdown && <Markdown title={doc.name}>{doc.content}</Markdown>}
                         <p className={styles.docInfo}>
                             <span>{doc.creator.toUpperCase()}</span>
                             {auth.editable ? (

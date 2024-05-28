@@ -36,17 +36,19 @@
 
 .document {
     --max-content-width: 1000px;
+    --document-v-padding: 108px;
     margin: 0 auto;
-    padding: 108px var(--h-padding);
+    padding: var(--document-v-padding) var(--h-padding);
     max-width: var(--max-content-width);
 }
 
-.document > h1 {
+.document h1 {
     margin-bottom: 1rem;
     font-size: 2rem;
+    scroll-margin-top: var(--document-v-padding);
 }
 
-.document > h2 {
+.document h2 {
     scroll-margin-top: calc(var(--doc-nav-bar) + 12px);
 }
 
@@ -135,11 +137,16 @@
     overflow: auto;
 }
 
-.tocItem {
+.toc.toc > ul {
+    margin: 0;
     margin-top: 6px;
+    list-style: none;
+    list-style-type: none;
+    padding: 0;
+    line-height: 2;
 }
 
-.toc > div {
+.toc > ul li {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;

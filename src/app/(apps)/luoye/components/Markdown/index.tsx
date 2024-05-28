@@ -1,6 +1,9 @@
 import './style.css';
-import ReactMarkdown, { Components } from 'react-markdown';
-import { ReactNode } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkToc from './plugins/remarkToc';
+import remarkRehype from 'remark-rehype';
+import rehypeSlug from 'rehype-slug';
+import rehypeRaw from 'rehype-raw';
 import Img from './components/Image';
 
 interface Slug {
@@ -9,20 +12,22 @@ interface Slug {
 }
 
 interface Props {
-    toc: (slugs: Array<Slug>) => ReactNode;
     children: string;
-    preContent?: ReactNode;
+    title: string;
 }
 
-const components: Partial<Components> = {
-    img: Img,
-};
-
-const Markdown = ({ children, preContent }: Props) => {
+const Markdown = ({ children, title }: Props) => {
     return (
         <article className="article">
-            {preContent}
-            <ReactMarkdown components={components}>{children}</ReactMarkdown>
+            <ReactMarkdown
+                components={{
+                    img: Img,
+                }}
+                remarkPlugins={[() => remarkToc(title), remarkRehype]}
+                rehypePlugins={[rehypeSlug, rehypeRaw]}
+            >
+                {children}
+            </ReactMarkdown>
         </article>
     );
 };
