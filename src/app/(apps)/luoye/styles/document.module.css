@@ -146,6 +146,7 @@
     line-height: 2;
 }
 
+.toc > header,
 .toc > ul li {
     white-space: nowrap;
     overflow: hidden;
