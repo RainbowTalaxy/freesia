@@ -101,8 +101,8 @@ const Welcome = ({ userId, defaultWorkspace, workspaces, recentDocs }: Props) =>
                                     if (!granted) return;
                                     try {
                                         await clientFetch(API.luoye.deleteRecentDoc(doc.id));
-                                        // await refetch();
                                         Toast.notify('删除成功');
+                                        router.refresh();
                                     } catch {
                                         Toast.notify('删除失败');
                                     }
@@ -118,7 +118,10 @@ const Welcome = ({ userId, defaultWorkspace, workspaces, recentDocs }: Props) =>
                 <WorkspaceForm
                     userId={userId}
                     onClose={async (newWorkspace) => {
-                        if (newWorkspace) router.refresh();
+                        if (newWorkspace) {
+                            router.push(`/luoye/workspace/${newWorkspace.id}`);
+                            router.refresh();
+                        }
                         setWorkspaceFormVisible(false);
                     }}
                 />

@@ -29,7 +29,7 @@ interface Props {
 
 const Document = ({ userId, data, workspace }: Props) => {
     const router = useRouter();
-    const [doc, setDoc] = useState(data);
+    const doc = data;
     const [isEditing, setIsEditing] = useState(false);
     const [isDocFormVisible, setDocFormVisible] = useState(false);
     const textRef = useRef<EditorRef>(null);

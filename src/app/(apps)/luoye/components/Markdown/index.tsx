@@ -1,6 +1,7 @@
 import './style.css';
-import ReactMarkdown from 'react-markdown';
+import ReactMarkdown, { Components } from 'react-markdown';
 import { ReactNode } from 'react';
+import Img from './components/Image';
 
 interface Slug {
     title: string;
@@ -13,11 +14,15 @@ interface Props {
     preContent?: ReactNode;
 }
 
+const components: Partial<Components> = {
+    img: Img,
+};
+
 const Markdown = ({ children, preContent }: Props) => {
     return (
         <article className="article">
             {preContent}
-            <ReactMarkdown>{children}</ReactMarkdown>
+            <ReactMarkdown components={components}>{children}</ReactMarkdown>
         </article>
     );
 };

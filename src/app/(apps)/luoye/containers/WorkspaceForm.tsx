@@ -6,6 +6,7 @@ import Toast from '../components/Notification/Toast';
 import { Scope, Workspace, WorkspaceItem } from '@/app/api/luoye';
 import { Button, Input, TextArea, Toggle } from '@/app/components/form';
 import API, { clientFetch } from '@/app/api';
+import { Logger } from '@/app/utils';
 
 interface Props {
     userId: string;
@@ -69,6 +70,7 @@ const WorkspaceForm = ({ userId, workspace, onClose }: Props) => {
                                     }
                                     await onClose(newWorkspace);
                                 } catch (error: any) {
+                                    Logger.error(error);
                                     Toast.notify(error.message);
                                 }
                             }}

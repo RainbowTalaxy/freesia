@@ -5,7 +5,7 @@ import { Scope, WorkspaceItem } from '@/app/api/luoye';
 import Placeholder from '../../components/PlaceHolder';
 import SVG from '../../components/SVG';
 import { DragDropContext, Draggable, Droppable } from '@hello-pangea/dnd';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import API, { clientFetch } from '@/app/api';
 import { splitWorkspace } from '../../configs';
 import Toast from '../../components/Notification/Toast';
@@ -23,6 +23,10 @@ const SideBar = ({ userId, defaultWorkspace, workspaces: _workspaces }: Props) =
         workspaceId?: string;
     }>();
     const [workspaces, setWorkspaces] = useState(_workspaces);
+
+    useEffect(() => {
+        setWorkspaces(_workspaces);
+    }, [_workspaces]);
 
     return (
         <>

@@ -61,7 +61,8 @@ main pre {
     list-style-type: disc;
 }
 
-.article ul ul {
+.article ul ul,
+.article ol ul {
     list-style-type: circle;
 }
 

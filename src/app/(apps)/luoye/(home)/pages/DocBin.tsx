@@ -29,7 +29,7 @@ export default async function DocBin() {
             ) : (
                 <div className={styles.docList}>
                     {docBinItems?.map((doc) => (
-                        <Link key={doc.docId} href="">
+                        <Link key={doc.docId} href={`/luoye/doc/${doc.docId}`}>
                             <div className={styles.docItem}>
                                 <div className={styles.docName}>
                                     {doc.name || <Placeholder>未命名文档</Placeholder>}

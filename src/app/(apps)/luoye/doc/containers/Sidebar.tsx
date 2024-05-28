@@ -5,7 +5,7 @@ import { Doc, Scope, Workspace } from '@/app/api/luoye';
 import Placeholder from '../../components/PlaceHolder';
 import SVG from '../../components/SVG';
 import { DragDropContext, Draggable, Droppable } from '@hello-pangea/dnd';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import API, { clientFetch } from '@/app/api';
 import { checkAuth, workSpaceName } from '../../configs';
 import Toast from '../../components/Notification/Toast';
@@ -24,6 +24,10 @@ const SideBar = ({ userId, doc, workspace: _workspace }: Props) => {
     const [workspace, setWorkspace] = useState(_workspace);
     const [isWorkspaceFormVisible, setWorkspaceFormVisible] = useState(false);
     const [isDocFormVisible, setDocFormVisible] = useState(false);
+
+    useEffect(() => {
+        setWorkspace(_workspace);
+    }, [_workspace]);
 
     const workspaceAuth = checkAuth(workspace, userId);
 
