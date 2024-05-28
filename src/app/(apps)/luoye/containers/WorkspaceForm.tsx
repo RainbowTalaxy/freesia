@@ -27,19 +27,19 @@ const WorkspaceForm = ({ userId, workspace, onClose }: Props) => {
         }
     }, [workspace]);
 
-    const isDefaultWorkspace = userId && userId === workspace?.id;
+    const isUserWorkspace = userId && userId === workspace?.id;
 
     return createPortal(
         <div className={styles.container}>
             <div className={styles.form}>
                 <h2>{workspace ? '工作区属性' : '新建工作区'}</h2>
-                <div className={clsx(styles.formItem, isDefaultWorkspace && styles.hidden)}>
+                <div className={clsx(styles.formItem, isUserWorkspace && styles.hidden)}>
                     <label>
                         <span>*</span>标题：
                     </label>
                     <Input raf={nameRef} />
                 </div>
-                <div className={clsx(styles.formItem, isDefaultWorkspace && styles.hidden)}>
+                <div className={clsx(styles.formItem, isUserWorkspace && styles.hidden)}>
                     <label>描述：</label>
                     <TextArea raf={descriptionRef} />
                 </div>

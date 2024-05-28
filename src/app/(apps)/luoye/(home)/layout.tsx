@@ -3,34 +3,33 @@ import PageLayout from '../components/PageLayout';
 import ProjectTitle from '../containers/ProjectTitle';
 import { ReactNode } from 'react';
 import SideBar from './containers/SideBar';
-import { fetchHomeInfo } from './cache';
+import { HomeContextProvider } from './context';
+import Server, { serverFetch } from '@/app/api/server';
+import API from '@/app/api';
 
 interface Props {
     children: ReactNode;
 }
 
 export default async function Layout({ children }: Props) {
-    const homeInfo = await fetchHomeInfo();
+    const userId = await Server.userId();
+    const allWorkspaces = await serverFetch(API.luoye.workspaceItems(), true);
 
     return (
-        <div className={styles.container}>
-            <PageLayout
-                navbar={<ProjectTitle userId={homeInfo?.userId} fold />}
-                sidebar={
-                    <>
-                        <ProjectTitle className={styles.fixedTitle} userId={homeInfo?.userId} />
-                        {homeInfo && (
-                            <SideBar
-                                userId={homeInfo.userId}
-                                defaultWorkspace={homeInfo.defaultWorkspace}
-                                workspaces={homeInfo.workspaces}
-                            />
-                        )}
-                    </>
-                }
-            >
-                <div className={styles.pageView}>{children}</div>
-            </PageLayout>
-        </div>
+        <HomeContextProvider userId={userId} allWorkspaces={allWorkspaces}>
+            <div className={styles.container}>
+                <PageLayout
+                    navbar={<ProjectTitle userId={userId} fold />}
+                    sidebar={
+                        <>
+                            <ProjectTitle className={styles.fixedTitle} userId={userId} />
+                            <SideBar />
+                        </>
+                    }
+                >
+                    <div className={styles.pageView}>{children}</div>
+                </PageLayout>
+            </div>
+        </HomeContextProvider>
     );
 }

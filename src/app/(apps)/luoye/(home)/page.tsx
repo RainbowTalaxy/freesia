@@ -1,17 +1,13 @@
-import { serverFetch } from '@/app/api/server';
+import Server, { serverFetch } from '@/app/api/server';
 import Welcome from './pages/Welcome';
 import API from '@/app/api';
-import { fetchHomeInfo } from './cache';
 
 export default async function Page() {
-    const homeInfo = await fetchHomeInfo();
+    const userId = await Server.userId();
 
-    if (!homeInfo) return null;
+    if (!userId) return null;
 
-    const { userId, defaultWorkspace, workspaces } = homeInfo;
     const recentDocs = await serverFetch(API.luoye.recentDocs());
 
-    return (
-        <Welcome userId={userId} defaultWorkspace={defaultWorkspace} workspaces={workspaces} recentDocs={recentDocs} />
-    );
+    return <Welcome userId={userId} recentDocs={recentDocs} />;
 }

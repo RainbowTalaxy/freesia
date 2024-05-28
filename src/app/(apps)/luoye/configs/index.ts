@@ -4,10 +4,6 @@ import dayjs from 'dayjs';
 export const PROJECT_ICON = '🍂';
 export const PROJECT_NAME = '落页';
 
-export const DEFAULT_WORKSPACE = {
-    name: 'default',
-};
-
 export const DEFAULT_WORKSPACE_PLACEHOLDER = {
     name: '个人工作区',
     description: '用于存放个人文档的工作区',
@@ -22,26 +18,32 @@ export const DOCTYPE_OPTIONS_NAME = {
     [DocType.Markdown]: 'Markdown',
 };
 
-export const splitWorkspace = (workspaces: WorkspaceItem[], userId: string) => {
-    const defaultWorkspaceIdx = workspaces.findIndex(
+export const splitWorkspace = (
+    allWorkspaces: WorkspaceItem[],
+    userId: string,
+) => {
+    const _allWorkspaces = allWorkspaces.slice();
+    const userWorkspaceIdx = _allWorkspaces.findIndex(
         (workspace) => workspace.id === userId,
     );
-    let defaultWorkspace = workspaces[defaultWorkspaceIdx] || workspaces[0];
-    if (defaultWorkspaceIdx !== -1) {
-        workspaces.splice(defaultWorkspaceIdx, 1);
+    let userWorkspace = _allWorkspaces[userWorkspaceIdx]!;
+    if (userWorkspaceIdx !== -1) {
+        _allWorkspaces.splice(userWorkspaceIdx, 1);
     }
-    defaultWorkspace = {
-        ...defaultWorkspace,
+    userWorkspace = {
+        ...userWorkspace,
         ...DEFAULT_WORKSPACE_PLACEHOLDER,
     };
-    return {
-        defaultWorkspace,
-        workspaces,
-    };
+    return Object.freeze({
+        userWorkspace,
+        workspaces: _allWorkspaces,
+    });
 };
 
-export const workSpaceName = (name: string) => {
-    return name === DEFAULT_WORKSPACE.name ? '个人工作区' : name;
+export const workSpaceName = (workspace: Workspace, userId: string) => {
+    return workspace.id === userId
+        ? DEFAULT_WORKSPACE_PLACEHOLDER.name
+        : workspace.name;
 };
 
 export const date = (time: number) => dayjs(time).format('YYYY-MM-DD HH:mm');

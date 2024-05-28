@@ -34,7 +34,7 @@ const SideBar = ({ userId, doc, workspace: _workspace }: Props) => {
     return (
         <>
             <h2>
-                <span>{workSpaceName(workspace.name)}</span>
+                <span>{workSpaceName(workspace, userId)}</span>
                 {workspace.scope === Scope.Private && <SVG.Lock />}
             </h2>
             {workspaceAuth.configurable && (

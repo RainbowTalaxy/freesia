@@ -1,8 +1,8 @@
 import { ComponentType } from 'react';
 
 export default class Logger {
-    static info(icon: string, message: string) {
-        console.log(`[${new Date().toLocaleString()}]`, icon, message);
+    static info(icon: string, ...message: any[]) {
+        console.log(`[${new Date().toLocaleString()}]`, icon, ...message);
     }
 
     static error(message: string) {
@@ -15,6 +15,14 @@ export default class Logger {
             `[${
                 typeof window === 'undefined' ? 'Server' : 'Client'
             }] ${componentName}`,
+        );
+    }
+
+    static debug(...data: any[]) {
+        Logger.info(
+            '🐛',
+            `[${typeof window === 'undefined' ? 'Server' : 'Client'}]`,
+            ...data,
         );
     }
 }

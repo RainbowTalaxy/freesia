@@ -1,32 +1,50 @@
 'use client';
 import { useParams } from 'next/navigation';
 import { SideBarList, SideBarListItem } from '../../components/PageLayout';
-import { Scope, WorkspaceItem } from '@/app/api/luoye';
+import { Scope } from '@/app/api/luoye';
 import Placeholder from '../../components/PlaceHolder';
 import SVG from '../../components/SVG';
-import { DragDropContext, Draggable, Droppable } from '@hello-pangea/dnd';
-import { useEffect, useState } from 'react';
+import { DragDropContext, Draggable, Droppable, OnDragEndResponder } from '@hello-pangea/dnd';
+import { useContext, useEffect, useState } from 'react';
+import { HomeContext } from '../context';
 import API, { clientFetch } from '@/app/api';
-import { splitWorkspace } from '../../configs';
 import Toast from '../../components/Notification/Toast';
-import Link from 'next/link';
+import { Logger } from '@/app/utils';
 
-interface Props {
-    userId: string;
-    defaultWorkspace: WorkspaceItem;
-    workspaces: WorkspaceItem[];
-}
-
-const SideBar = ({ userId, defaultWorkspace, workspaces: _workspaces }: Props) => {
+const SideBar = () => {
     const { tab, workspaceId } = useParams<{
         tab?: string;
         workspaceId?: string;
     }>();
-    const [workspaces, setWorkspaces] = useState(_workspaces);
+    const { workspaces: _workspaces, userWorkspace, setAllWorkspaces } = useContext(HomeContext);
+    const [workspaces, setWorkspaces] = useState(_workspaces!);
 
     useEffect(() => {
-        setWorkspaces(_workspaces);
+        if (_workspaces) setWorkspaces(_workspaces);
     }, [_workspaces]);
+
+    if (!userWorkspace) return null;
+
+    const handleDragEnd: OnDragEndResponder = async (result) => {
+        const sourceIdx = result.source.index;
+        const destIdx = result.destination?.index ?? -1;
+        if (destIdx < 0 || sourceIdx === destIdx) return;
+        const reOrdered = Array.from(workspaces);
+        const [removed] = reOrdered.splice(sourceIdx, 1);
+        reOrdered.splice(destIdx, 0, removed);
+        // 先更新状态，避免回弹动画
+        setWorkspaces(reOrdered);
+        try {
+            const newWorkspaceItems = await clientFetch(
+                API.luoye.updateWorkspaceItems(reOrdered.map((workspace) => workspace.id).concat(userWorkspace.id)),
+            );
+            setAllWorkspaces(newWorkspaceItems);
+        } catch (error: any) {
+            Toast.notify(error.message);
+            Logger.error(error);
+            setWorkspaces(workspaces);
+        }
+    };
 
     return (
         <>
@@ -37,13 +55,9 @@ const SideBar = ({ userId, defaultWorkspace, workspaces: _workspaces }: Props) =
                 <SideBarListItem href="/luoye/settings" active={tab === 'settings'} icon="⚙️">
                     设置
                 </SideBarListItem>
-                <SideBarListItem
-                    icon="🪴"
-                    href={`/luoye/workspace`}
-                    active={tab === 'workspace' || workspaceId === defaultWorkspace.id}
-                >
-                    <span>{defaultWorkspace.name || <Placeholder>未命名</Placeholder>}</span>
-                    {defaultWorkspace.scope === Scope.Private && <SVG.Lock />}
+                <SideBarListItem icon="🪴" href={`/luoye/workspace`} active={tab === 'workspace'}>
+                    <span>{userWorkspace.name || <Placeholder>未命名</Placeholder>}</span>
+                    {userWorkspace.scope === Scope.Private && <SVG.Lock />}
                 </SideBarListItem>
                 <SideBarListItem href="/luoye/doc-bin" active={tab === 'doc-bin'} icon="♻️">
                     文档回收站
@@ -57,29 +71,7 @@ const SideBar = ({ userId, defaultWorkspace, workspaces: _workspaces }: Props) =
                     </SideBarListItem>
                 </SideBarList>
             )}
-            <DragDropContext
-                onDragEnd={async (result) => {
-                    const sourceIdx = result.source.index;
-                    const destIdx = result.destination?.index ?? -1;
-                    if (destIdx < 0 || sourceIdx === destIdx) return;
-                    const reOrdered = Array.from(workspaces);
-                    const [removed] = reOrdered.splice(sourceIdx, 1);
-                    reOrdered.splice(destIdx, 0, removed);
-                    // 先更新状态，避免回弹动画
-                    setWorkspaces(reOrdered);
-                    try {
-                        const newWorkspaceItems = await clientFetch(
-                            API.luoye.updateWorkspaceItems(
-                                reOrdered.map((workspace) => workspace.id).concat(defaultWorkspace.id),
-                            ),
-                        );
-                        setWorkspaces(splitWorkspace(newWorkspaceItems, userId).workspaces);
-                    } catch (error: any) {
-                        Toast.notify(error.message);
-                        setWorkspaces(workspaces);
-                    }
-                }}
-            >
+            <DragDropContext onDragEnd={handleDragEnd}>
                 <Droppable droppableId="droppable">
                     {(provided) => (
                         <SideBarList ref={provided.innerRef} {...provided.droppableProps}>

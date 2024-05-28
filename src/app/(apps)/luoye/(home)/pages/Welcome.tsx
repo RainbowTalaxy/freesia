@@ -1,8 +1,8 @@
 'use client';
 import styles from '../../styles/home.module.css';
-import { useMemo, useState } from 'react';
+import { useContext, useState } from 'react';
 import clsx from 'clsx';
-import { DocItem, Scope, WorkspaceItem } from '@/app/api/luoye';
+import { DocItem, Scope } from '@/app/api/luoye';
 import Placeholder from '../../components/PlaceHolder';
 import SVG from '../../components/SVG';
 import Spacer from '@/app/components/Spacer';
@@ -13,31 +13,27 @@ import WorkspaceForm from '../../containers/WorkspaceForm';
 import DocForm from '../../containers/DocForm';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { HomeContext } from '../context';
 
 interface Props {
     userId: string;
-    defaultWorkspace: WorkspaceItem;
-    workspaces: WorkspaceItem[];
     recentDocs: DocItem[];
 }
 
 const WORKSPACE_FOLD_THRESHOLD = 7;
 
-const Welcome = ({ userId, defaultWorkspace, workspaces, recentDocs }: Props) => {
+const Welcome = ({ userId, recentDocs }: Props) => {
     const router = useRouter();
 
-    const allWorkspaces = useMemo(() => {
-        return [defaultWorkspace, ...workspaces];
-    }, [defaultWorkspace, workspaces]);
+    const { allWorkspaces, userWorkspace, refresh } = useContext(HomeContext);
 
     const [isWorkspaceListFolded, setWorkspaceListFolded] = useState(true);
     const [isWorkspaceFormVisible, setWorkspaceFormVisible] = useState(false);
     const [isDocFormVisible, setDocFormVisible] = useState(false);
 
-    const foldedWorkspaces = useMemo(() => {
-        return isWorkspaceListFolded ? allWorkspaces?.slice(0, WORKSPACE_FOLD_THRESHOLD) : allWorkspaces;
-    }, [allWorkspaces, isWorkspaceListFolded]);
+    if (!allWorkspaces) return null;
 
+    const foldedWorkspaces = isWorkspaceListFolded ? allWorkspaces!.slice(0, WORKSPACE_FOLD_THRESHOLD) : allWorkspaces;
     const isWorkspaceFolderVisible = isWorkspaceListFolded && allWorkspaces.length > WORKSPACE_FOLD_THRESHOLD + 1;
 
     return (
@@ -120,7 +116,7 @@ const Welcome = ({ userId, defaultWorkspace, workspaces, recentDocs }: Props) =>
                     onClose={async (newWorkspace) => {
                         if (newWorkspace) {
                             router.push(`/luoye/workspace/${newWorkspace.id}`);
-                            router.refresh();
+                            refresh();
                         }
                         setWorkspaceFormVisible(false);
                     }}
@@ -128,7 +124,7 @@ const Welcome = ({ userId, defaultWorkspace, workspaces, recentDocs }: Props) =>
             )}
             {isDocFormVisible && (
                 <DocForm
-                    workspace={defaultWorkspace}
+                    workspace={userWorkspace}
                     workspaceItems={allWorkspaces}
                     onClose={async (newDoc) => {
                         if (newDoc) router.push(`/luoye/doc/${newDoc.id}`);
