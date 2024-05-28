@@ -7,7 +7,6 @@ export default function remarkToc(title: string) {
         const contents = toc(tree, {
             maxDepth: 2,
         }).map;
-        console.log(contents, tree);
         if (contents) {
             tree.children.unshift(
                 {
