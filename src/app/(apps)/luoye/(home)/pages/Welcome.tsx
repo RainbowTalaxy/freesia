@@ -124,6 +124,7 @@ const Welcome = ({ userId, recentDocs }: Props) => {
             )}
             {isDocFormVisible && (
                 <DocForm
+                    userId={userId}
                     workspace={userWorkspace}
                     workspaceItems={allWorkspaces}
                     onClose={async (newDoc) => {

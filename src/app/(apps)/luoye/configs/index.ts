@@ -40,7 +40,10 @@ export const splitWorkspace = (
     });
 };
 
-export const workSpaceName = (workspace: Workspace, userId: string) => {
+export const workSpaceName = (
+    workspace: Workspace | WorkspaceItem,
+    userId: string,
+) => {
     return workspace.id === userId
         ? DEFAULT_WORKSPACE_PLACEHOLDER.name
         : workspace.name;

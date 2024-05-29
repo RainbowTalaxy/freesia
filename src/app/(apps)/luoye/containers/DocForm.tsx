@@ -6,10 +6,11 @@ import clsx from 'clsx';
 import { Doc, DocType, Scope, WorkspaceItem } from '@/app/api/luoye';
 import { formDate, time } from '@/app/utils';
 import { Button, Input, Select, Toggle } from '@/app/components/form';
-import { DOCTYPE_OPTIONS, DOCTYPE_OPTIONS_NAME } from '../configs';
+import { DOCTYPE_OPTIONS, DOCTYPE_OPTIONS_NAME, workSpaceName } from '../configs';
 import API, { clientFetch } from '@/app/api';
 
 interface Props {
+    userId: string;
     workspace?: {
         id: string;
         name: string;
@@ -21,7 +22,7 @@ interface Props {
     onDelete?: () => void;
 }
 
-const DocForm = ({ workspace, workspaceItems, doc, onClose, onDelete }: Props) => {
+const DocForm = ({ userId, workspace, workspaceItems, doc, onClose, onDelete }: Props) => {
     const nameRef = useRef<HTMLInputElement>(null);
     const workspaceRef = useRef<HTMLSelectElement>(null);
     const scopeRef = useRef<HTMLInputElement>(null);
@@ -50,7 +51,7 @@ const DocForm = ({ workspace, workspaceItems, doc, onClose, onDelete }: Props) =
                         </label>
                         <Select
                             raf={workspaceRef}
-                            options={workspaceItems.map((w) => ({ label: w.name, value: w.id }))}
+                            options={workspaceItems.map((w) => ({ label: workSpaceName(w, userId), value: w.id }))}
                             defaultValue={workspace?.id ?? workspaceItems[0].id}
                         />
                     </div>

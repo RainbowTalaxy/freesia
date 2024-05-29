@@ -61,6 +61,7 @@ const WorkspaceInfo = ({ userId, data }: Props) => {
             )}
             {isDocFormVisible && (
                 <DocForm
+                    userId={userId}
                     workspace={data}
                     onClose={async (newDoc) => {
                         if (newDoc) router.push(`/luoye/doc/${newDoc.id}`);

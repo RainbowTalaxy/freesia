@@ -146,19 +146,18 @@ const Document = ({ userId, data, workspace }: Props) => {
                     <Editor ref={textRef} textRef={textRef} visible={isEditing} keyId={doc.id} onSave={onSaveContent} />
                 )}
                 {doc.docType === DocType.Markdown && (
-                    <Suspense fallback={null}>
-                        <MarkdownEditor
-                            textRef={textRef}
-                            defaultValue={doc.content}
-                            visible={isEditing}
-                            keyId={doc.id}
-                            onSave={onSaveContent}
-                        />
-                    </Suspense>
+                    <MarkdownEditor
+                        textRef={textRef}
+                        defaultValue={doc.content}
+                        visible={isEditing}
+                        keyId={doc.id}
+                        onSave={onSaveContent}
+                    />
                 )}
             </main>
             {isDocFormVisible && (
                 <DocForm
+                    userId={userId}
                     doc={doc}
                     onClose={async (newDoc) => {
                         if (newDoc) router.refresh();

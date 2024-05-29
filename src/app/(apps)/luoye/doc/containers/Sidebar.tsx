@@ -110,6 +110,7 @@ const SideBar = ({ userId, doc, workspace: _workspace }: Props) => {
             )}
             {workspace && workspaceAuth.configurable && isDocFormVisible && (
                 <DocForm
+                    userId={userId}
                     workspace={workspace}
                     onClose={async (newDoc) => {
                         setDocFormVisible(false);
