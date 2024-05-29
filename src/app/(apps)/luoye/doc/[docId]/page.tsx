@@ -19,11 +19,5 @@ interface Props {
 }
 
 export default async function Page({ params }: Props) {
-    const { docId } = params;
-    const docInfo = await fetchDocInfo(docId);
-    const { userId, doc, workspace } = docInfo;
-
-    if (!doc) return null;
-
-    return <Document userId={userId} data={doc} workspace={workspace} />;
+    return <Document />;
 }

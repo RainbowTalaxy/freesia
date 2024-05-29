@@ -42,7 +42,7 @@ export const splitWorkspace = (
 
 export const workSpaceName = (
     workspace: Workspace | WorkspaceItem,
-    userId: string,
+    userId: string | null,
 ) => {
     return workspace.id === userId
         ? DEFAULT_WORKSPACE_PLACEHOLDER.name
@@ -51,12 +51,15 @@ export const workSpaceName = (
 
 export const date = (time: number) => dayjs(time).format('YYYY-MM-DD HH:mm');
 
-export const checkAuth = (entity: Workspace | Doc | null, userId: string) => {
+export const checkAuth = (
+    entity: Workspace | Doc | null,
+    userId: string | null,
+) => {
     const result = {
         editable: false,
         configurable: false,
     };
-    if (!entity) return result;
+    if (!entity || !userId) return result;
     if (entity.admins.includes(userId)) {
         result.editable = true;
         result.configurable = true;

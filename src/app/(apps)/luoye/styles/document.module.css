@@ -26,7 +26,7 @@
     font-weight: bold;
 }
 
-.docNavBar > .docIcon {
+.docNavBar.hasDoc > .docIcon {
     display: none;
 }
 
@@ -76,7 +76,7 @@
     display: none !important;
 }
 
-.document:not(.hiddenEditor) {
+.document.showEditor {
     height: 100%;
     padding: var(--doc-nav-bar) 0 0 0;
     max-width: 100%;
@@ -195,16 +195,16 @@
         --h-padding: 22px;
     }
 
-    .document.hiddenEditor {
+    .document {
         padding: 24px var(--h-padding) 108px;
     }
 
-    .document:not(.hiddenEditor) {
+    .document.showEditor {
         height: 100%;
         padding: 0;
     }
 
-    .docNavBar > .docIcon {
+    .docNavBar.hasDoc > .docIcon {
         display: flex;
     }
 

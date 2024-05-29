@@ -1,8 +1,8 @@
 'use client';
 import styles from '../styles/document.module.css';
-import { Doc, DocType, Workspace } from '@/app/api/luoye';
+import { DocType } from '@/app/api/luoye';
 import { useRouter } from 'next/navigation';
-import { Suspense, useRef, useState } from 'react';
+import { useContext, useRef, useState } from 'react';
 import EditingModeGlobalStyle from '../styles/EditingModeGlobalStyle';
 import DocForm from './DocForm';
 import dayjs from 'dayjs';
@@ -16,20 +16,15 @@ import API, { clientFetch } from '@/app/api';
 import Editor, { EditorRef } from '../components/Editor/Editor';
 import Markdown from '../components/Markdown';
 import dynamic from 'next/dynamic';
+import { DocContext } from '../doc/[docId]/context';
 
 const MarkdownEditor = dynamic(() => import('../components/Editor/MarkdownEditor'), {
     ssr: false,
 });
 
-interface Props {
-    userId: string;
-    data: Doc;
-    workspace?: Workspace | null;
-}
-
-const Document = ({ userId, data, workspace }: Props) => {
+const Document = () => {
     const router = useRouter();
-    const doc = data;
+    const { userId, doc, workspace, setDoc } = useContext(DocContext);
     const [isEditing, setIsEditing] = useState(false);
     const [isDocFormVisible, setDocFormVisible] = useState(false);
     const textRef = useRef<EditorRef>(null);
@@ -42,26 +37,38 @@ const Document = ({ userId, data, workspace }: Props) => {
         if (!doc) return;
         const text = textRef.current?.getText();
         try {
-            await clientFetch(
+            const newDoc = await clientFetch(
                 API.luoye.updateDoc(doc.id, {
                     content: text,
                 }),
             );
             Toast.cover('保存成功');
-            router.refresh();
+            setDoc(newDoc, false);
         } catch {
             Toast.cover('保存失败');
         }
     };
 
+    if (!doc)
+        return (
+            <div className={styles.docView}>
+                <header className={styles.docNavBar}>
+                    <ProjectTitle className={styles.docIcon} />
+                </header>
+                <main className={clsx(styles.document)}>
+                    <p>抱歉，文档不存在。</p>
+                </main>
+            </div>
+        );
+
     return (
         <div className={styles.docView}>
             {isEditing && <EditingModeGlobalStyle />}
-            <header className={styles.docNavBar}>
+            <header className={clsx(styles.docNavBar, styles.hasDoc)}>
                 {isSidebarVisible ? (
                     <>
                         <div className={styles.docNavTitle}>{doc.name || <Placeholder>未命名文档</Placeholder>}</div>
-                        <ProjectTitle className={styles.docIcon} fold={isSidebarVisible} showInfo={false} />
+                        <ProjectTitle className={clsx(styles.docIcon)} fold={isSidebarVisible} showInfo={false} />
                     </>
                 ) : (
                     <ProjectTitle fold={isSidebarVisible} showInfo={false} />
@@ -77,13 +84,13 @@ const Document = ({ userId, data, workspace }: Props) => {
                                         const text = textRef.current?.getText();
                                         if (doc.content === '' && text === '') return setIsEditing(false);
                                         try {
-                                            await clientFetch(
+                                            const newDoc = await clientFetch(
                                                 API.luoye.updateDoc(doc.id, {
                                                     content: text,
                                                 }),
                                             );
                                             setIsEditing(false);
-                                            router.refresh();
+                                            setDoc(newDoc, false);
                                         } catch (error: any) {
                                             return Toast.notify(error.message);
                                         }
@@ -107,8 +114,8 @@ const Document = ({ userId, data, workspace }: Props) => {
                             try {
                                 if (!confirm('确定要恢复该文档吗？')) return;
                                 await clientFetch(API.luoye.restoreDoc(doc.id));
-                                router.refresh();
                                 Toast.notify('恢复成功');
+                                router.refresh();
                             } catch (error: any) {
                                 Toast.notify(error.message);
                             }
@@ -122,7 +129,7 @@ const Document = ({ userId, data, workspace }: Props) => {
                 className={clsx(
                     styles.document,
                     !isSidebarVisible && styles.centeredDoc,
-                    !isEditing && styles.hiddenEditor,
+                    isEditing ? styles.showEditor : styles.hiddenEditor,
                 )}
             >
                 {!isEditing && (
@@ -157,10 +164,10 @@ const Document = ({ userId, data, workspace }: Props) => {
             </main>
             {isDocFormVisible && (
                 <DocForm
-                    userId={userId}
+                    userId={userId!}
                     doc={doc}
                     onClose={async (newDoc) => {
-                        if (newDoc) router.refresh();
+                        if (newDoc) setDoc(newDoc);
                         setDocFormVisible(false);
                     }}
                     onDelete={() => {

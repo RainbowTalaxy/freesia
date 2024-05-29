@@ -5,6 +5,7 @@ import PageLayout from '../../components/PageLayout';
 import ProjectTitle from '../../containers/ProjectTitle';
 import SideBar from '../containers/Sidebar';
 import { fetchDocInfo } from './cache';
+import { DocContextProvider } from './context';
 
 interface Props {
     children: ReactNode;
@@ -22,21 +23,23 @@ export default async function Layout({ children, params }: Props) {
     const isSidebarVisible = Boolean(workspace) && !isDeleted;
 
     return (
-        <div className={clsx(styles.container)}>
-            <PageLayout
-                navbar={<ProjectTitle owner={doc?.creator ?? '404'} fold />}
-                sidebarVisible={isSidebarVisible}
-                sidebar={
-                    workspace && (
-                        <>
-                            <ProjectTitle className={styles.fixedTitle} userId={userId} />
-                            <SideBar userId={userId} doc={doc} workspace={workspace} />
-                        </>
-                    )
-                }
-            >
-                {children}
-            </PageLayout>
-        </div>
+        <DocContextProvider userId={userId} doc={doc} workspace={workspace}>
+            <div className={clsx(styles.container)}>
+                <PageLayout
+                    navbar={<ProjectTitle owner={doc?.creator ?? '404'} fold />}
+                    sidebarVisible={isSidebarVisible}
+                    sidebar={
+                        workspace && (
+                            <>
+                                <ProjectTitle className={styles.fixedTitle} userId={userId} />
+                                <SideBar />
+                            </>
+                        )
+                    }
+                >
+                    {children}
+                </PageLayout>
+            </div>
+        </DocContextProvider>
     );
 }

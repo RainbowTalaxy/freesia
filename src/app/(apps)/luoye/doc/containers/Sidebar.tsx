@@ -1,26 +1,22 @@
 'use client';
 import { useRouter } from 'next/navigation';
 import { SideBarList, SideBarListItem } from '../../components/PageLayout';
-import { Doc, Scope, Workspace } from '@/app/api/luoye';
+import { Scope } from '@/app/api/luoye';
 import Placeholder from '../../components/PlaceHolder';
 import SVG from '../../components/SVG';
-import { DragDropContext, Draggable, Droppable } from '@hello-pangea/dnd';
-import { useEffect, useState } from 'react';
+import { DragDropContext, Draggable, Droppable, OnDragEndResponder } from '@hello-pangea/dnd';
+import { useContext, useEffect, useState } from 'react';
 import API, { clientFetch } from '@/app/api';
 import { checkAuth, workSpaceName } from '../../configs';
 import Toast from '../../components/Notification/Toast';
 import WorkspaceForm from '../../containers/WorkspaceForm';
 import DocForm from '../../containers/DocForm';
+import { DocContext } from '../[docId]/context';
 
-interface Props {
-    userId: string;
-    doc: Doc;
-    workspace: Workspace;
-}
-
-const SideBar = ({ userId, doc, workspace: _workspace }: Props) => {
+const SideBar = () => {
     const router = useRouter();
 
+    const { userId, doc, workspace: _workspace, setWorkspace: setContextWorkspace } = useContext(DocContext);
     const [workspace, setWorkspace] = useState(_workspace);
     const [isWorkspaceFormVisible, setWorkspaceFormVisible] = useState(false);
     const [isDocFormVisible, setDocFormVisible] = useState(false);
@@ -29,7 +25,35 @@ const SideBar = ({ userId, doc, workspace: _workspace }: Props) => {
         setWorkspace(_workspace);
     }, [_workspace]);
 
+    if (!workspace) return null;
+
     const workspaceAuth = checkAuth(workspace, userId);
+
+    const handleDragEnd: OnDragEndResponder = async (result) => {
+        const sourceIdx = result.source.index;
+        const destIdx = result.destination?.index ?? -1;
+        if (destIdx < 0 || sourceIdx === destIdx) return;
+        const reOrdered = Array.from(workspace.docs);
+        const [removed] = reOrdered.splice(sourceIdx, 1);
+        reOrdered.splice(destIdx, 0, removed);
+        // 先更新状态，避免回弹动画
+        setWorkspace({
+            ...workspace,
+            docs: reOrdered,
+        });
+        try {
+            const newWorkspace = await clientFetch(
+                API.luoye.updateWorkspace(workspace.id, {
+                    docs: reOrdered,
+                }),
+            );
+            setWorkspace(newWorkspace);
+            setContextWorkspace(newWorkspace);
+        } catch (error: any) {
+            Toast.notify(error.message);
+            setWorkspace(workspace);
+        }
+    };
 
     return (
         <>
@@ -46,32 +70,7 @@ const SideBar = ({ userId, doc, workspace: _workspace }: Props) => {
                     <h2>文档列表</h2>
                 </>
             )}
-            <DragDropContext
-                onDragEnd={async (result) => {
-                    const sourceIdx = result.source.index;
-                    const destIdx = result.destination?.index ?? -1;
-                    if (destIdx < 0 || sourceIdx === destIdx) return;
-                    const reOrdered = Array.from(workspace.docs);
-                    const [removed] = reOrdered.splice(sourceIdx, 1);
-                    reOrdered.splice(destIdx, 0, removed);
-                    // 先更新状态，避免回弹动画
-                    setWorkspace({
-                        ...workspace,
-                        docs: reOrdered,
-                    });
-                    try {
-                        const newWorkspace = await clientFetch(
-                            API.luoye.updateWorkspace(workspace.id, {
-                                docs: reOrdered,
-                            }),
-                        );
-                        setWorkspace(newWorkspace);
-                    } catch (error: any) {
-                        Toast.notify(error.message);
-                        setWorkspace(workspace);
-                    }
-                }}
-            >
+            <DragDropContext onDragEnd={handleDragEnd}>
                 <Droppable droppableId="droppable">
                     {(provided) => (
                         <SideBarList ref={provided.innerRef} {...provided.droppableProps}>
@@ -81,7 +80,7 @@ const SideBar = ({ userId, doc, workspace: _workspace }: Props) => {
                                         <SideBarListItem
                                             ref={provided.innerRef}
                                             name={docDir.name || '未命名'}
-                                            active={docDir.docId === doc.id}
+                                            active={docDir.docId === doc?.id}
                                             draggableProps={provided.draggableProps}
                                             dragHandleProps={provided.dragHandleProps}
                                             style={provided.draggableProps.style}
@@ -98,9 +97,9 @@ const SideBar = ({ userId, doc, workspace: _workspace }: Props) => {
                     )}
                 </Droppable>
             </DragDropContext>
-            {workspace && isWorkspaceFormVisible && (
+            {isWorkspaceFormVisible && (
                 <WorkspaceForm
-                    userId={userId}
+                    userId={userId!}
                     workspace={workspace}
                     onClose={async (newWorkspace) => {
                         if (newWorkspace) setWorkspace(newWorkspace);
@@ -108,9 +107,9 @@ const SideBar = ({ userId, doc, workspace: _workspace }: Props) => {
                     }}
                 />
             )}
-            {workspace && workspaceAuth.configurable && isDocFormVisible && (
+            {isDocFormVisible && (
                 <DocForm
-                    userId={userId}
+                    userId={userId!}
                     workspace={workspace}
                     onClose={async (newDoc) => {
                         setDocFormVisible(false);

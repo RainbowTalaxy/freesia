@@ -38,6 +38,7 @@ const SideBar = () => {
             const newWorkspaceItems = await clientFetch(
                 API.luoye.updateWorkspaceItems(reOrdered.map((workspace) => workspace.id).concat(userWorkspace.id)),
             );
+            setWorkspaces(newWorkspaceItems);
             setAllWorkspaces(newWorkspaceItems);
         } catch (error: any) {
             Toast.notify(error.message);
