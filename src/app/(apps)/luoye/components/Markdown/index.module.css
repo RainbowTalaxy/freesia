@@ -1,13 +1,3 @@
-main a,
-main code,
-main a:hover {
-    color: var(--primary);
-}
-
-main pre {
-    background: var(--page);
-}
-
 .article {
     line-height: 1.65;
 }
@@ -114,4 +104,14 @@ main pre {
     height: 1px;
     background: #bec3c9;
     border: none;
+}
+
+.article a,
+.article code,
+.article a:hover {
+    color: var(--primary);
+}
+
+.article pre {
+    background: var(--page);
 }

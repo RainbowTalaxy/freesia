@@ -1,5 +1,5 @@
 'use client';
-import styles from '../../styles/notification.module.css';
+import styles from './index.module.css';
 import { ReactNode } from 'react';
 import { Root, createRoot } from 'react-dom/client';
 

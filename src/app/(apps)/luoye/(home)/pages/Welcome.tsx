@@ -33,7 +33,7 @@ const Welcome = ({ userId, recentDocs }: Props) => {
 
     if (!allWorkspaces) return null;
 
-    const foldedWorkspaces = isWorkspaceListFolded ? allWorkspaces!.slice(0, WORKSPACE_FOLD_THRESHOLD) : allWorkspaces;
+    const foldedWorkspaces = isWorkspaceListFolded ? allWorkspaces.slice(0, WORKSPACE_FOLD_THRESHOLD) : allWorkspaces;
     const isWorkspaceFolderVisible = isWorkspaceListFolded && allWorkspaces.length > WORKSPACE_FOLD_THRESHOLD + 1;
 
     return (

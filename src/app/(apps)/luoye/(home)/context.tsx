@@ -6,26 +6,35 @@ import { ReactNode, createContext, useState } from 'react';
 import { splitWorkspace } from '../configs';
 
 export const HomeContext = createContext<{
-    workspaces?: WorkspaceItem[];
-    userWorkspace?: WorkspaceItem;
-    allWorkspaces?: WorkspaceItem[] | null;
+    workspaces: WorkspaceItem[] | null;
+    userWorkspace: WorkspaceItem | null;
+    allWorkspaces: WorkspaceItem[] | null;
     setAllWorkspaces: (workspaces: WorkspaceItem[]) => void;
     refresh: () => void;
 }>({
+    workspaces: null,
+    userWorkspace: null,
+    allWorkspaces: null,
     refresh: () => {},
     setAllWorkspaces: () => {},
 });
 
 interface Props {
-    userId?: string | null;
-    allWorkspaces?: WorkspaceItem[] | null;
+    userId: string | null;
+    allWorkspaces: WorkspaceItem[] | null;
     children: ReactNode;
 }
 
 export const HomeContextProvider = ({ userId, allWorkspaces: _allWorkspaces, children }: Props) => {
-    const [allWorkspaces, setAllWorkspaces] = useState<WorkspaceItem[] | null | undefined>(_allWorkspaces);
+    const [allWorkspaces, setAllWorkspaces] = useState<WorkspaceItem[] | null>(_allWorkspaces);
 
-    const workspaceInfo = userId && allWorkspaces ? splitWorkspace(allWorkspaces, userId) : {};
+    const workspaceInfo =
+        userId && allWorkspaces
+            ? splitWorkspace(allWorkspaces, userId)
+            : {
+                  workspaces: null,
+                  userWorkspace: null,
+              };
 
     return (
         <HomeContext.Provider

@@ -14,10 +14,6 @@ export async function generateMetadata({ params }: { params: Params }) {
     };
 }
 
-interface Props {
-    params: Params;
-}
-
-export default async function Page({ params }: Props) {
+export default async function Page() {
     return <Document />;
 }

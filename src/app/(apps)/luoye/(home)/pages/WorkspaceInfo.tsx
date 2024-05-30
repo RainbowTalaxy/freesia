@@ -40,25 +40,22 @@ const WorkspaceInfo = ({ userId, data }: Props) => {
                     新建文档
                 </Button>
             </h2>
-
-            {data.docs.length === 0 ? (
-                <div className={styles.docList}>
+            <div className={styles.docList}>
+                {data.docs.length === 0 ? (
                     <div className={styles.docItem}>
                         <Placeholder>暂无文档</Placeholder>
                     </div>
-                </div>
-            ) : (
-                <div className={styles.docList}>
-                    {data.docs.map((docDir) => (
+                ) : (
+                    data.docs.map((docDir) => (
                         <Link className={styles.docItem} key={docDir.docId} href={`/luoye/doc/${docDir.docId}`}>
                             <div className={styles.docName}>{docDir.name || <Placeholder>未命名文档</Placeholder>}</div>
                             {docDir.scope === Scope.Private && <SVG.Lock />}
                             <Spacer />
                             <div className={styles.docDate}>{date(docDir.updatedAt)}</div>
                         </Link>
-                    ))}
-                </div>
-            )}
+                    ))
+                )}
+            </div>
             {isDocFormVisible && (
                 <DocForm
                     userId={userId}

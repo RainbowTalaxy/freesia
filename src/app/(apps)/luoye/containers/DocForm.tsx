@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import Toast from '../components/Notification/Toast';
 import clsx from 'clsx';
-import { Doc, DocType, Scope, WorkspaceItem } from '@/app/api/luoye';
+import { Doc, DocType, Scope, Workspace, WorkspaceItem } from '@/app/api/luoye';
 import { formDate, time } from '@/app/utils';
 import { Button, Input, Select, Toggle } from '@/app/components/form';
 import { DOCTYPE_OPTIONS, DOCTYPE_OPTIONS_NAME, workSpaceName } from '../configs';
@@ -11,11 +11,7 @@ import API, { clientFetch } from '@/app/api';
 
 interface Props {
     userId: string;
-    workspace?: {
-        id: string;
-        name: string;
-        scope: Scope;
-    };
+    workspace?: WorkspaceItem | Workspace | null;
     workspaceItems?: WorkspaceItem[];
     doc?: Doc;
     onClose: (newDoc?: Doc) => Promise<void>;
@@ -28,6 +24,38 @@ const DocForm = ({ userId, workspace, workspaceItems, doc, onClose, onDelete }: 
     const scopeRef = useRef<HTMLInputElement>(null);
     const dateRef = useRef<HTMLInputElement>(null);
     const [docType, setDocType] = useState<DocType>(DocType.Text);
+
+    const handleSave = async () => {
+        const props = {
+            name: nameRef.current!.value,
+            scope: scopeRef.current!.checked ? Scope.Public : Scope.Private,
+            date: time(dateRef.current!.value),
+            docType,
+        };
+        try {
+            let newDoc: Doc;
+            if (doc) {
+                newDoc = await clientFetch(API.luoye.updateDoc(doc.id, props));
+            } else {
+                const wId = workspaceRef.current?.value ?? workspace?.id;
+                if (!wId) return Toast.notify('请选择工作区');
+                newDoc = await clientFetch(API.luoye.createDoc(wId, props));
+            }
+            await onClose(newDoc);
+        } catch (error: any) {
+            Toast.notify(error.message);
+        }
+    };
+
+    const handleDelete = async () => {
+        if (!confirm('确定要删除吗？')) return;
+        try {
+            await clientFetch(API.luoye.deleteDoc(doc!.id));
+            onDelete!();
+        } catch (error: any) {
+            Toast.notify(error.message);
+        }
+    };
 
     useEffect(() => {
         if (doc) {
@@ -87,46 +115,12 @@ const DocForm = ({ userId, workspace, workspaceItems, doc, onClose, onDelete }: 
                 <div className={styles.formItem}>
                     <label></label>
                     <div className={styles.options}>
-                        <Button
-                            type="primary"
-                            onClick={async () => {
-                                const props = {
-                                    name: nameRef.current!.value,
-                                    scope: scopeRef.current!.checked ? Scope.Public : Scope.Private,
-                                    date: time(dateRef.current!.value),
-                                    docType,
-                                };
-                                try {
-                                    let newDoc: Doc;
-                                    if (doc) {
-                                        newDoc = await clientFetch(API.luoye.updateDoc(doc.id, props));
-                                    } else {
-                                        const wId = workspaceRef.current?.value ?? workspace?.id;
-                                        if (!wId) return Toast.notify('请选择工作区');
-                                        newDoc = await clientFetch(API.luoye.createDoc(wId, props));
-                                    }
-                                    await onClose(newDoc);
-                                } catch (error: any) {
-                                    Toast.notify(error.message);
-                                }
-                            }}
-                        >
+                        <Button type="primary" onClick={handleSave}>
                             {doc ? '保 存' : '创 建'}
                         </Button>
                         <Button onClick={() => onClose()}>取 消</Button>
                         {doc && onDelete && (
-                            <Button
-                                type="danger"
-                                onClick={async () => {
-                                    if (!confirm('确定要删除吗？')) return;
-                                    try {
-                                        await clientFetch(API.luoye.deleteDoc(doc.id));
-                                        onDelete();
-                                    } catch (error: any) {
-                                        Toast.notify(error.message);
-                                    }
-                                }}
-                            >
+                            <Button type="danger" onClick={handleDelete}>
                                 删 除
                             </Button>
                         )}

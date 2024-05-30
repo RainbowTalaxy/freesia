@@ -28,6 +28,19 @@ const ShareAccountForm = ({ onClose }: Props) => {
         })();
     }, []);
 
+    const handleGenerateToken = async () => {
+        try {
+            if (!idRef.current) return Toast.notify('ID 不能为空');
+            if (!passwordRef.current) return Toast.notify('密码不能为空');
+            const { token } = await clientFetch(
+                API.user.login(idRef.current.value, passwordRef.current.value, SHARE_EXPIRE_TIME),
+            );
+            setShareUrl(`${window.location.origin}/luoye?token=${token}`);
+        } catch (error: any) {
+            Toast.notify(error.message);
+        }
+    };
+
     return createPortal(
         <div className={styles.container}>
             <div className={styles.form}>
@@ -50,25 +63,7 @@ const ShareAccountForm = ({ onClose }: Props) => {
                 <div className={styles.formItem}>
                     <label></label>
                     <div className={styles.options}>
-                        <Button
-                            type="primary"
-                            onClick={async () => {
-                                try {
-                                    if (!idRef.current) return Toast.notify('ID 不能为空');
-                                    if (!passwordRef.current) return Toast.notify('密码不能为空');
-                                    const { token } = await clientFetch(
-                                        API.user.login(
-                                            idRef.current.value,
-                                            passwordRef.current.value,
-                                            SHARE_EXPIRE_TIME,
-                                        ),
-                                    );
-                                    setShareUrl(`${window.location.origin}/luoye?token=${token}`);
-                                } catch (error: any) {
-                                    Toast.notify(error.message);
-                                }
-                            }}
-                        >
+                        <Button type="primary" onClick={handleGenerateToken}>
                             生成
                         </Button>
                         {shareUrl && (

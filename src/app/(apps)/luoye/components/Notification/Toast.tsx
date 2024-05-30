@@ -1,5 +1,5 @@
 'use client';
-import styles from '../../styles/notification.module.css';
+import styles from './index.module.css';
 import { ReactNode } from 'react';
 import Notification from './Notification';
 
@@ -9,11 +9,7 @@ const Toast = {
 
     notify(message: ReactNode, duration: number | false = 2000) {
         Notification.notify(
-            typeof message === 'string' ? (
-                <div className={styles.toastText}>{message}</div>
-            ) : (
-                message
-            ),
+            typeof message === 'string' ? <div className={styles.toastText}>{message}</div> : message,
             duration,
             {
                 name: Toast.name,
@@ -26,11 +22,7 @@ const Toast = {
 
     cover(message: ReactNode, duration: number = 2000) {
         Notification.notify(
-            typeof message === 'string' ? (
-                <div className={styles.toastText}>{message}</div>
-            ) : (
-                message
-            ),
+            typeof message === 'string' ? <div className={styles.toastText}>{message}</div> : message,
             duration,
             {
                 name: Toast.name,

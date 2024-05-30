@@ -1,4 +1,4 @@
-import './style.css';
+import styles from './index.module.css';
 import ReactMarkdown from 'react-markdown';
 import remarkToc from './plugins/remarkToc';
 import remarkRehype from 'remark-rehype';
@@ -18,7 +18,7 @@ interface Props {
 
 const Markdown = ({ children, title }: Props) => {
     return (
-        <article className="article">
+        <article className={styles.article}>
             <ReactMarkdown
                 components={{
                     img: Img,

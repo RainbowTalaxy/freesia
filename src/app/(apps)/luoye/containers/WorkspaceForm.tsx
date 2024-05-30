@@ -10,7 +10,7 @@ import { Logger } from '@/app/utils';
 
 interface Props {
     userId: string;
-    workspace?: Omit<WorkspaceItem, 'joinAt'>;
+    workspace?: WorkspaceItem | Workspace;
     onClose: (newWorkspace?: Workspace) => Promise<void>;
 }
 
