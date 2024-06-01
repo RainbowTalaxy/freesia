@@ -40,6 +40,7 @@
     margin: 0 auto;
     padding: var(--document-v-padding) var(--h-padding);
     max-width: var(--max-content-width);
+    line-height: 1.65;
 }
 
 .document h1 {
@@ -50,6 +51,11 @@
 
 .document h2 {
     scroll-margin-top: calc(var(--doc-nav-bar) + 12px);
+}
+
+.document h1,
+.document h2 {
+    line-height: 1.25;
 }
 
 .document img {
