@@ -25,13 +25,15 @@ const WORKSPACE_FOLD_THRESHOLD = 7;
 const Welcome = ({ userId, recentDocs }: Props) => {
     const router = useRouter();
 
-    const { allWorkspaces, userWorkspace, refresh } = useContext(HomeContext);
+    const { userWorkspace, workspaces, refresh } = useContext(HomeContext);
 
     const [isWorkspaceListFolded, setWorkspaceListFolded] = useState(true);
     const [isWorkspaceFormVisible, setWorkspaceFormVisible] = useState(false);
     const [isDocFormVisible, setDocFormVisible] = useState(false);
 
-    if (!allWorkspaces) return null;
+    if (!workspaces || !userWorkspace) return null;
+
+    const allWorkspaces = [userWorkspace, ...workspaces];
 
     const foldedWorkspaces = isWorkspaceListFolded ? allWorkspaces.slice(0, WORKSPACE_FOLD_THRESHOLD) : allWorkspaces;
     const isWorkspaceFolderVisible = isWorkspaceListFolded && allWorkspaces.length > WORKSPACE_FOLD_THRESHOLD + 1;
@@ -64,7 +66,7 @@ const Welcome = ({ userId, recentDocs }: Props) => {
                     </Link>
                 ))}
                 {isWorkspaceFolderVisible && (
-                    <div
+                    <a
                         className={clsx(styles.workspaceItem, styles.workspaceFolder)}
                         onClick={() => setWorkspaceListFolded(false)}
                     >
@@ -72,7 +74,7 @@ const Welcome = ({ userId, recentDocs }: Props) => {
                             <span>🌳</span>
                             <div>展开更多</div>
                         </div>
-                    </div>
+                    </a>
                 )}
             </div>
             <h2 className={styles.header}>最近文档</h2>

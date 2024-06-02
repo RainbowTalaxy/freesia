@@ -92,6 +92,8 @@
     border-radius: 0.4rem;
     font-size: 95%;
     line-height: 1.45;
+    background: var(--page);
+    overflow: auto;
 }
 
 .article code {
@@ -110,8 +112,4 @@
 .article code,
 .article a:hover {
     color: var(--primary);
-}
-
-.article pre {
-    background: var(--page);
 }
