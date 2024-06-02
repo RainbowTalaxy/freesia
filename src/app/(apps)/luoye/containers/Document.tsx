@@ -43,7 +43,6 @@ const Document = () => {
                 }),
             );
             Toast.cover('保存成功');
-            setDoc(newDoc, false);
         } catch {
             Toast.cover('保存失败');
         }
@@ -90,7 +89,7 @@ const Document = () => {
                                                 }),
                                             );
                                             setIsEditing(false);
-                                            setDoc(newDoc, false);
+                                            router.refresh();
                                         } catch (error: any) {
                                             return Toast.notify(error.message);
                                         }
@@ -167,7 +166,7 @@ const Document = () => {
                     userId={userId!}
                     doc={doc}
                     onClose={async (newDoc) => {
-                        if (newDoc) setDoc(newDoc);
+                        if (newDoc) router.refresh();
                         setDocFormVisible(false);
                     }}
                     onDelete={() => {
