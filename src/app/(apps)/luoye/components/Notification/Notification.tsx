@@ -34,7 +34,6 @@ class Notification {
         if (name !== this.type) return;
         this.container.style.transform = '';
         setTimeout(() => {
-            this.root?.unmount();
             this.reset();
         }, 550);
     }
@@ -47,21 +46,19 @@ class Notification {
 
     static notify(message: ReactNode, duration: number | false = 2000, options: NotificationOption & { name: string }) {
         this.reset();
-        this.root = createRoot(this.container);
+        if (!this.root) this.root = createRoot(this.container);
         this.root.render(<>{message}</>);
-        setTimeout(() => {
-            this.container.style.transform = 'translateY(0)';
-            this.type = options.name;
-            if (duration) {
-                this.timerId = setTimeout(() => {
-                    if (options.onEnd) {
-                        options.onEnd();
-                    } else {
-                        this.close(options.name);
-                    }
-                }, duration);
-            }
-        }, 10);
+        this.container.style.transform = 'translateY(0)';
+        this.type = options.name;
+        if (duration) {
+            this.timerId = setTimeout(() => {
+                if (options.onEnd) {
+                    options.onEnd();
+                } else {
+                    this.close(options.name);
+                }
+            }, duration);
+        }
     }
 }
 
