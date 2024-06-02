@@ -95,6 +95,7 @@ const Welcome = ({ userId, recentDocs }: Props) => {
                                 className={styles.docAction}
                                 onClick={async (e) => {
                                     e.stopPropagation();
+                                    e.preventDefault();
                                     const granted = confirm('确定删除该记录吗？');
                                     if (!granted) return;
                                     try {
