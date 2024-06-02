@@ -1,5 +1,4 @@
 'use client';
-import API, { clientFetch } from '@/app/api';
 import { Doc, Workspace } from '@/app/api/luoye';
 import { ReactNode, createContext, useEffect, useState } from 'react';
 
@@ -7,13 +6,11 @@ export const DocContext = createContext<{
     userId: string | null;
     doc: Doc | null;
     workspace: Workspace | null;
-    setDoc: (newDoc: Doc, needUpdateWorkspace?: boolean) => void;
     setWorkspace: (newWorkspace: Workspace) => void;
 }>({
     userId: null,
     doc: null,
     workspace: null,
-    setDoc: () => {},
     setWorkspace: () => {},
 });
 
@@ -42,12 +39,6 @@ export const DocContextProvider = ({ userId, doc: _doc, workspace: _workspace, c
                 userId,
                 doc,
                 workspace,
-                setDoc: async (newDoc, needUpdateWorkspace = true) => {
-                    _setDoc(newDoc);
-                    if (!needUpdateWorkspace) return;
-                    const newWorkspace = await clientFetch(API.luoye.workspace(newDoc.workspaces[0]));
-                    setWorkspace(newWorkspace);
-                },
                 setWorkspace,
             }}
         >

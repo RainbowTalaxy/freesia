@@ -2,7 +2,7 @@
 import styles from '../styles/document.module.css';
 import { DocType } from '@/app/api/luoye';
 import { useRouter } from 'next/navigation';
-import { useContext, useRef, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import EditingModeGlobalStyle from '../styles/EditingModeGlobalStyle';
 import DocForm from './DocForm';
 import dayjs from 'dayjs';
@@ -24,8 +24,9 @@ const MarkdownEditor = dynamic(() => import('../components/Editor/MarkdownEditor
 
 const Document = () => {
     const router = useRouter();
-    const { userId, doc, workspace, setDoc } = useContext(DocContext);
-    const [isEditing, setIsEditing] = useState(false);
+    const { userId, doc, workspace } = useContext(DocContext);
+
+    const [isEditing, setIsEditing] = useState(doc?.content.length === 0);
     const [isDocFormVisible, setDocFormVisible] = useState(false);
     const textRef = useRef<EditorRef>(null);
 
@@ -37,16 +38,19 @@ const Document = () => {
         if (!doc) return;
         const text = textRef.current?.getText();
         try {
-            const newDoc = await clientFetch(
-                API.luoye.updateDoc(doc.id, {
-                    content: text,
-                }),
-            );
+            await clientFetch(API.luoye.updateDoc(doc.id, { content: text }));
             Toast.cover('保存成功');
         } catch {
             Toast.cover('保存失败');
         }
     };
+
+    useEffect(() => {
+        if (!isEditing) return;
+        if (!textRef.current || !textRef.current.loaded()) {
+            Toast.notify('正在加载编辑器');
+        }
+    }, [isEditing]);
 
     if (!doc)
         return (
@@ -81,13 +85,8 @@ const Document = () => {
                                 onClick={async () => {
                                     if (isEditing) {
                                         const text = textRef.current?.getText();
-                                        if (doc.content === '' && text === '') return setIsEditing(false);
                                         try {
-                                            const newDoc = await clientFetch(
-                                                API.luoye.updateDoc(doc.id, {
-                                                    content: text,
-                                                }),
-                                            );
+                                            await clientFetch(API.luoye.updateDoc(doc.id, { content: text }));
                                             setIsEditing(false);
                                             router.refresh();
                                         } catch (error: any) {

@@ -1,15 +1,17 @@
 'use client';
-import styles from '../../styles/editor.module.css';
+import styles from './editor.module.css';
 import Editor, { loader } from '@monaco-editor/react';
 import { useEffect, useImperativeHandle, useRef } from 'react';
 import { EditorProps } from './Editor';
-import PlaceholderContentWidget from './PlaceholderContentWidget';
 import clsx from 'clsx';
 import * as monaco from 'monaco-editor';
 import { MONACO_TOKEN_CONFIG, MONACO_COLOR_CONFIG } from '../../configs/monaco';
 import Toast from '../Notification/Toast';
 import useKeyboard from '@/app/hooks/useKeyboard';
 import { countText } from '../../configs/editor';
+import PlaceholderContentWidget from './PlaceholderContentWidget';
+
+let monacoLoaded = false;
 
 loader.config({ monaco });
 loader.init().then((monaco) => {
@@ -19,6 +21,7 @@ loader.init().then((monaco) => {
         rules: MONACO_TOKEN_CONFIG,
         colors: MONACO_COLOR_CONFIG,
     });
+    monacoLoaded = true;
 });
 
 const options: monaco.editor.IStandaloneEditorConstructionOptions = {
@@ -84,7 +87,6 @@ const options: monaco.editor.IStandaloneEditorConstructionOptions = {
 
 const MarkdownEditor = ({ className, visible, keyId, onSave, textRef, defaultValue }: EditorProps) => {
     const editorRef = useRef<monaco.editor.IStandaloneCodeEditor>();
-    const editorMounted = useRef(false);
 
     useKeyboard(
         's',
@@ -102,6 +104,7 @@ const MarkdownEditor = ({ className, visible, keyId, onSave, textRef, defaultVal
             focus: () => editorRef.current?.focus(),
             setText: (text: string) => editorRef.current?.setValue(text),
             getText: () => editorRef.current?.getValue() || '',
+            loaded: () => monacoLoaded,
         }),
         [],
     );
@@ -120,16 +123,19 @@ const MarkdownEditor = ({ className, visible, keyId, onSave, textRef, defaultVal
             defaultLanguage="markdown"
             defaultValue=""
             theme="luoye"
-            loading="加载中..."
+            loading={null}
             options={options}
             onMount={(editor) => {
                 editorRef.current = editor;
-                new PlaceholderContentWidget('点击此处输入正文', editor);
-                if (defaultValue) editor.setValue(defaultValue);
-                editorMounted.current = true;
+                new PlaceholderContentWidget('点击此处输入正文，可按 Ctrl + S 保存', editor);
+                editor.focus();
+                if (defaultValue !== undefined) {
+                    editor.setValue(defaultValue);
+                    if (visible) Toast.notify('字数：' + countText(defaultValue), false);
+                }
             }}
             onChange={(value) => {
-                if (value) Toast.notify('字数：' + countText(value), false);
+                if (value !== undefined) Toast.notify('字数：' + countText(value), false);
             }}
         />
     );

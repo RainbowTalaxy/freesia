@@ -11,9 +11,6 @@ const Toast = {
         Notification.notify(
             typeof message === 'string' ? <div className={styles.toastText}>{message}</div> : message,
             duration,
-            {
-                name: Toast.name,
-            },
         );
         if (duration === false) {
             Toast.preMessage = message;
@@ -25,7 +22,6 @@ const Toast = {
             typeof message === 'string' ? <div className={styles.toastText}>{message}</div> : message,
             duration,
             {
-                name: Toast.name,
                 onEnd: () => {
                     Toast.notify(this.preMessage, false);
                 },
@@ -34,7 +30,7 @@ const Toast = {
     },
 
     close() {
-        Notification.close(this.name);
+        Notification.close();
     },
 };
 

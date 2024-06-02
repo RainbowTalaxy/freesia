@@ -10,6 +10,7 @@ export interface EditorRef {
     focus: () => void;
     setText: (text: string) => void;
     getText: () => string;
+    loaded: () => boolean;
 }
 
 export interface EditorProps {
@@ -54,6 +55,7 @@ const Editor = forwardRef(({ className, visible, keyId, onSave }: EditorProps, r
                 text = text.replace(/\n{3,}/g, '\n\n');
                 return text;
             },
+            loaded: () => true,
         }),
         [],
     );
@@ -80,7 +82,7 @@ const Editor = forwardRef(({ className, visible, keyId, onSave }: EditorProps, r
                 onInput={(e) => {
                     const text = e.currentTarget.innerText;
                     e.currentTarget.dataset.placeholder = text ? '' : PLACE_HOLDER;
-                    if (text) Toast.notify('字数：' + countText(text), false);
+                    if (text !== undefined) Toast.notify('字数：' + countText(text), false);
                 }}
                 onPaste={(e) => {
                     e.preventDefault();

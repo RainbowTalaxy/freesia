@@ -11,7 +11,6 @@ export interface NotificationOption {
 }
 
 class Notification {
-    private static type: string | null = null;
     private static timerId: ReturnType<typeof setTimeout> | null = null;
     private static _container: HTMLDivElement | null = null;
     private static root: Root | null = null;
@@ -30,8 +29,7 @@ class Notification {
         return container;
     }
 
-    static close(name: string) {
-        if (name !== this.type) return;
+    static close() {
         this.container.style.transform = '';
         setTimeout(() => {
             this.reset();
@@ -41,21 +39,19 @@ class Notification {
     static reset() {
         if (this.timerId) clearTimeout(this.timerId);
         this.timerId = null;
-        this.type = null;
     }
 
-    static notify(message: ReactNode, duration: number | false = 2000, options: NotificationOption & { name: string }) {
+    static notify(message: ReactNode, duration: number | false = 2000, options?: NotificationOption) {
         this.reset();
         if (!this.root) this.root = createRoot(this.container);
         this.root.render(<>{message}</>);
         this.container.style.transform = 'translateY(0)';
-        this.type = options.name;
         if (duration) {
             this.timerId = setTimeout(() => {
-                if (options.onEnd) {
+                if (options?.onEnd) {
                     options.onEnd();
                 } else {
-                    this.close(options.name);
+                    this.close();
                 }
             }, duration);
         }
