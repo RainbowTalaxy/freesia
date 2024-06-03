@@ -37,7 +37,23 @@ export const SideBarListItem = forwardRef(
         { className, active, icon, children, style, href, onClick, dragHandleProps, draggableProps }: ListItemProps,
         ref: ForwardedRef<HTMLLIElement>,
     ) => {
-        return href ? (
+        if (href === undefined) {
+            return (
+                <li
+                    ref={ref}
+                    className={clsx(styles.sidebarListItem, active && styles.active, className)}
+                    onClick={onClick}
+                    style={style}
+                    {...dragHandleProps}
+                    {...draggableProps}
+                >
+                    {icon && <span className={styles.sidebarListItemIcon}>{icon}</span>}
+                    {children}
+                </li>
+            );
+        }
+
+        return (
             <li
                 ref={ref}
                 className={clsx(styles.sidebarListItemWrapper, active && styles.active, className)}
@@ -46,22 +62,17 @@ export const SideBarListItem = forwardRef(
                 {...dragHandleProps}
                 {...draggableProps}
             >
-                <Link className={styles.sidebarListItem} href={href} prefetch={false}>
-                    {icon && <span className={styles.sidebarListItemIcon}>{icon}</span>}
-                    {children}
-                </Link>
-            </li>
-        ) : (
-            <li
-                ref={ref}
-                className={clsx(styles.sidebarListItem, active && styles.active, className)}
-                onClick={onClick}
-                style={style}
-                {...dragHandleProps}
-                {...draggableProps}
-            >
-                {icon && <span className={styles.sidebarListItemIcon}>{icon}</span>}
-                {children}
+                {onClick ? (
+                    <a className={styles.sidebarListItem} href={href} onClick={(e) => e.preventDefault()}>
+                        {icon && <span className={styles.sidebarListItemIcon}>{icon}</span>}
+                        {children}
+                    </a>
+                ) : (
+                    <Link className={styles.sidebarListItem} href={href} prefetch={false}>
+                        {icon && <span className={styles.sidebarListItemIcon}>{icon}</span>}
+                        {children}
+                    </Link>
+                )}
             </li>
         );
     },

@@ -25,10 +25,10 @@ const ProjectTitle = ({ className, userId, marginBottom = 0, owner, fold = false
                     <SVG.Hamburger />
                 </span>
             )}
-            <Link className={clsx(styles.pageIcon, !fold && styles.showIcon)} href="/luoye">
+            <Link className={clsx(styles.pageIcon, !fold && styles.showIcon)} href="/luoye" prefetch={false}>
                 {PROJECT_ICON}
             </Link>
-            <Link className={styles.pageName} href="/luoye">
+            <Link className={styles.pageName} href="/luoye" prefetch={false}>
                 {PROJECT_NAME}
             </Link>
             <Spacer />

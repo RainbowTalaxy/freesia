@@ -1,12 +1,12 @@
-import type { Metadata } from 'next';
 import './globals.css';
-import { BASE_PATH } from './constants';
+import type { Metadata } from 'next';
+import { Path } from './utils';
 
 export const metadata: Metadata = {
     title: 'freesia',
     description: '',
     icons: {
-        icon: `${BASE_PATH}/mercy.png`,
+        icon: Path.static('/mercy.png'),
     },
 };
 

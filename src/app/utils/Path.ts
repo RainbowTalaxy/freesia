@@ -8,6 +8,12 @@ const Path = {
             '?next_url=' +
             encodeURIComponent(window.location.href);
     },
+    of: (path: string) => {
+        return BASE_PATH + path;
+    },
+    static: (path: string) => {
+        return Path.of(path);
+    },
 };
 
 export default Path;

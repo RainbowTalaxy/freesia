@@ -4,6 +4,7 @@ import { BODY_ENABLED_METHODS } from './constants';
 
 export default async function clientFetch<Data>(
     api: ReturnType<typeof request<Data>>,
+    controller?: AbortController,
 ) {
     let { url, method, data } = api;
     const isBodyEnabled = BODY_ENABLED_METHODS.includes(method);
@@ -17,6 +18,7 @@ export default async function clientFetch<Data>(
               }
             : {};
     const res = await fetch(url, {
+        signal: controller?.signal,
         method,
         credentials: 'same-origin',
         headers: {

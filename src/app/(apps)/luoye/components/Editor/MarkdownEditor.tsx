@@ -2,7 +2,7 @@
 import styles from './editor.module.css';
 import Editor, { loader } from '@monaco-editor/react';
 import { useEffect, useImperativeHandle, useRef } from 'react';
-import { EditorProps } from './Editor';
+import { EditorProps } from './TextEditor';
 import clsx from 'clsx';
 import * as monaco from 'monaco-editor';
 import { MONACO_TOKEN_CONFIG, MONACO_COLOR_CONFIG } from '../../configs/monaco';

@@ -1,7 +1,7 @@
 'use client';
 import styles from '../../styles/document.module.css';
 import clsx from 'clsx';
-import { ForwardedRef, RefObject, forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
+import { RefObject, useEffect, useImperativeHandle, useRef } from 'react';
 import Toast from '../Notification/Toast';
 import useKeyboard from '@/app/hooks/useKeyboard';
 import { countText } from '../../configs/editor';
@@ -24,7 +24,7 @@ export interface EditorProps {
 
 const PLACE_HOLDER = '点击此处直接输入正文';
 
-const Editor = forwardRef(({ className, visible, keyId, onSave }: EditorProps, ref: ForwardedRef<EditorRef>) => {
+const TextEditor = ({ className, visible, keyId, onSave, defaultValue, textRef }: EditorProps) => {
     const eleRef = useRef<HTMLPreElement>(null);
 
     useKeyboard('Tab', () => {
@@ -42,7 +42,7 @@ const Editor = forwardRef(({ className, visible, keyId, onSave }: EditorProps, r
     );
 
     useImperativeHandle(
-        ref,
+        textRef,
         () => ({
             focus: () => eleRef.current?.focus(),
             setText: (text: string) => {
@@ -62,13 +62,17 @@ const Editor = forwardRef(({ className, visible, keyId, onSave }: EditorProps, r
 
     useEffect(() => {
         if (visible) {
-            eleRef.current?.focus();
-            Toast.notify('字数：' + countText(eleRef.current?.innerText ?? ''), false);
+            if (eleRef.current) {
+                eleRef.current.focus();
+                eleRef.current.innerText = defaultValue ?? '';
+                eleRef.current.dataset.placeholder = defaultValue ? '' : PLACE_HOLDER;
+                Toast.notify('字数：' + countText(eleRef.current?.innerText ?? ''), false);
+            }
         }
         return () => {
             if (visible) Toast.close();
         };
-    }, [visible, keyId]);
+    }, [visible, keyId, defaultValue]);
 
     return (
         <div className={styles.docInputContainer}>
@@ -92,6 +96,6 @@ const Editor = forwardRef(({ className, visible, keyId, onSave }: EditorProps, r
             ></pre>
         </div>
     );
-});
+};
 
-export default Editor;
+export default TextEditor;

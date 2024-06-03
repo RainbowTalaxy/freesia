@@ -12,11 +12,18 @@ import Toast from '../../components/Notification/Toast';
 import WorkspaceForm from '../../containers/WorkspaceForm';
 import DocForm from '../../containers/DocForm';
 import { DocContext } from '../[docId]/context';
+import { Path } from '@/app/utils';
 
 const SideBar = () => {
     const router = useRouter();
 
-    const { userId, doc, workspace: _workspace, setWorkspace: setContextWorkspace } = useContext(DocContext);
+    const {
+        userId,
+        doc,
+        workspace: _workspace,
+        setWorkspace: setContextWorkspace,
+        navigateDoc,
+    } = useContext(DocContext);
     const [workspace, setWorkspace] = useState(_workspace);
     const [isWorkspaceFormVisible, setWorkspaceFormVisible] = useState(false);
     const [isDocFormVisible, setDocFormVisible] = useState(false);
@@ -84,7 +91,8 @@ const SideBar = () => {
                                             draggableProps={provided.draggableProps}
                                             dragHandleProps={provided.dragHandleProps}
                                             style={provided.draggableProps.style}
-                                            href={`/luoye/doc/${docDir.docId}`}
+                                            href={Path.of(`/luoye/doc/${docDir.docId}`)}
+                                            onClick={() => navigateDoc(docDir.docId)}
                                         >
                                             <span>{docDir.name || <Placeholder>未命名</Placeholder>}</span>
                                             {docDir.scope === Scope.Private && <SVG.Lock />}

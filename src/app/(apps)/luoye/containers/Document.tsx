@@ -13,7 +13,7 @@ import { Button } from '@/app/components/form';
 import clsx from 'clsx';
 import Toast from '../components/Notification/Toast';
 import API, { clientFetch } from '@/app/api';
-import Editor, { EditorRef } from '../components/Editor/Editor';
+import TextEditor, { EditorRef } from '../components/Editor/TextEditor';
 import Markdown from '../components/Markdown';
 import dynamic from 'next/dynamic';
 import { DocContext } from '../doc/[docId]/context';
@@ -24,9 +24,8 @@ const MarkdownEditor = dynamic(() => import('../components/Editor/MarkdownEditor
 
 const Document = () => {
     const router = useRouter();
-    const { userId, doc, workspace } = useContext(DocContext);
+    const { userId, doc, workspace, isLoading, isEditing, setEditing, updateDoc } = useContext(DocContext);
 
-    const [isEditing, setIsEditing] = useState(doc?.content.length === 0);
     const [isDocFormVisible, setDocFormVisible] = useState(false);
     const textRef = useRef<EditorRef>(null);
 
@@ -38,8 +37,9 @@ const Document = () => {
         if (!doc) return;
         const text = textRef.current?.getText();
         try {
-            await clientFetch(API.luoye.updateDoc(doc.id, { content: text }));
+            const newDoc = await clientFetch(API.luoye.updateDoc(doc.id, { content: text }));
             Toast.cover('保存成功');
+            updateDoc(newDoc, false);
         } catch {
             Toast.cover('保存失败');
         }
@@ -52,6 +52,17 @@ const Document = () => {
         }
     }, [isEditing]);
 
+    if (isLoading)
+        return (
+            <div className={styles.docView}>
+                <header className={styles.docNavBar}>
+                    <div className={styles.docNavTitle}>
+                        <Placeholder>加载中...</Placeholder>
+                    </div>
+                </header>
+            </div>
+        );
+
     if (!doc)
         return (
             <div className={styles.docView}>
@@ -63,6 +74,35 @@ const Document = () => {
                 </main>
             </div>
         );
+
+    const handleClickEditButton = async () => {
+        if (isEditing) {
+            const text = textRef.current?.getText();
+            try {
+                const newDoc = await clientFetch(API.luoye.updateDoc(doc.id, { content: text }));
+                setEditing(false);
+                updateDoc(newDoc, false);
+            } catch (error: any) {
+                return Toast.notify(error.message);
+            }
+        } else {
+            textRef.current?.setText(doc.content);
+            setEditing(true);
+        }
+    };
+
+    const handleRecover = async () => {
+        try {
+            if (!confirm('确定要恢复该文档吗？')) return;
+            await clientFetch(API.luoye.restoreDoc(doc.id));
+            Toast.notify('恢复成功');
+            router.refresh();
+        } catch (error: any) {
+            Toast.notify(error.message);
+        }
+    };
+
+    const Editor = doc.docType === DocType.Text ? TextEditor : MarkdownEditor;
 
     return (
         <div className={styles.docView}>
@@ -80,45 +120,16 @@ const Document = () => {
                     (auth.editable ? (
                         <>
                             {!isEditing && <Button onClick={() => setDocFormVisible(true)}>设 置</Button>}
-                            <Button
-                                type="primary"
-                                onClick={async () => {
-                                    if (isEditing) {
-                                        const text = textRef.current?.getText();
-                                        try {
-                                            await clientFetch(API.luoye.updateDoc(doc.id, { content: text }));
-                                            setIsEditing(false);
-                                            router.refresh();
-                                        } catch (error: any) {
-                                            return Toast.notify(error.message);
-                                        }
-                                    } else {
-                                        textRef.current?.setText(doc.content);
-                                        setIsEditing(true);
-                                    }
-                                }}
-                            >
+                            <Button type="primary" onClick={handleClickEditButton}>
                                 {isEditing ? '保 存' : '编 辑'}
                             </Button>
-                            {isEditing && <Button onClick={() => setIsEditing(false)}>取 消</Button>}
+                            {isEditing && <Button onClick={() => setEditing(false)}>取 消</Button>}
                         </>
                     ) : (
                         doc.creator.toUpperCase()
                     ))}
                 {isDeleted && (
-                    <Button
-                        type="primary"
-                        onClick={async () => {
-                            try {
-                                if (!confirm('确定要恢复该文档吗？')) return;
-                                await clientFetch(API.luoye.restoreDoc(doc.id));
-                                Toast.notify('恢复成功');
-                                router.refresh();
-                            } catch (error: any) {
-                                Toast.notify(error.message);
-                            }
-                        }}
-                    >
+                    <Button type="primary" onClick={handleRecover}>
                         恢 复
                     </Button>
                 )}
@@ -147,25 +158,20 @@ const Document = () => {
                         </p>
                     </>
                 )}
-                {doc.docType === DocType.Text && (
-                    <Editor ref={textRef} textRef={textRef} visible={isEditing} keyId={doc.id} onSave={onSaveContent} />
-                )}
-                {doc.docType === DocType.Markdown && (
-                    <MarkdownEditor
-                        textRef={textRef}
-                        defaultValue={doc.content}
-                        visible={isEditing}
-                        keyId={doc.id}
-                        onSave={onSaveContent}
-                    />
-                )}
+                <Editor
+                    textRef={textRef}
+                    defaultValue={doc.content}
+                    visible={isEditing}
+                    keyId={doc.id}
+                    onSave={onSaveContent}
+                />
             </main>
             {isDocFormVisible && (
                 <DocForm
                     userId={userId!}
                     doc={doc}
                     onClose={async (newDoc) => {
-                        if (newDoc) router.refresh();
+                        if (newDoc) updateDoc(newDoc);
                         setDocFormVisible(false);
                     }}
                     onDelete={() => {
