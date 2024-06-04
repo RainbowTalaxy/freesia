@@ -1,28 +1,11 @@
 'use client';
 import styles from '../../styles/document.module.css';
 import clsx from 'clsx';
-import { RefObject, useEffect, useImperativeHandle, useRef } from 'react';
+import { useEffect, useImperativeHandle, useRef } from 'react';
 import Toast from '../Notification/Toast';
 import useKeyboard from '@/app/hooks/useKeyboard';
 import { countText } from '../../configs/editor';
-
-export interface EditorRef {
-    focus: () => void;
-    setText: (text: string) => void;
-    getText: () => string;
-    loaded: () => boolean;
-}
-
-export interface EditorProps {
-    className?: string;
-    defaultValue?: string;
-    visible: boolean;
-    keyId: string;
-    textRef: RefObject<EditorRef>;
-    onSave: (text: string) => void;
-}
-
-const PLACE_HOLDER = '点击此处直接输入正文';
+import { EditorProps, PLACE_HOLDER } from './configs';
 
 const TextEditor = ({ className, visible, keyId, onSave, defaultValue, textRef }: EditorProps) => {
     const eleRef = useRef<HTMLPreElement>(null);

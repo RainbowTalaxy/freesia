@@ -2,7 +2,6 @@
 import styles from './editor.module.css';
 import Editor, { loader } from '@monaco-editor/react';
 import { useEffect, useImperativeHandle, useRef } from 'react';
-import { EditorProps } from './TextEditor';
 import clsx from 'clsx';
 import * as monaco from 'monaco-editor';
 import { MONACO_TOKEN_CONFIG, MONACO_COLOR_CONFIG } from '../../configs/monaco';
@@ -10,6 +9,7 @@ import Toast from '../Notification/Toast';
 import useKeyboard from '@/app/hooks/useKeyboard';
 import { countText } from '../../configs/editor';
 import PlaceholderContentWidget from './PlaceholderContentWidget';
+import { EditorProps, PLACE_HOLDER } from './configs';
 
 let monacoLoaded = false;
 
@@ -127,7 +127,7 @@ const MarkdownEditor = ({ className, visible, keyId, onSave, textRef, defaultVal
             options={options}
             onMount={(editor) => {
                 editorRef.current = editor;
-                new PlaceholderContentWidget('点击此处输入正文，可按 Ctrl + S 保存', editor);
+                new PlaceholderContentWidget(PLACE_HOLDER, editor);
                 editor.focus();
                 if (defaultValue !== undefined) {
                     editor.setValue(defaultValue);

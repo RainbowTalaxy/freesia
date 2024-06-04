@@ -13,14 +13,9 @@ import { Button } from '@/app/components/form';
 import clsx from 'clsx';
 import Toast from '../components/Notification/Toast';
 import API, { clientFetch } from '@/app/api';
-import TextEditor, { EditorRef } from '../components/Editor/TextEditor';
 import Markdown from '../components/Markdown';
-import dynamic from 'next/dynamic';
 import { DocContext } from '../doc/[docId]/context';
-
-const MarkdownEditor = dynamic(() => import('../components/Editor/MarkdownEditor'), {
-    ssr: false,
-});
+import { EditorRef, TextEditor, MarkdownEditor } from '../components/Editor';
 
 const Document = () => {
     const router = useRouter();
