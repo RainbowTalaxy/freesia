@@ -19,6 +19,6 @@ interface Props {
     children: ReactNode;
 }
 
-export default function Layout({ children }: Props) {
+export default async function Layout({ children }: Props) {
     return children;
 }

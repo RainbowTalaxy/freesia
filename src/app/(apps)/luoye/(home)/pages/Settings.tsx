@@ -4,7 +4,11 @@ import ShareAccountForm from '../containers/ShareAccountForm';
 import styles from '../../styles/home.module.css';
 import { useState } from 'react';
 
-export default function Settings() {
+interface Props {
+    userId: string;
+}
+
+export default function Settings({ userId }: Props) {
     const [isShareAccountFormVisible, setShareAccountFormVisible] = useState(false);
 
     return (
@@ -14,7 +18,9 @@ export default function Settings() {
             </div>
             <h2>账号设置</h2>
             <Button onClick={() => setShareAccountFormVisible(true)}>临时共享账号</Button>
-            {isShareAccountFormVisible && <ShareAccountForm onClose={async () => setShareAccountFormVisible(false)} />}
+            {isShareAccountFormVisible && (
+                <ShareAccountForm userId={userId} onClose={async () => setShareAccountFormVisible(false)} />
+            )}
         </>
     );
 }

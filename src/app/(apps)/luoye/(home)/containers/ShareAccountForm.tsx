@@ -5,28 +5,23 @@ import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import Toast from '../../components/Notification/Toast';
 import { Button, Input } from '@/app/components/form';
+import { Path } from '@/app/utils';
 
-const SHARE_EXPIRE_TIME = 7;
+const SHARE_EXPIRE_TIME = 1;
 
 interface Props {
+    userId: string;
     onClose: () => Promise<void>;
 }
 
-const ShareAccountForm = ({ onClose }: Props) => {
+const ShareAccountForm = ({ userId, onClose }: Props) => {
     const idRef = useRef<HTMLInputElement>(null);
     const passwordRef = useRef<HTMLInputElement>(null);
     const [shareUrl, setShareUrl] = useState<string>('');
 
     useEffect(() => {
-        (async () => {
-            try {
-                const { id } = await clientFetch(API.user.info());
-                idRef.current!.value = id;
-            } catch (error: any) {
-                Toast.notify(error.message);
-            }
-        })();
-    }, []);
+        idRef.current!.value = userId;
+    }, [userId]);
 
     const handleGenerateToken = async () => {
         try {
@@ -35,7 +30,7 @@ const ShareAccountForm = ({ onClose }: Props) => {
             const { token } = await clientFetch(
                 API.user.login(idRef.current.value, passwordRef.current.value, SHARE_EXPIRE_TIME),
             );
-            setShareUrl(`${window.location.origin}/luoye?token=${token}`);
+            setShareUrl(window.location.origin + Path.ofTokenDigest(token, Path.of('/luoye')));
         } catch (error: any) {
             Toast.notify(error.message);
         }
@@ -45,7 +40,7 @@ const ShareAccountForm = ({ onClose }: Props) => {
         <div className={styles.container}>
             <div className={styles.form}>
                 <h2>临时账号共享</h2>
-                <p className={styles.formDescription}>生成一个7天有效的账号分享链接</p>
+                <p className={styles.formDescription}>生成一个 {SHARE_EXPIRE_TIME} 天有效的账号分享链接</p>
                 <div className={styles.formItem}>
                     <label>ID：</label>
                     <Input raf={idRef} />

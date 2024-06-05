@@ -11,6 +11,10 @@ const UserAPI = {
             expireTime,
         }),
     logout: () => Rocket.post<Result>(`${API_PREFIX}/user/logout`),
+    digest: (token: string) =>
+        Rocket.post<Result>(`${API_PREFIX}/user/digest`, {
+            token,
+        }),
 };
 
 export default UserAPI;

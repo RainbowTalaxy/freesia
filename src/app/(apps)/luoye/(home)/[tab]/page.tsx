@@ -12,14 +12,14 @@ interface Props {
 
 export default async function Page({ params }: Props) {
     const { tab } = params;
+    const userId = await Server.userId();
 
     switch (tab) {
         case 'doc-bin':
             return <DocBin />;
         case 'settings':
-            return <Settings />;
+            if (userId) return <Settings userId={userId} />;
         case 'workspace':
-            const userId = await Server.userId();
             if (userId) {
                 const workspace = await serverFetch(API.luoye.workspace(userId));
                 return <WorkspaceInfo userId={userId} data={workspace} />;
