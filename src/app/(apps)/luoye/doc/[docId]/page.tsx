@@ -2,9 +2,9 @@ import { PROJECT_NAME } from '../../configs';
 import Document from '../../containers/Document';
 import { fetchDocInfo } from './cache';
 
-type Params = {
+interface Params {
     docId: string;
-};
+}
 
 export async function generateMetadata({ params }: { params: Params }) {
     const docInfo = await fetchDocInfo(params.docId);

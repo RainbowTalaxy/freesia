@@ -1,3 +1,4 @@
+'use client';
 import styles from '../styles/form.module.css';
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';

@@ -1,3 +1,4 @@
+'use client';
 import styles from '../styles/form.module.css';
 import clsx from 'clsx';
 import { useEffect, useRef } from 'react';
