@@ -1,7 +1,7 @@
 'use client';
 import API, { clientFetch } from '@/app/api';
 import { Doc, Workspace } from '@/app/api/luoye';
-import { Path } from '@/app/utils';
+import { Logger, Path } from '@/app/utils';
 import { ReactNode, createContext, useCallback, useEffect, useRef, useState } from 'react';
 import { LEAVE_EDITING_TEXT } from '../../configs';
 
@@ -59,7 +59,9 @@ export const DocContextProvider = ({ userId, doc: _doc, workspace: _workspace, c
     // 处理浏览器前进后退
     useEffect(() => {
         const cb = (e: PopStateEvent) => {
-            const docId = e.state?.id ?? _doc?.id;
+            const { docId } = /\/luoye\/doc\/(?<docId>[^/]+)$/.exec(location.pathname)?.groups ?? {
+                docId: doc?.id,
+            };
             if (docId && docId !== doc?.id) changeDoc(e.state?.id ?? _doc?.id);
         };
         window.addEventListener('popstate', cb);
