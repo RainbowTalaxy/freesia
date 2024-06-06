@@ -25,7 +25,7 @@ const DocForm = ({ userId, workspace, workspaceItems, doc, onClose, onDelete }: 
     const dateRef = useRef<HTMLInputElement>(null);
     const [docType, setDocType] = useState<DocType>(DocType.Text);
 
-    const handleSave = async () => {
+    const handleSubmit = async () => {
         const props = {
             name: nameRef.current!.value,
             scope: scopeRef.current!.checked ? Scope.Public : Scope.Private,
@@ -37,9 +37,9 @@ const DocForm = ({ userId, workspace, workspaceItems, doc, onClose, onDelete }: 
             if (doc) {
                 newDoc = await clientFetch(API.luoye.updateDoc(doc.id, props));
             } else {
-                const wId = workspaceRef.current?.value ?? workspace?.id;
-                if (!wId) return Toast.notify('请选择工作区');
-                newDoc = await clientFetch(API.luoye.createDoc(wId, props));
+                const workspaceId = workspaceRef.current?.value ?? workspace?.id;
+                if (!workspaceId) return Toast.notify('请选择工作区');
+                newDoc = await clientFetch(API.luoye.createDoc(workspaceId, props));
             }
             await onClose(newDoc);
         } catch (error: any) {
@@ -115,7 +115,7 @@ const DocForm = ({ userId, workspace, workspaceItems, doc, onClose, onDelete }: 
                 <div className={styles.formItem}>
                     <label></label>
                     <div className={styles.options}>
-                        <Button type="primary" onClick={handleSave}>
+                        <Button type="primary" onClick={handleSubmit}>
                             {doc ? '保 存' : '创 建'}
                         </Button>
                         <Button onClick={() => onClose()}>取 消</Button>

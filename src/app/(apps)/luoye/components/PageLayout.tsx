@@ -25,7 +25,6 @@ interface ListItemProps {
     active?: boolean;
     icon?: ReactNode;
     children?: ReactNode;
-    style?: CSSProperties;
     href?: string;
     onClick?: () => void;
     draggableProps?: DraggableProvidedDraggableProps;
@@ -34,7 +33,7 @@ interface ListItemProps {
 
 export const SideBarListItem = forwardRef(
     (
-        { className, active, icon, children, style, href, onClick, dragHandleProps, draggableProps }: ListItemProps,
+        { className, active, icon, children, href, onClick, dragHandleProps, draggableProps }: ListItemProps,
         ref: ForwardedRef<HTMLLIElement>,
     ) => {
         if (href === undefined) {
@@ -43,7 +42,6 @@ export const SideBarListItem = forwardRef(
                     ref={ref}
                     className={clsx(styles.sidebarListItem, active && styles.active, className)}
                     onClick={onClick}
-                    style={style}
                     {...dragHandleProps}
                     {...draggableProps}
                 >
@@ -58,7 +56,6 @@ export const SideBarListItem = forwardRef(
                 ref={ref}
                 className={clsx(styles.sidebarListItemWrapper, active && styles.active, className)}
                 onClick={onClick}
-                style={style}
                 {...dragHandleProps}
                 {...draggableProps}
             >

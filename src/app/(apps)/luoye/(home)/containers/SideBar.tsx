@@ -16,7 +16,7 @@ const SideBar = () => {
         tab?: string;
         workspaceId?: string;
     }>();
-    const { workspaces: _workspaces, userWorkspace, setAllWorkspaces } = useContext(HomeContext);
+    const { userId, workspaces: _workspaces, userWorkspace, setAllWorkspaces } = useContext(HomeContext);
     const [workspaces, setWorkspaces] = useState(_workspaces!);
 
     useEffect(() => {
@@ -38,7 +38,6 @@ const SideBar = () => {
             const newWorkspaceItems = await clientFetch(
                 API.luoye.updateWorkspaceItems(reOrdered.map((workspace) => workspace.id).concat(userWorkspace.id)),
             );
-            setWorkspaces(newWorkspaceItems);
             setAllWorkspaces(newWorkspaceItems);
         } catch (error: any) {
             Toast.notify(error.message);
@@ -56,7 +55,11 @@ const SideBar = () => {
                 <SideBarListItem href="/luoye/settings" active={tab === 'settings'} icon="⚙️">
                     设置
                 </SideBarListItem>
-                <SideBarListItem icon="🪴" href={`/luoye/workspace`} active={tab === 'workspace'}>
+                <SideBarListItem
+                    icon="🪴"
+                    href={`/luoye/workspace`}
+                    active={tab === 'workspace' || workspaceId === userId}
+                >
                     <span>{userWorkspace.name || <Placeholder>未命名</Placeholder>}</span>
                     {userWorkspace.scope === Scope.Private && <SVG.Lock />}
                 </SideBarListItem>
@@ -86,7 +89,6 @@ const SideBar = () => {
                                             ref={provided.innerRef}
                                             draggableProps={provided.draggableProps}
                                             dragHandleProps={provided.dragHandleProps}
-                                            style={provided.draggableProps.style}
                                         >
                                             <span>{workspace.name || <Placeholder>未命名</Placeholder>}</span>
                                             {workspace.scope === Scope.Private && <SVG.Lock />}

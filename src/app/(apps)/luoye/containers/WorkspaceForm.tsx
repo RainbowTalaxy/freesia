@@ -29,6 +29,27 @@ const WorkspaceForm = ({ userId, workspace, onClose }: Props) => {
 
     const isUserWorkspace = userId && userId === workspace?.id;
 
+    const handleSubmit = async () => {
+        if (!nameRef.current!.value) return Toast.notify('请输入标题');
+        const props = {
+            name: nameRef.current!.value,
+            description: descriptionRef.current!.value,
+            scope: scopeRef.current!.checked ? Scope.Public : Scope.Private,
+        };
+        try {
+            let newWorkspace: Workspace;
+            if (workspace) {
+                newWorkspace = await clientFetch(API.luoye.updateWorkspace(workspace.id, props));
+            } else {
+                newWorkspace = await clientFetch(API.luoye.createWorkspace(props));
+            }
+            await onClose(newWorkspace);
+        } catch (error: any) {
+            Logger.error(error);
+            Toast.notify(error.message);
+        }
+    };
+
     return createPortal(
         <div className={styles.container}>
             <div className={styles.form}>
@@ -50,31 +71,7 @@ const WorkspaceForm = ({ userId, workspace, onClose }: Props) => {
                 <div className={styles.formItem}>
                     <label></label>
                     <div className={styles.options}>
-                        <Button
-                            type="primary"
-                            onClick={async () => {
-                                if (!nameRef.current!.value) return Toast.notify('请输入标题');
-                                const props = {
-                                    name: nameRef.current!.value,
-                                    description: descriptionRef.current!.value,
-                                    scope: scopeRef.current!.checked ? Scope.Public : Scope.Private,
-                                };
-                                try {
-                                    let newWorkspace: Workspace;
-                                    if (workspace) {
-                                        newWorkspace = await clientFetch(
-                                            API.luoye.updateWorkspace(workspace.id, props),
-                                        );
-                                    } else {
-                                        newWorkspace = await clientFetch(API.luoye.createWorkspace(props));
-                                    }
-                                    await onClose(newWorkspace);
-                                } catch (error: any) {
-                                    Logger.error(error);
-                                    Toast.notify(error.message);
-                                }
-                            }}
-                        >
+                        <Button type="primary" onClick={handleSubmit}>
                             {workspace ? '保存' : '创建'}
                         </Button>
                         <Button onClick={() => onClose()}>取消</Button>

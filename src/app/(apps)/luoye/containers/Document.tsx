@@ -15,7 +15,7 @@ import Toast from '../components/Notification/Toast';
 import API, { clientFetch } from '@/app/api';
 import Markdown from '../components/Markdown';
 import { DocContext } from '../doc/[docId]/context';
-import { EditorRef, TextEditor, MarkdownEditor } from '../components/Editor';
+import { TextEditor, MarkdownEditor, EditorRef } from '../components/Editor';
 
 const Document = () => {
     const router = useRouter();
@@ -24,7 +24,7 @@ const Document = () => {
     const [isDocFormVisible, setDocFormVisible] = useState(false);
     const textRef = useRef<EditorRef>(null);
 
-    const auth = checkAuth(doc, userId);
+    const docAuth = checkAuth(doc, userId);
     const isDeleted = Boolean(doc?.deletedAt);
     const isSidebarVisible = Boolean(workspace) && !isDeleted;
 
@@ -112,7 +112,7 @@ const Document = () => {
                     <ProjectTitle fold={isSidebarVisible} showInfo={false} />
                 )}
                 {!isDeleted &&
-                    (auth.editable ? (
+                    (docAuth.editable ? (
                         <>
                             {!isEditing && <Button onClick={() => setDocFormVisible(true)}>设 置</Button>}
                             <Button type="primary" onClick={handleClickEditButton}>
@@ -144,7 +144,7 @@ const Document = () => {
                         {doc.docType === DocType.Markdown && <Markdown title={doc.name}>{doc.content}</Markdown>}
                         <p className={styles.docInfo}>
                             <span>{doc.creator.toUpperCase()}</span>
-                            {auth.editable ? (
+                            {docAuth.editable ? (
                                 <> 于 {dayjs(doc.updatedAt).format('YYYY年M月D日 H:mm')} 更新</>
                             ) : (
                                 <> 落于 {dayjs(doc.date).format('YYYY年M月D日')} </>

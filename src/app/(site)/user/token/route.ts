@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const token = searchParams.get('token');
     if (!token) {
-        return { status: 400, body: 'Token is required' };
+        return new Response('`token` is required', { status: 400 });
     }
     cookies().set('token', token, {
         maxAge: COOKIE_EXPIRE,

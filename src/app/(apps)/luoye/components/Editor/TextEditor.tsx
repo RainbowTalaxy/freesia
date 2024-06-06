@@ -4,8 +4,8 @@ import clsx from 'clsx';
 import { useEffect, useImperativeHandle, useRef } from 'react';
 import Toast from '../Notification/Toast';
 import useKeyboard from '@/app/hooks/useKeyboard';
-import { countText } from '../../configs/editor';
-import { EditorProps, PLACE_HOLDER } from './configs';
+import { PLACE_HOLDER, countText } from './configs';
+import { EditorProps } from './configs/types';
 
 const TextEditor = ({ className, visible, keyId, onSave, defaultValue, textRef }: EditorProps) => {
     const eleRef = useRef<HTMLPreElement>(null);

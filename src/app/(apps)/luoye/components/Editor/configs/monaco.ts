@@ -1,6 +1,68 @@
 import * as monaco from 'monaco-editor';
 
-// 请于 src/css/custom.css 中的颜色同步
+export const MONACO_OPTIONS: monaco.editor.IStandaloneEditorConstructionOptions =
+    {
+        // 控制是否展示行号
+        // folding: false,
+        // glyphMargin: false,
+        // lineDecorationsWidth: 0,
+        // lineNumbers: 'off',
+        // lineNumbersMinChars: 0,
+
+        // 折行控制
+        wrappingStrategy: 'advanced',
+        wordWrap: 'on',
+
+        // 字体设置
+        fontLigatures: true,
+        fontSize: 16,
+        fontFamily:
+            "'Fira Code', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, sans-serif",
+
+        // 禁用括号匹配
+        matchBrackets: 'never',
+        // 问题：https://github.com/microsoft/monaco-editor/issues/3829
+        // @ts-ignore
+        'bracketPairColorization.enabled': false,
+        // 禁用菜单
+        contextmenu: false,
+        // 光标宽度
+        cursorWidth: 1,
+        // 右侧 minimap
+        minimap: {
+            enabled: false,
+        },
+        // 编辑器边距
+        padding: {
+            top: 24,
+        },
+        // 行高亮
+        renderLineHighlight: 'none',
+        // 滚动条设置
+        scrollbar: {
+            verticalScrollbarSize: 6,
+        },
+        // unicode 高亮
+        unicodeHighlight: {
+            ambiguousCharacters: false,
+        },
+        // 禁用建议
+        quickSuggestions: {
+            other: false,
+            comments: false,
+            strings: false,
+        },
+        parameterHints: {
+            enabled: false,
+        },
+        wordBasedSuggestionsOnlySameLanguage: false,
+        suggestOnTriggerCharacters: false,
+        acceptSuggestionOnEnter: 'off',
+        tabCompletion: 'off',
+        wordBasedSuggestions: 'off',
+    };
+
+// 请于 src/css/custom.css 中的颜色同步，颜色只能是字面量值
 const Colors = {
     primary: '#785617',
     secondary: '#d09d3e',

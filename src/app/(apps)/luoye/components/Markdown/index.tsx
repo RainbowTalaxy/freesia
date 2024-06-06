@@ -6,11 +6,6 @@ import rehypeSlug from 'rehype-slug';
 import rehypeRaw from 'rehype-raw';
 import Img from './components/Image';
 
-interface Slug {
-    title: string;
-    slug: string;
-}
-
 interface Props {
     children: string;
     title: string;

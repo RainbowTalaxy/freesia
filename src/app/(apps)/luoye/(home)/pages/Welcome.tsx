@@ -1,6 +1,6 @@
 'use client';
 import styles from '../../styles/home.module.css';
-import { useContext, useState } from 'react';
+import { MouseEvent, useContext, useState } from 'react';
 import clsx from 'clsx';
 import { DocItem, Scope } from '@/app/api/luoye';
 import Placeholder from '../../components/PlaceHolder';
@@ -25,7 +25,7 @@ const WORKSPACE_FOLD_THRESHOLD = 7;
 const Welcome = ({ userId, recentDocs }: Props) => {
     const router = useRouter();
 
-    const { userWorkspace, workspaces, refresh } = useContext(HomeContext);
+    const { userWorkspace, workspaces, refreshContext } = useContext(HomeContext);
 
     const [isWorkspaceListFolded, setWorkspaceListFolded] = useState(true);
     const [isWorkspaceFormVisible, setWorkspaceFormVisible] = useState(false);
@@ -37,6 +37,20 @@ const Welcome = ({ userId, recentDocs }: Props) => {
 
     const foldedWorkspaces = isWorkspaceListFolded ? allWorkspaces.slice(0, WORKSPACE_FOLD_THRESHOLD) : allWorkspaces;
     const isWorkspaceFolderVisible = isWorkspaceListFolded && allWorkspaces.length > WORKSPACE_FOLD_THRESHOLD + 1;
+
+    const handleDeleteRecentDoc = async (e: MouseEvent, doc: DocItem) => {
+        e.stopPropagation();
+        e.preventDefault();
+        const granted = confirm('确定删除该记录吗？');
+        if (!granted) return;
+        try {
+            await clientFetch(API.luoye.deleteRecentDoc(doc.id));
+            Toast.notify('删除成功');
+            router.refresh();
+        } catch {
+            Toast.notify('删除失败');
+        }
+    };
 
     return (
         <>
@@ -91,22 +105,7 @@ const Welcome = ({ userId, recentDocs }: Props) => {
                             <Spacer />
                             <div className={styles.docUser}>{doc.creator}</div>
                             <div className={styles.docDate}>{date(doc.updatedAt)}</div>
-                            <div
-                                className={styles.docAction}
-                                onClick={async (e) => {
-                                    e.stopPropagation();
-                                    e.preventDefault();
-                                    const granted = confirm('确定删除该记录吗？');
-                                    if (!granted) return;
-                                    try {
-                                        await clientFetch(API.luoye.deleteRecentDoc(doc.id));
-                                        Toast.notify('删除成功');
-                                        router.refresh();
-                                    } catch {
-                                        Toast.notify('删除失败');
-                                    }
-                                }}
-                            >
+                            <div className={styles.docAction} onClick={(e) => handleDeleteRecentDoc(e, doc)}>
                                 删除
                             </div>
                         </Link>
@@ -119,7 +118,7 @@ const Welcome = ({ userId, recentDocs }: Props) => {
                     onClose={async (newWorkspace) => {
                         if (newWorkspace) {
                             router.push(`/luoye/workspace/${newWorkspace.id}`);
-                            refresh();
+                            refreshContext();
                         }
                         setWorkspaceFormVisible(false);
                     }}

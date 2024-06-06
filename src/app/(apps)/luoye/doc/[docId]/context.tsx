@@ -3,6 +3,7 @@ import API, { clientFetch } from '@/app/api';
 import { Doc, Workspace } from '@/app/api/luoye';
 import { Path } from '@/app/utils';
 import { ReactNode, createContext, useCallback, useEffect, useRef, useState } from 'react';
+import { LEAVE_EDITING_TEXT } from '../../configs';
 
 export const DocContext = createContext<{
     userId: string | null;
@@ -59,13 +60,13 @@ export const DocContextProvider = ({ userId, doc: _doc, workspace: _workspace, c
     useEffect(() => {
         const cb = (e: PopStateEvent) => {
             const docId = e.state?.id ?? _doc?.id;
-            if (docId) changeDoc(e.state?.id ?? _doc?.id);
+            if (docId && docId !== doc?.id) changeDoc(e.state?.id ?? _doc?.id);
         };
         window.addEventListener('popstate', cb);
         return () => {
             window.removeEventListener('popstate', cb);
         };
-    }, [_doc?.id, changeDoc]);
+    }, [_doc?.id, doc?.id, changeDoc]);
 
     // 初始化
     useEffect(() => {
@@ -94,7 +95,7 @@ export const DocContextProvider = ({ userId, doc: _doc, workspace: _workspace, c
                 navigateDoc: (id: string) => {
                     if (doc?.id === id) return;
                     if (isEditing) {
-                        const result = confirm('是否退出编辑？');
+                        const result = confirm(LEAVE_EDITING_TEXT);
                         if (!result) return;
                     }
                     history.pushState({ id }, '', Path.of(`/luoye/doc/${id}`));

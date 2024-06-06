@@ -1,5 +1,6 @@
 import './styles/index.css';
 import { BASE_PATH } from '@/app/constants';
+import { Path } from '@/app/utils';
 import { Metadata, Viewport } from 'next';
 import { ReactNode } from 'react';
 
@@ -7,12 +8,12 @@ export const metadata: Metadata = {
     title: '落页',
     description: '',
     icons: {
-        icon: `${BASE_PATH}/luoye.png`,
+        icon: Path.static('/luoye.png'),
     },
 };
 
 export const viewport: Viewport = {
-    themeColor: '#fff8ed',
+    themeColor: 'var(--ly-background)',
 };
 
 interface Props {

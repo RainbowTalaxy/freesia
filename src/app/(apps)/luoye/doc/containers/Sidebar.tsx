@@ -90,7 +90,6 @@ const SideBar = () => {
                                             active={docDir.docId === doc?.id}
                                             draggableProps={provided.draggableProps}
                                             dragHandleProps={provided.dragHandleProps}
-                                            style={provided.draggableProps.style}
                                             href={Path.of(`/luoye/doc/${docDir.docId}`)}
                                             onClick={() => navigateDoc(docDir.docId)}
                                         >

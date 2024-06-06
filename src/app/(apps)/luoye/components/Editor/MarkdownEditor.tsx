@@ -4,13 +4,14 @@ import Editor, { loader } from '@monaco-editor/react';
 import { useEffect, useImperativeHandle, useRef } from 'react';
 import clsx from 'clsx';
 import * as monaco from 'monaco-editor';
-import { MONACO_TOKEN_CONFIG, MONACO_COLOR_CONFIG } from '../../configs/monaco';
+import { MONACO_TOKEN_CONFIG, MONACO_COLOR_CONFIG, MONACO_OPTIONS } from './configs/monaco';
 import Toast from '../Notification/Toast';
 import useKeyboard from '@/app/hooks/useKeyboard';
-import { countText } from '../../configs/editor';
+import { PLACE_HOLDER, countText } from './configs';
 import PlaceholderContentWidget from './PlaceholderContentWidget';
-import { EditorProps, PLACE_HOLDER } from './configs';
+import { EditorProps } from './configs/types';
 
+// 用于页面判断编辑器是否加载完毕
 let monacoLoaded = false;
 
 loader.config({ monaco });
@@ -23,67 +24,6 @@ loader.init().then((monaco) => {
     });
     monacoLoaded = true;
 });
-
-const options: monaco.editor.IStandaloneEditorConstructionOptions = {
-    // 控制是否展示行号
-    // folding: false,
-    // glyphMargin: false,
-    // lineDecorationsWidth: 0,
-    // lineNumbers: 'off',
-    // lineNumbersMinChars: 0,
-
-    // 折行控制
-    wrappingStrategy: 'advanced',
-    wordWrap: 'on',
-
-    // 字体设置
-    fontLigatures: true,
-    fontSize: 16,
-    fontFamily:
-        "'Fira Code', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, sans-serif",
-
-    // 禁用括号匹配
-    matchBrackets: 'never',
-    // 问题：https://github.com/microsoft/monaco-editor/issues/3829
-    // @ts-ignore
-    'bracketPairColorization.enabled': false,
-    // 禁用菜单
-    contextmenu: false,
-    // 光标宽度
-    cursorWidth: 1,
-    // 右侧 minimap
-    minimap: {
-        enabled: false,
-    },
-    // 编辑器边距
-    padding: {
-        top: 24,
-    },
-    // 行高亮
-    renderLineHighlight: 'none',
-    // 滚动条设置
-    scrollbar: {
-        verticalScrollbarSize: 6,
-    },
-    // unicode 高亮
-    unicodeHighlight: {
-        ambiguousCharacters: false,
-    },
-    // 禁用建议
-    quickSuggestions: {
-        other: false,
-        comments: false,
-        strings: false,
-    },
-    parameterHints: {
-        enabled: false,
-    },
-    wordBasedSuggestionsOnlySameLanguage: false,
-    suggestOnTriggerCharacters: false,
-    acceptSuggestionOnEnter: 'off',
-    tabCompletion: 'off',
-    wordBasedSuggestions: 'off',
-};
 
 const MarkdownEditor = ({ className, visible, keyId, onSave, textRef, defaultValue }: EditorProps) => {
     const editorRef = useRef<monaco.editor.IStandaloneCodeEditor>();
@@ -124,7 +64,7 @@ const MarkdownEditor = ({ className, visible, keyId, onSave, textRef, defaultVal
             defaultValue=""
             theme="luoye"
             loading={null}
-            options={options}
+            options={MONACO_OPTIONS}
             onMount={(editor) => {
                 editorRef.current = editor;
                 new PlaceholderContentWidget(PLACE_HOLDER, editor);

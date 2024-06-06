@@ -1,6 +1,6 @@
 import { Rocket } from './fetch';
 import { API_PREFIX } from './fetch/constants';
-import { Result } from './types';
+import { ActionResult } from './types';
 import {
     Doc,
     DocBinItem,
@@ -37,7 +37,7 @@ const LuoyeAPI = {
     ) => Rocket.put<Workspace>(`${API_PREFIX}/luoye/workspace/${id}`, props),
     recentDocs: () => Rocket.get<DocItem[]>(`${API_PREFIX}/luoye/recent-docs`),
     deleteRecentDoc: (id: string) =>
-        Rocket.delete<Result>(`${API_PREFIX}/luoye/recent-docs/${id}`),
+        Rocket.delete<ActionResult>(`${API_PREFIX}/luoye/recent-docs/${id}`),
     docs: () => Rocket.get<DocItem[]>(`${API_PREFIX}/luoye/docs`),
     doc: (id: string) => Rocket.get<Doc>(`${API_PREFIX}/luoye/doc/${id}`),
     createDoc: (
@@ -63,10 +63,10 @@ const LuoyeAPI = {
         },
     ) => Rocket.put<Doc>(`${API_PREFIX}/luoye/doc/${id}`, props),
     deleteDoc: (id: string) =>
-        Rocket.delete<Result>(`${API_PREFIX}/luoye/doc/${id}`),
+        Rocket.delete<ActionResult>(`${API_PREFIX}/luoye/doc/${id}`),
     docBin: () => Rocket.get<DocBinItem[]>(`${API_PREFIX}/luoye/doc-bin`),
     restoreDoc: (id: string) =>
-        Rocket.put<Result>(`${API_PREFIX}/luoye/doc/${id}/restore`),
+        Rocket.put<ActionResult>(`${API_PREFIX}/luoye/doc/${id}/restore`),
 };
 
 export default LuoyeAPI;

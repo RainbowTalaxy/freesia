@@ -15,5 +15,3 @@ export interface EditorProps {
     textRef: RefObject<EditorRef>;
     onSave: (text: string) => void;
 }
-
-export const PLACE_HOLDER = '点击此处输入正文，可按 Ctrl + S 保存';

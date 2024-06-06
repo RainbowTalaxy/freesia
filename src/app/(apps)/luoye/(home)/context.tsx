@@ -6,16 +6,18 @@ import { ReactNode, createContext, useState } from 'react';
 import { splitWorkspace } from '../configs';
 
 export const HomeContext = createContext<{
+    userId: string | null;
     workspaces: WorkspaceItem[] | null;
     userWorkspace: WorkspaceItem | null;
     allWorkspaces: WorkspaceItem[] | null;
     setAllWorkspaces: (workspaces: WorkspaceItem[]) => void;
-    refresh: () => void;
+    refreshContext: () => void;
 }>({
+    userId: null,
     workspaces: null,
     userWorkspace: null,
     allWorkspaces: null,
-    refresh: () => {},
+    refreshContext: () => {},
     setAllWorkspaces: () => {},
 });
 
@@ -39,10 +41,11 @@ export const HomeContextProvider = ({ userId, allWorkspaces: _allWorkspaces, chi
     return (
         <HomeContext.Provider
             value={{
+                userId,
                 allWorkspaces,
                 ...workspaceInfo,
                 setAllWorkspaces,
-                refresh: async () => {
+                refreshContext: async () => {
                     if (!userId) return;
                     const _allWorkspaces = await clientFetch(API.luoye.workspaceItems());
                     setAllWorkspaces(_allWorkspaces);
