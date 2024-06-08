@@ -1,0 +1,132 @@
+/* 通用样式 */
+.btn,
+.input,
+.textarea,
+.select {
+    appearance: none;
+    background: none;
+    outline: none;
+    border: none;
+    font-family: inherit;
+    font-size: inherit;
+    cursor: inherit;
+    color: inherit;
+    line-height: 1.65;
+    user-select: none;
+}
+
+.input,
+.textarea,
+.select {
+    padding: 6px 14px;
+    width: 100%;
+    font-size: 16px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+}
+
+/* iOS Safari date picker */
+.input::-webkit-date-and-time-value {
+    text-align: start;
+}
+
+.input:focus,
+.textarea:focus,
+.select:focus {
+    border: 1px solid var(--primary);
+}
+
+/* 按钮 */
+.btn {
+    flex-shrink: 0;
+    outline: none;
+    border: none;
+    padding: 4px 14px 5px;
+    border-radius: 5px;
+    border: 1px solid var(--primary);
+    font-size: 16px;
+    line-height: 1.65;
+    color: var(--primary);
+    cursor: pointer;
+    transition: background-color 0.3s ease-in-out;
+}
+
+.btn:hover {
+    background: var(--background);
+}
+
+.btn.primary {
+    background: var(--primary);
+    border: 1px solid var(--primary);
+    color: white;
+}
+
+.btn.primary:hover {
+    background: var(--primary);
+}
+
+.btn.danger {
+    background: rgb(255, 0, 0, 0.9);
+    border: 1px solid rgb(255, 0, 0, 0.9);
+    color: white;
+}
+
+.btn.danger:hover {
+    background: rgb(255, 0, 0, 0.7);
+}
+
+/* 文本框 */
+.textarea {
+    min-height: 110px;
+}
+
+/* 开关 Toggle */
+.toggle {
+    margin: 3px 0;
+    position: relative;
+    display: inline-block;
+    width: 62px;
+    height: 34px;
+}
+
+.toggle input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 34px;
+    background: var(--shadow);
+    transition: 0.3s;
+}
+
+.toggle-slider:before {
+    position: absolute;
+    content: '';
+    height: 26px;
+    width: 26px;
+    left: 4px;
+    bottom: 4px;
+    border-radius: 50%;
+    background: white;
+    transition: 0.3s;
+}
+
+input:checked + .toggle-slider {
+    background: var(--primary);
+}
+
+input:focus + .toggle-slider {
+    box-shadow: 0 0 1px var(--border);
+}
+
+input:checked + .toggle-slider:before {
+    transform: translateX(27px);
+}

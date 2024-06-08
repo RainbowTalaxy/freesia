@@ -1,0 +1,9 @@
+.container :global(.monaco-editor),
+.container :global(.monaco-editor-background) {
+    --vscode-editor-wordHighlightTextBackground: none;
+}
+
+.container :global(.button) {
+    background-color: initial;
+    color: initial;
+}

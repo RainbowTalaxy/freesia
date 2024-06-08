@@ -1,8 +1,13 @@
-function request<Data>(url: string, method: string, data?: any) {
-    return function (
-        fetcher: (url: string, method: string, data: any) => Promise<Data>,
-    ) {
-        return fetcher(url, method, data);
+export function request<Data>(url: string, method: string, data?: any) {
+    return {
+        url,
+        method,
+        data,
+    } as {
+        url: string;
+        method: string;
+        data: any;
+        resData?: Data;
     };
 }
 

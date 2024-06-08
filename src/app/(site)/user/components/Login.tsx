@@ -1,8 +1,6 @@
 'use client';
-
-import API from '@/app/api';
-import clientFetch from '@/app/api/fetch/client';
-import { useRouter } from 'next/navigation';
+import API, { clientFetch } from '@/app/api';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { HTMLInputTypeAttribute, ReactNode } from 'react';
 
 const Label = ({ field, children }: { field: string; children: ReactNode }) => (
@@ -27,6 +25,8 @@ const Input = ({
 
 export default function Login() {
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const nextUrl = searchParams.get('next_url') ?? null;
 
     return (
         <form
@@ -36,10 +36,14 @@ export default function Login() {
                 const username = form.username.value;
                 const password = form.password.value;
                 try {
-                    await API.user.login(username, password)(clientFetch);
-                    router.refresh();
+                    await clientFetch(API.user.login(username, password));
+                    if (nextUrl) {
+                        window.location.href = nextUrl;
+                    } else {
+                        router.refresh();
+                    }
                 } catch (error: any) {
-                    alert(`登陆失败：${error.message}`);
+                    alert(`登录失败：${error.message}`);
                 }
             }}
         >
@@ -51,7 +55,7 @@ export default function Login() {
                 className="mt-[16px] px-[16px] py-[8px] bg-[#6a8bad] text-white rounded-[6px]"
                 type="submit"
             >
-                登陆
+                登录
             </button>
         </form>
     );

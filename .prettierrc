@@ -2,5 +2,13 @@
     "printWidth": 80,
     "tabWidth": 4,
     "trailingComma": "all",
-    "singleQuote": true
+    "singleQuote": true,
+    "overrides": [
+        {
+            "files": ["src/app/\\(apps\\)/luoye/**/*.tsx"],
+            "options": {
+                "printWidth": 120
+            }
+        }
+    ]
 }

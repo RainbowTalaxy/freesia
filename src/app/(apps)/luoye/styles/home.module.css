@@ -1,0 +1,354 @@
+.container {
+    --primary: var(--ly-primary);
+    --border: var(--ly-secondary);
+    --shadow: var(--ly-inactive-background);
+    --background: var(--ly-active-background);
+    --page: var(--ly-background);
+
+    --item-gap: 12px;
+
+    position: relative;
+    width: 100%;
+    min-height: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+        'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue',
+        Helvetica, Arial, sans-serif;
+    color: #000;
+}
+
+.projectTitle {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    margin-bottom: 0;
+}
+
+.fixedTitle {
+    position: sticky;
+    top: 0;
+    left: 0;
+    margin-bottom: 6px !important;
+    padding: 12px;
+    background: var(--ly-background);
+    z-index: 50;
+}
+
+.pageIcon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 12px;
+    width: 2.7rem;
+    height: 2.7rem;
+    font-size: 1.5rem;
+    line-height: 1.65;
+    border-radius: 6px;
+    background: #ffe4b1;
+    text-align: center;
+}
+
+.pageIcon.showIcon {
+    display: flex;
+}
+
+.pageFoldIcon {
+    display: none;
+    align-items: center;
+    justify-content: flex-start;
+    margin-left: -4px;
+    width: 2.7rem;
+    height: 2.7rem;
+    border-radius: 6px;
+    text-align: center;
+}
+
+.pageName {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 700;
+    transition: color 0.3s;
+}
+
+.pageUser {
+    padding: 0 8px 1px;
+    border: 1px solid var(--ly-primary);
+    border-radius: 4px;
+    font-size: 16px;
+    font-weight: normal;
+    line-height: 1.65;
+    color: var(--ly-primary);
+    transition: all 0.3s;
+    cursor: pointer;
+}
+
+.pageView {
+    padding: 36px 10vw;
+}
+
+.titleBar {
+    display: flex;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.settings {
+    align-self: flex-end;
+    flex-shrink: 0;
+    margin: 0 0 2px 12px;
+    line-height: 1.65;
+    color: gray;
+}
+
+.pageTitle {
+    margin: 0;
+    font-size: 30px;
+}
+
+.header {
+    margin-bottom: 16px;
+    font-size: 24px;
+}
+
+.pageDescription {
+    font-size: 18px;
+    line-height: 1.65;
+    color: var(--ly-primary);
+}
+
+.actionSheet,
+.workspaceList {
+    display: flex;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+}
+
+.action {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 var(--item-gap) var(--item-gap) 0;
+    padding: 8px 12px 8px 0;
+    width: 180px;
+    border-radius: 6px;
+    border: 1px solid var(--ly-secondary);
+    background: var(--ly-background);
+    font-size: 18px;
+    color: var(--ly-primary);
+}
+
+.action > span,
+.workspaceName > span {
+    margin-right: 6px;
+    font-size: 26px;
+    line-height: 1.65;
+}
+
+.workspaceItem {
+    flex-shrink: 0;
+    margin: 0 var(--item-gap) var(--item-gap) 0;
+    padding: 8px 14px 8px 24px;
+    width: calc(25% - var(--item-gap));
+    height: 94px;
+    border: 1px solid var(--ly-secondary);
+    border-radius: 6px;
+    background: var(--ly-background);
+}
+
+.workspaceName {
+    display: flex;
+    align-items: center;
+    font-size: 18px;
+    font-weight: bold;
+    line-height: 1.65;
+    color: var(--ly-primary);
+}
+
+.workspaceItem .description {
+    margin-left: 4px;
+    font-size: 16px;
+    line-height: 1.65;
+    color: var(--ly-secondary);
+}
+
+.workspaceFolder {
+    display: flex;
+}
+
+.workspaceFolder > :first-child {
+    margin-bottom: 6px;
+}
+
+.docList {
+    --doc-list-border: 1px solid var(--ly-secondary);
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 72px;
+    border-top: var(--doc-list-border);
+}
+
+.docItem {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    border-bottom: var(--doc-list-border);
+    font-size: 18px;
+    color: var(--ly-secondary);
+}
+
+.docName {
+    line-height: 1.65;
+    color: var(--ly-primary);
+}
+
+.docUser {
+    min-width: 10vw;
+}
+
+.docDate {
+    min-width: 10vw;
+}
+
+.docAction {
+    font-size: 16px;
+    color: rgb(198, 81, 81);
+}
+
+.docUser,
+.docDate,
+.docAction {
+    flex-shrink: 0;
+    padding: 0 12px;
+    font-variant: tabular-nums;
+    font-feature-settings: 'tnum';
+}
+
+.docTitleBar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+}
+
+.docTitleBar > button {
+    margin-left: 16px;
+}
+
+.placeholder {
+    color: var(--ly-inactive-background);
+    user-select: none;
+}
+
+/* 通用样式 */
+
+.action,
+.workspaceItem,
+.docItem {
+    transition: background 0.3s;
+    cursor: pointer;
+}
+
+.pageTitle,
+.workspaceItem .description,
+.workspaceName > div,
+.docName,
+.docUser {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.pageFoldIcon,
+.settings,
+.pageIcon,
+.pageName {
+    cursor: pointer;
+}
+
+@media screen and (max-width: 1600px) {
+    .pageView {
+        padding: 36px 36px;
+    }
+
+    .workspaceItem {
+        width: calc((100% - var(--item-gap) * 2) / 3);
+    }
+}
+
+@media screen and (max-width: 1600px) and (min-width: 1201px) {
+    .workspaceItem:nth-child(3n) {
+        margin: 0 0 var(--item-gap) 0;
+    }
+}
+
+@media screen and (max-width: 1200px) {
+    .workspaceItem {
+        width: calc((100% - var(--item-gap)) / 2);
+    }
+
+    .docUser {
+        display: none;
+    }
+}
+
+@media screen and (max-width: 1200px) and (min-width: 769px) {
+    .workspaceItem:nth-of-type(2n) {
+        margin: 0 0 var(--item-gap) 0;
+    }
+}
+
+@media screen and (max-width: 768px) {
+    .pageFoldIcon {
+        display: flex;
+    }
+
+    .pageIcon {
+        display: none;
+    }
+
+    .docDate {
+        display: none;
+    }
+
+    .pageView {
+        padding: 36px 24px 48px;
+    }
+
+    .action,
+    .workspaceItem {
+        width: 100%;
+        margin: 0 0 var(--item-gap) 0;
+    }
+
+    .docItem {
+        padding: 12px 8px;
+    }
+}
+
+@media (pointer: fine) {
+    .docItem:hover {
+        background: var(--ly-background);
+    }
+
+    .docAction:hover {
+        color: red;
+    }
+
+    .action:hover,
+    .workspaceItem:hover {
+        background: var(--ly-active-background);
+    }
+
+    .settings:hover,
+    .pageIcon:hover,
+    .pageName:hover {
+        color: var(--ly-primary);
+    }
+
+    .pageUser {
+        border: 1px solid transparent;
+    }
+
+    .pageUser:hover {
+        border: 1px solid var(--ly-primary);
+    }
+}

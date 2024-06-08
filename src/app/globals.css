@@ -1,3 +1,75 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+    --theme-white: #fff;
+    --theme-black: #000;
+    --theme-white-half: rgb(255, 255, 255, 0.8);
+    --theme-black-half: rgb(0, 0, 0, 0.8);
+    --theme-black-shadow: rgb(0, 0, 0, 0.1);
+    --theme-color: rgb(106, 139, 173);
+    --theme-primary: rgb(106, 139, 173, 0.75);
+    --theme-secondary: rgb(106, 139, 173, 0.5);
+    --theme-background: rgb(106, 139, 173, 0.1);
+    --theme-page-background: rgb(255, 255, 255, 0.7);
+    --ifm-color-primary: rgb(106, 139, 173);
+    --ifm-color-primary-dark: rgb(33, 175, 144);
+    --ifm-color-primary-darker: rgb(31, 165, 136);
+    --ifm-color-primary-darkest: rgb(26, 136, 112);
+    --ifm-color-primary-light: rgb(70, 203, 174);
+    --ifm-color-primary-lighter: rgb(102, 212, 189);
+    --ifm-color-primary-lightest: rgb(146, 224, 208);
+    --ifm-code-font-size: 95%;
+    --theme-color-red: #f5bcbc;
+    --theme-color-orange: #fdd0b2;
+    --theme-color-yellow: #fce8b2;
+    --theme-color-green: #d3f2b2;
+    --theme-color-cyan: #c6f3e9;
+    --theme-color-sky: #c1edff;
+    --theme-color-blue: #b2deff;
+    --theme-color-purple: #cfc2ff;
+    --theme-color-pink: #e9bcf5;
+    --theme-color-gray: #d3d4d6;
+    --theme-color-lightgray: #e9e9e9;
+    --theme-color-white: #fff;
+    --theme-color-black: #000;
+    --pure-background: #fff;
+
+    /* 通用 */
+    --primary: var(--ifm-color-primary);
+    --border: var(--theme-black-shadow);
+    --shadow: var(--theme-black-shadow);
+    --background: var(--theme-background);
+
+    /* 落页 */
+    --ly-primary: #785617;
+    --ly-secondary: #d09d3e;
+    --ly-background: #fff8ed;
+    --ly-inactive-background: #c8bba4;
+    --ly-active-background: #ffedcc;
+    --ly-page-background: #fffcf6;
+
+    /* safe area */
+    --safe-area-inset-bottom: constant(safe-area-inset-bottom);
+    --safe-area-inset-bottom: env(safe-area-inset-bottom);
+
+    --ifm-font-family-base: -apple-system, BlinkMacSystemFont, 'Segoe UI',
+        Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji',
+        'Segoe UI Emoji', 'Segoe UI Symbol';
+    --ifm-code-background: rgb(246, 247, 248, 0.5);
+}
+
+html[data-theme='dark'] {
+    --theme-white: #000;
+    --theme-black: #fff;
+    --theme-color-white: #000;
+    --theme-color-black: #fff;
+    --theme-white-half: rgb(0, 0, 0, 0.8);
+    --theme-black-half: rgb(255, 255, 255, 0.8);
+    --theme-black-shadow: rgb(255, 255, 255, 0.1);
+    --theme-page-background: rgb(24, 25, 26, 0.7);
+    --ifm-color-primary-dark: #5a91ea;
+    --pure-background: #1b1b1d;
+    --ifm-code-background: rgba(255, 255, 255, 0.03);
+}
