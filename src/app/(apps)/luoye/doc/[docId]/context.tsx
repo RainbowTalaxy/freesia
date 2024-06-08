@@ -1,9 +1,9 @@
 'use client';
 import API, { clientFetch } from '@/app/api';
 import { Doc, Workspace } from '@/app/api/luoye';
-import { Logger, Path } from '@/app/utils';
+import { Path } from '@/app/utils';
 import { ReactNode, createContext, useCallback, useEffect, useRef, useState } from 'react';
-import { LEAVE_EDITING_TEXT } from '../../configs';
+import { LEAVE_EDITING_TEXT, generateDocPageTitle } from '../../configs';
 
 export const DocContext = createContext<{
     userId: string | null;
@@ -48,6 +48,7 @@ export const DocContextProvider = ({ userId, doc: _doc, workspace: _workspace, c
         try {
             fetchAbortController.current = new AbortController();
             const newDoc = await clientFetch(API.luoye.doc(id), fetchAbortController.current);
+            document.title = generateDocPageTitle(newDoc);
             setDoc(newDoc);
             setLoading(false);
         } catch (error: any) {

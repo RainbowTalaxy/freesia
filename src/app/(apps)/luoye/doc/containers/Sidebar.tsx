@@ -24,6 +24,7 @@ const SideBar = () => {
         setWorkspace: setContextWorkspace,
         navigateDoc,
     } = useContext(DocContext);
+    const [selectedDocId, setSelectedDocId] = useState<string | null>(doc?.id ?? null);
     const [workspace, setWorkspace] = useState(_workspace);
     const [isWorkspaceFormVisible, setWorkspaceFormVisible] = useState(false);
     const [isDocFormVisible, setDocFormVisible] = useState(false);
@@ -31,6 +32,10 @@ const SideBar = () => {
     useEffect(() => {
         setWorkspace(_workspace);
     }, [_workspace]);
+
+    useEffect(() => {
+        setSelectedDocId(doc?.id ?? null);
+    }, [doc]);
 
     if (!workspace) return null;
 
@@ -87,11 +92,14 @@ const SideBar = () => {
                                         <SideBarListItem
                                             ref={provided.innerRef}
                                             name={docDir.name || '未命名'}
-                                            active={docDir.docId === doc?.id}
+                                            active={docDir.docId === selectedDocId}
                                             draggableProps={provided.draggableProps}
                                             dragHandleProps={provided.dragHandleProps}
                                             href={Path.of(`/luoye/doc/${docDir.docId}`)}
-                                            onClick={() => navigateDoc(docDir.docId)}
+                                            onClick={() => {
+                                                navigateDoc(docDir.docId);
+                                                setSelectedDocId(docDir.docId);
+                                            }}
                                         >
                                             <span>{docDir.name || <Placeholder>未命名</Placeholder>}</span>
                                             {docDir.scope === Scope.Private && <SVG.Lock />}

@@ -18,6 +18,9 @@ export const DOCTYPE_OPTIONS_NAME = {
     [DocType.Markdown]: 'Markdown',
 };
 
+export const generateDocPageTitle = (doc: Doc | null) =>
+    `${doc ? doc.name || '未命名' : '文档不存在'} | ${PROJECT_NAME}`;
+
 export const splitWorkspace = (
     allWorkspaces: WorkspaceItem[],
     userId: string,
