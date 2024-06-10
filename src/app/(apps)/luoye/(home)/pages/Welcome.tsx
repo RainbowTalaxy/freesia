@@ -1,6 +1,6 @@
 'use client';
 import styles from '../../styles/home.module.css';
-import { MouseEvent, useContext, useState } from 'react';
+import { MouseEvent, useState } from 'react';
 import clsx from 'clsx';
 import { DocItem, Scope } from '@/app/api/luoye';
 import Placeholder from '../../components/PlaceHolder';
@@ -13,7 +13,8 @@ import WorkspaceForm from '../../containers/WorkspaceForm';
 import DocForm from '../../containers/DocForm';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { HomeContext } from '../context';
+import { useAtomValue } from 'jotai';
+import { Context } from '../context';
 
 interface Props {
     userId: string;
@@ -25,7 +26,7 @@ const WORKSPACE_FOLD_THRESHOLD = 7;
 const Welcome = ({ userId, recentDocs }: Props) => {
     const router = useRouter();
 
-    const { userWorkspace, workspaces, refreshContext } = useContext(HomeContext);
+    const { userWorkspace, workspaces } = useAtomValue(Context.atoms.workspaceCategory);
 
     const [isWorkspaceListFolded, setWorkspaceListFolded] = useState(true);
     const [isWorkspaceFormVisible, setWorkspaceFormVisible] = useState(false);
@@ -118,7 +119,7 @@ const Welcome = ({ userId, recentDocs }: Props) => {
                     onClose={async (newWorkspace) => {
                         if (newWorkspace) {
                             router.push(`/luoye/workspace/${newWorkspace.id}`);
-                            refreshContext();
+                            Context.refresh();
                         }
                         setWorkspaceFormVisible(false);
                     }}

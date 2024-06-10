@@ -3,9 +3,9 @@ import PageLayout from '../components/PageLayout';
 import ProjectTitle from '../containers/ProjectTitle';
 import { ReactNode } from 'react';
 import SideBar from './containers/SideBar';
-import { HomeContextProvider } from './context';
 import Server, { serverFetch } from '@/app/api/server';
 import API from '@/app/api';
+import { ContextProvider } from './context';
 
 interface Props {
     children: ReactNode;
@@ -16,7 +16,7 @@ export default async function Layout({ children }: Props) {
     const allWorkspaces = await serverFetch(API.luoye.workspaceItems(), true);
 
     return (
-        <HomeContextProvider userId={userId} allWorkspaces={allWorkspaces}>
+        <ContextProvider userId={userId} allWorkspaces={allWorkspaces}>
             <div className={styles.container}>
                 <PageLayout
                     navbar={<ProjectTitle userId={userId} fold />}
@@ -30,6 +30,6 @@ export default async function Layout({ children }: Props) {
                     <div className={styles.pageView}>{children}</div>
                 </PageLayout>
             </div>
-        </HomeContextProvider>
+        </ContextProvider>
     );
 }

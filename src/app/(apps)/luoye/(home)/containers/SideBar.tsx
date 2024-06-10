@@ -5,18 +5,21 @@ import { Scope } from '@/app/api/luoye';
 import Placeholder from '../../components/PlaceHolder';
 import SVG from '../../components/SVG';
 import { DragDropContext, Draggable, Droppable, OnDragEndResponder } from '@hello-pangea/dnd';
-import { useContext, useEffect, useState } from 'react';
-import { HomeContext } from '../context';
+import { useEffect, useState } from 'react';
 import API, { clientFetch } from '@/app/api';
 import Toast from '../../components/Notification/Toast';
 import { Logger } from '@/app/utils';
+import { useAtomValue, useSetAtom } from 'jotai';
+import { Context } from '../context';
 
 const SideBar = () => {
     const { tab, workspaceId } = useParams<{
         tab?: string;
         workspaceId?: string;
     }>();
-    const { userId, workspaces: _workspaces, userWorkspace, setAllWorkspaces } = useContext(HomeContext);
+    const userId = useAtomValue(Context.atoms.userId);
+    const { workspaces: _workspaces, userWorkspace } = useAtomValue(Context.atoms.workspaceCategory);
+    const setAllWorkspaces = useSetAtom(Context.atoms.allWorkspaces);
     const [workspaces, setWorkspaces] = useState(_workspaces!);
 
     useEffect(() => {

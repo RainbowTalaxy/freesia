@@ -1,24 +1,43 @@
 'use client';
 import API, { clientFetch } from '@/app/api';
 import { WorkspaceItem } from '@/app/api/luoye';
-import { ReactNode, createContext, useState } from 'react';
+import { ReactNode } from 'react';
 import { splitWorkspace } from '../configs';
+import { Provider, atom, createStore } from 'jotai';
+import { useHydrateAtoms } from 'jotai/utils';
 
-export const HomeContext = createContext<{
-    userId: string | null;
+const userIdAtom = atom<string | null>(null);
+const allWorkspacesAtom = atom<WorkspaceItem[] | null>(null);
+const workspaceCategoryAtom = atom<{
     workspaces: WorkspaceItem[] | null;
     userWorkspace: WorkspaceItem | null;
-    allWorkspaces: WorkspaceItem[] | null;
-    setAllWorkspaces: (workspaces: WorkspaceItem[]) => void;
-    refreshContext: () => void;
-}>({
-    userId: null,
-    workspaces: null,
-    userWorkspace: null,
-    allWorkspaces: null,
-    refreshContext: () => {},
-    setAllWorkspaces: () => {},
+}>((get) => {
+    const userId = get(userIdAtom);
+    const allWorkspaces = get(allWorkspacesAtom);
+    return userId && allWorkspaces
+        ? splitWorkspace(allWorkspaces, userId)
+        : {
+              workspaces: null,
+              userWorkspace: null,
+          };
 });
+
+const store = createStore();
+
+export const Context = {
+    store,
+    atoms: {
+        userId: userIdAtom,
+        allWorkspaces: allWorkspacesAtom,
+        workspaceCategory: workspaceCategoryAtom,
+    },
+    refresh: async () => {
+        const userId = store.get(userIdAtom);
+        if (!userId) return;
+        const allWorkspaces = await clientFetch(API.luoye.workspaceItems());
+        store.set(allWorkspacesAtom, allWorkspaces);
+    },
+};
 
 interface Props {
     userId: string | null;
@@ -26,32 +45,16 @@ interface Props {
     children: ReactNode;
 }
 
-export const HomeContextProvider = ({ userId, allWorkspaces: _allWorkspaces, children }: Props) => {
-    const [allWorkspaces, setAllWorkspaces] = useState<WorkspaceItem[] | null>(_allWorkspaces);
-
-    const workspaceInfo =
-        userId && allWorkspaces
-            ? splitWorkspace(allWorkspaces, userId)
-            : {
-                  workspaces: null,
-                  userWorkspace: null,
-              };
-
-    return (
-        <HomeContext.Provider
-            value={{
-                userId,
-                allWorkspaces,
-                ...workspaceInfo,
-                setAllWorkspaces,
-                refreshContext: async () => {
-                    if (!userId) return;
-                    const _allWorkspaces = await clientFetch(API.luoye.workspaceItems());
-                    setAllWorkspaces(_allWorkspaces);
-                },
-            }}
-        >
-            {children}
-        </HomeContext.Provider>
+export const ContextProvider = ({ userId, allWorkspaces, children }: Props) => {
+    useHydrateAtoms(
+        [
+            [userIdAtom, userId],
+            [allWorkspacesAtom, allWorkspaces],
+        ],
+        {
+            store,
+        },
     );
+
+    return <Provider store={store}>{children}</Provider>;
 };
