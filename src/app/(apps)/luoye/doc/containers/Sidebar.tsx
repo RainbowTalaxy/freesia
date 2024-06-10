@@ -5,25 +5,23 @@ import { Scope } from '@/app/api/luoye';
 import Placeholder from '../../components/PlaceHolder';
 import SVG from '../../components/SVG';
 import { DragDropContext, Draggable, Droppable, OnDragEndResponder } from '@hello-pangea/dnd';
-import { useContext, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import API, { clientFetch } from '@/app/api';
 import { checkAuth, workSpaceName } from '../../configs';
 import Toast from '../../components/Notification/Toast';
 import WorkspaceForm from '../../containers/WorkspaceForm';
 import DocForm from '../../containers/DocForm';
-import { DocContext } from '../[docId]/context';
+import { Context } from '../[docId]/context';
 import { Path } from '@/app/utils';
+import { useAtom, useAtomValue } from 'jotai';
 
 const SideBar = () => {
     const router = useRouter();
 
-    const {
-        userId,
-        doc,
-        workspace: _workspace,
-        setWorkspace: setContextWorkspace,
-        navigateDoc,
-    } = useContext(DocContext);
+    const userId = useAtomValue(Context.atoms.userId);
+    const doc = useAtomValue(Context.atoms.doc);
+    const [_workspace, setContextWorkspace] = useAtom(Context.atoms.workspace);
+
     const [selectedDocId, setSelectedDocId] = useState<string | null>(doc?.id ?? null);
     const [workspace, setWorkspace] = useState(_workspace);
     const [isWorkspaceFormVisible, setWorkspaceFormVisible] = useState(false);
@@ -97,7 +95,7 @@ const SideBar = () => {
                                             dragHandleProps={provided.dragHandleProps}
                                             href={Path.of(`/luoye/doc/${docDir.docId}`)}
                                             onClick={() => {
-                                                navigateDoc(docDir.docId);
+                                                Context.navigateDoc(docDir.docId);
                                                 setSelectedDocId(docDir.docId);
                                             }}
                                         >

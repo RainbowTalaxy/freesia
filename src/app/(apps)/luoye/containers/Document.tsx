@@ -2,7 +2,7 @@
 import styles from '../styles/document.module.css';
 import { DocType } from '@/app/api/luoye';
 import { useRouter } from 'next/navigation';
-import { useContext, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import EditingModeGlobalStyle from '../styles/EditingModeGlobalStyle';
 import DocForm from './DocForm';
 import dayjs from 'dayjs';
@@ -14,12 +14,17 @@ import clsx from 'clsx';
 import Toast from '../components/Notification/Toast';
 import API, { clientFetch } from '@/app/api';
 import Markdown from '../components/Markdown';
-import { DocContext } from '../doc/[docId]/context';
+import { Context } from '../doc/[docId]/context';
 import { TextEditor, MarkdownEditor, EditorRef } from '../components/Editor';
+import { useAtom, useAtomValue } from 'jotai';
 
 const Document = () => {
     const router = useRouter();
-    const { userId, doc, workspace, isLoading, isEditing, setEditing, updateDoc } = useContext(DocContext);
+    const userId = useAtomValue(Context.atoms.userId);
+    const doc = useAtomValue(Context.atoms.doc);
+    const workspace = useAtomValue(Context.atoms.workspace);
+    const [isEditing, setEditing] = useAtom(Context.atoms.isEditing);
+    const isLoading = useAtomValue(Context.atoms.isLoading);
 
     const [isDocFormVisible, setDocFormVisible] = useState(false);
     const textRef = useRef<EditorRef>(null);
@@ -34,7 +39,7 @@ const Document = () => {
         try {
             const newDoc = await clientFetch(API.luoye.updateDoc(doc.id, { content: text }));
             Toast.cover('保存成功');
-            updateDoc(newDoc, false);
+            Context.updateDoc(newDoc, false);
         } catch {
             Toast.cover('保存失败');
         }
@@ -76,7 +81,7 @@ const Document = () => {
             try {
                 const newDoc = await clientFetch(API.luoye.updateDoc(doc.id, { content: text }));
                 setEditing(false);
-                updateDoc(newDoc, false);
+                Context.updateDoc(newDoc, false);
             } catch (error: any) {
                 return Toast.notify(error.message);
             }
@@ -166,7 +171,7 @@ const Document = () => {
                     userId={userId!}
                     doc={doc}
                     onClose={async (newDoc) => {
-                        if (newDoc) updateDoc(newDoc);
+                        if (newDoc) Context.updateDoc(newDoc);
                         setDocFormVisible(false);
                     }}
                     onDelete={() => {

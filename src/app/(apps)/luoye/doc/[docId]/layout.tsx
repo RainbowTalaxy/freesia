@@ -5,7 +5,7 @@ import PageLayout from '../../components/PageLayout';
 import ProjectTitle from '../../containers/ProjectTitle';
 import SideBar from '../containers/Sidebar';
 import { fetchDocInfo } from './cache';
-import { DocContextProvider } from './context';
+import { ContextProvider } from './context';
 
 interface Props {
     children: ReactNode;
@@ -23,7 +23,7 @@ export default async function Layout({ children, params }: Props) {
     const isSidebarVisible = Boolean(workspace) && !isDeleted;
 
     return (
-        <DocContextProvider userId={userId} doc={doc} workspace={workspace}>
+        <ContextProvider userId={userId} doc={doc} workspace={workspace}>
             <div className={clsx(styles.container)}>
                 <PageLayout
                     navbar={<ProjectTitle owner={doc?.creator ?? '404'} fold />}
@@ -40,6 +40,6 @@ export default async function Layout({ children, params }: Props) {
                     {children}
                 </PageLayout>
             </div>
-        </DocContextProvider>
+        </ContextProvider>
     );
 }
