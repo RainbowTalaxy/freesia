@@ -1,9 +1,11 @@
 'use client';
 import API, { clientFetch } from '@/app/api';
 import { Doc, Workspace } from '@/app/api/luoye';
-import { Path } from '@/app/utils';
+import { Logger, Path } from '@/app/utils';
 import { ReactNode, createContext, useCallback, useEffect, useRef, useState } from 'react';
 import { LEAVE_EDITING_TEXT, generateDocPageTitle } from '../../configs';
+import { usePathname } from 'next/navigation';
+import Toast from '../../components/Notification/Toast';
 
 export const DocContext = createContext<{
     userId: string | null;
@@ -35,6 +37,7 @@ type Props = {
 };
 
 export const DocContextProvider = ({ userId, doc: _doc, workspace: _workspace, children }: Props) => {
+    const pathname = usePathname();
     const [isLoading, setLoading] = useState(false);
     const [isEditing, setEditing] = useState(_doc?.content.length === 0);
     const [doc, setDoc] = useState<Doc | null>(_doc);
@@ -53,23 +56,17 @@ export const DocContextProvider = ({ userId, doc: _doc, workspace: _workspace, c
             setLoading(false);
         } catch (error: any) {
             if (error.name === 'AbortError') return;
-            throw error;
+            Logger.error(error.message);
+            Toast.notify(error.message);
         }
     }, []);
 
-    // 处理浏览器前进后退
     useEffect(() => {
-        const cb = (e: PopStateEvent) => {
-            const { docId } = /\/luoye\/doc\/(?<docId>[^/]+)$/.exec(location.pathname)?.groups ?? {
-                docId: doc?.id,
-            };
-            if (docId && docId !== doc?.id) changeDoc(e.state?.id ?? _doc?.id);
+        const { docId } = /\/luoye\/doc\/(?<docId>[^/]+)$/.exec(pathname)?.groups ?? {
+            docId: doc?.id,
         };
-        window.addEventListener('popstate', cb);
-        return () => {
-            window.removeEventListener('popstate', cb);
-        };
-    }, [_doc?.id, doc?.id, changeDoc]);
+        if (docId && doc && docId !== doc.id) changeDoc(docId);
+    }, [changeDoc, doc, pathname]);
 
     // 初始化
     useEffect(() => {
@@ -101,7 +98,7 @@ export const DocContextProvider = ({ userId, doc: _doc, workspace: _workspace, c
                         const result = confirm(LEAVE_EDITING_TEXT);
                         if (!result) return;
                     }
-                    history.pushState({ id }, '', Path.of(`/luoye/doc/${id}`));
+                    history.pushState(null, '', Path.of(`/luoye/doc/${id}`));
                     changeDoc(id);
                 },
             }}
