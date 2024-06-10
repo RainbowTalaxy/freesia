@@ -15,7 +15,7 @@ export default function remarkToc(title: string) {
                 },
                 {
                     type: 'html',
-                    value: `<header id=${title}><strong><a href="#${encodeURIComponent(
+                    value: `<header id="${title}"><strong><a href="#${encodeURIComponent(
                         title,
                     )}">${title}</a></strong></header>`,
                 },
