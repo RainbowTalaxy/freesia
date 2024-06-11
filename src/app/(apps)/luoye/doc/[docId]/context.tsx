@@ -99,7 +99,6 @@ export const DocContextProvider = ({ userId, doc: _doc, workspace: _workspace, c
                         if (!result) return;
                     }
                     history.pushState(null, '', Path.of(`/luoye/doc/${id}`));
-                    changeDoc(id);
                 },
             }}
         >
