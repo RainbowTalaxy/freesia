@@ -17,24 +17,26 @@ const isLoadingAtom = atom<boolean>(false);
 
 const store = createStore();
 
-let fetchAbortController = new AbortController();
+const changeDoc = (() => {
+    let fetchAbortController = new AbortController();
 
-const changeDoc = async (id: string) => {
-    store.set(isLoadingAtom, true);
-    store.set(isEditingAtom, false);
-    fetchAbortController.abort('navigate');
-    try {
-        fetchAbortController = new AbortController();
-        const newDoc = await clientFetch(API.luoye.doc(id), fetchAbortController);
-        document.title = generateDocPageTitle(newDoc);
-        store.set(docAtom, newDoc);
-        store.set(isLoadingAtom, false);
-    } catch (error: any) {
-        if (error.name === 'AbortError') return;
-        Logger.error(error.message);
-        Toast.notify(error.message);
-    }
-};
+    return async (id: string) => {
+        store.set(isLoadingAtom, true);
+        store.set(isEditingAtom, false);
+        fetchAbortController.abort('navigate');
+        try {
+            fetchAbortController = new AbortController();
+            const newDoc = await clientFetch(API.luoye.doc(id), fetchAbortController);
+            document.title = generateDocPageTitle(newDoc);
+            store.set(docAtom, newDoc);
+            store.set(isLoadingAtom, false);
+        } catch (error: any) {
+            if (error.name === 'AbortError') return;
+            Logger.error(error.message);
+            Toast.notify(error.message);
+        }
+    };
+})();
 
 export const Context = {
     store,
@@ -59,7 +61,6 @@ export const Context = {
             if (!result) return;
         }
         history.pushState(null, '', Path.of(`/luoye/doc/${id}`));
-        changeDoc(id);
     },
 };
 
