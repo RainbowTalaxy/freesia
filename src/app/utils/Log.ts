@@ -1,5 +1,3 @@
-import { ComponentType } from 'react';
-
 export default class Logger {
     static info(icon: string, ...message: any[]) {
         console.log(`[${new Date().toLocaleString()}]`, icon, ...message);

@@ -1,7 +1,7 @@
 'use client';
 import styles from '../styles/layout.module.css';
 import clsx from 'clsx';
-import { CSSProperties, ForwardedRef, ReactNode, forwardRef } from 'react';
+import { ForwardedRef, ReactNode, forwardRef } from 'react';
 import { DraggableProvidedDragHandleProps, DraggableProvidedDraggableProps } from '@hello-pangea/dnd';
 import Link from 'next/link';
 
