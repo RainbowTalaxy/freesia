@@ -1,57 +1,64 @@
 'use client';
 import API, { clientFetch } from '@/app/api';
 import { WorkspaceItem } from '@/app/api/luoye';
-import { ReactNode, createContext, useState } from 'react';
+import { ReactNode, createContext, useContext, useRef } from 'react';
 import { splitWorkspace } from '../configs';
+import { createStore, useStore } from 'zustand';
 
-export const HomeContext = createContext<{
+interface HomeContext {
     userId: string | null;
     workspaces: WorkspaceItem[] | null;
     userWorkspace: WorkspaceItem | null;
     allWorkspaces: WorkspaceItem[] | null;
     setAllWorkspaces: (workspaces: WorkspaceItem[]) => void;
     refreshContext: () => void;
-}>({
-    userId: null,
-    workspaces: null,
-    userWorkspace: null,
-    allWorkspaces: null,
-    refreshContext: () => {},
-    setAllWorkspaces: () => {},
-});
-
-interface Props {
-    userId: string | null;
-    allWorkspaces: WorkspaceItem[] | null;
-    children: ReactNode;
 }
 
-export const HomeContextProvider = ({ userId, allWorkspaces: _allWorkspaces, children }: Props) => {
-    const [allWorkspaces, setAllWorkspaces] = useState<WorkspaceItem[] | null>(_allWorkspaces);
+interface ContextProps {
+    userId: string | null;
+    allWorkspaces: WorkspaceItem[] | null;
+}
 
-    const workspaceInfo =
+const createHomeStore = ({ userId, allWorkspaces }: ContextProps) => {
+    const { workspaces, userWorkspace } =
         userId && allWorkspaces
             ? splitWorkspace(allWorkspaces, userId)
             : {
                   workspaces: null,
                   userWorkspace: null,
               };
+    return createStore<HomeContext>()((set, get) => ({
+        userId,
+        workspaces,
+        userWorkspace,
+        allWorkspaces,
+        setAllWorkspaces: (workspaces: WorkspaceItem[]) => {
+            const userId = get().userId;
+            if (!userId) return;
+            set({ allWorkspaces: workspaces, ...splitWorkspace(workspaces, userId) });
+        },
+        refreshContext: async () => {
+            if (!get().userId) return;
+            const _allWorkspaces = await clientFetch(API.luoye.workspaceItems());
+            get().setAllWorkspaces(_allWorkspaces);
+        },
+    }));
+};
 
-    return (
-        <HomeContext.Provider
-            value={{
-                userId,
-                allWorkspaces,
-                ...workspaceInfo,
-                setAllWorkspaces,
-                refreshContext: async () => {
-                    if (!userId) return;
-                    const _allWorkspaces = await clientFetch(API.luoye.workspaceItems());
-                    setAllWorkspaces(_allWorkspaces);
-                },
-            }}
-        >
-            {children}
-        </HomeContext.Provider>
-    );
+const HomeContext = createContext<ReturnType<typeof createHomeStore> | null>(null);
+
+export function useHomeContext<T>(selector: (state: HomeContext) => T): T {
+    const store = useContext(HomeContext);
+    if (!store) throw new Error('lack of `HomeContextProvider` when using `useHomeContext`');
+    return useStore(store, selector);
+}
+
+type Props = ContextProps & {
+    children: ReactNode;
+};
+
+export const HomeContextProvider = ({ userId, allWorkspaces, children }: Props) => {
+    const store = useRef(createHomeStore({ userId, allWorkspaces }));
+
+    return <HomeContext.Provider value={store.current}>{children}</HomeContext.Provider>;
 };

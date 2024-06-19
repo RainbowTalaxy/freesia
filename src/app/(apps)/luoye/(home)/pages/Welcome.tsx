@@ -13,7 +13,7 @@ import WorkspaceForm from '../../containers/WorkspaceForm';
 import DocForm from '../../containers/DocForm';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { HomeContext } from '../context';
+import { useHomeContext } from '../context';
 
 interface Props {
     userId: string;
@@ -25,7 +25,9 @@ const WORKSPACE_FOLD_THRESHOLD = 7;
 const Welcome = ({ userId, recentDocs }: Props) => {
     const router = useRouter();
 
-    const { userWorkspace, workspaces, refreshContext } = useContext(HomeContext);
+    const userWorkspace = useHomeContext((state) => state.userWorkspace);
+    const workspaces = useHomeContext((state) => state.workspaces);
+    const refreshContext = useHomeContext((state) => state.refreshContext);
 
     const [isWorkspaceListFolded, setWorkspaceListFolded] = useState(true);
     const [isWorkspaceFormVisible, setWorkspaceFormVisible] = useState(false);
