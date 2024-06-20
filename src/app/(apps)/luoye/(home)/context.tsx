@@ -1,25 +1,33 @@
 'use client';
 import API, { clientFetch } from '@/app/api';
 import { WorkspaceItem } from '@/app/api/luoye';
-import { ReactNode, createContext, useContext, useRef } from 'react';
+import { ReactNode } from 'react';
 import { splitWorkspace } from '../configs';
-import { createStore, useStore } from 'zustand';
+import { create } from 'zustand';
 
-interface HomeContext {
+export let useHomeStore = create<{
     userId: string | null;
     workspaces: WorkspaceItem[] | null;
     userWorkspace: WorkspaceItem | null;
     allWorkspaces: WorkspaceItem[] | null;
     setAllWorkspaces: (workspaces: WorkspaceItem[]) => void;
     refreshContext: () => void;
-}
+}>()(() => ({
+    userId: null,
+    workspaces: null,
+    userWorkspace: null,
+    allWorkspaces: null,
+    setAllWorkspaces: () => {},
+    refreshContext: () => {},
+}));
 
-interface ContextProps {
+interface Props {
     userId: string | null;
     allWorkspaces: WorkspaceItem[] | null;
+    children: ReactNode;
 }
 
-const createHomeStore = ({ userId, allWorkspaces }: ContextProps) => {
+export const HomeContextProvider = ({ userId, allWorkspaces, children }: Props) => {
     const { workspaces, userWorkspace } =
         userId && allWorkspaces
             ? splitWorkspace(allWorkspaces, userId)
@@ -27,7 +35,8 @@ const createHomeStore = ({ userId, allWorkspaces }: ContextProps) => {
                   workspaces: null,
                   userWorkspace: null,
               };
-    return createStore<HomeContext>()((set, get) => ({
+
+    useHomeStore = create((set, get) => ({
         userId,
         workspaces,
         userWorkspace,
@@ -43,22 +52,6 @@ const createHomeStore = ({ userId, allWorkspaces }: ContextProps) => {
             get().setAllWorkspaces(_allWorkspaces);
         },
     }));
-};
 
-const HomeContext = createContext<ReturnType<typeof createHomeStore> | null>(null);
-
-export function useHomeContext<T>(selector: (state: HomeContext) => T): T {
-    const store = useContext(HomeContext);
-    if (!store) throw new Error('lack of `HomeContextProvider` when using `useHomeContext`');
-    return useStore(store, selector);
-}
-
-type Props = ContextProps & {
-    children: ReactNode;
-};
-
-export const HomeContextProvider = ({ userId, allWorkspaces, children }: Props) => {
-    const store = useRef(createHomeStore({ userId, allWorkspaces }));
-
-    return <HomeContext.Provider value={store.current}>{children}</HomeContext.Provider>;
+    return children;
 };

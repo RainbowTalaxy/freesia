@@ -5,21 +5,21 @@ import { Scope } from '@/app/api/luoye';
 import Placeholder from '../../components/PlaceHolder';
 import SVG from '../../components/SVG';
 import { DragDropContext, Draggable, Droppable, OnDragEndResponder } from '@hello-pangea/dnd';
-import { useContext, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import API, { clientFetch } from '@/app/api';
 import Toast from '../../components/Notification/Toast';
 import { Logger } from '@/app/utils';
-import { useHomeContext } from '../context';
+import { useHomeStore } from '../context';
 
 const SideBar = () => {
     const { tab, workspaceId } = useParams<{
         tab?: string;
         workspaceId?: string;
     }>();
-    const userId = useHomeContext((state) => state.userId);
-    const userWorkspace = useHomeContext((state) => state.userWorkspace);
-    const _workspaces = useHomeContext((state) => state.workspaces);
-    const setAllWorkspaces = useHomeContext((state) => state.setAllWorkspaces);
+    const userId = useHomeStore((state) => state.userId);
+    const userWorkspace = useHomeStore((state) => state.userWorkspace);
+    const _workspaces = useHomeStore((state) => state.workspaces);
+    const setAllWorkspaces = useHomeStore((state) => state.setAllWorkspaces);
 
     const [workspaces, setWorkspaces] = useState(_workspaces!);
 

@@ -1,6 +1,6 @@
 'use client';
 import styles from '../../styles/home.module.css';
-import { MouseEvent, useContext, useState } from 'react';
+import { MouseEvent, useState } from 'react';
 import clsx from 'clsx';
 import { DocItem, Scope } from '@/app/api/luoye';
 import Placeholder from '../../components/PlaceHolder';
@@ -13,7 +13,7 @@ import WorkspaceForm from '../../containers/WorkspaceForm';
 import DocForm from '../../containers/DocForm';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useHomeContext } from '../context';
+import { useHomeStore } from '../context';
 
 interface Props {
     userId: string;
@@ -25,9 +25,9 @@ const WORKSPACE_FOLD_THRESHOLD = 7;
 const Welcome = ({ userId, recentDocs }: Props) => {
     const router = useRouter();
 
-    const userWorkspace = useHomeContext((state) => state.userWorkspace);
-    const workspaces = useHomeContext((state) => state.workspaces);
-    const refreshContext = useHomeContext((state) => state.refreshContext);
+    const userWorkspace = useHomeStore((state) => state.userWorkspace);
+    const workspaces = useHomeStore((state) => state.workspaces);
+    const refreshContext = useHomeStore((state) => state.refreshContext);
 
     const [isWorkspaceListFolded, setWorkspaceListFolded] = useState(true);
     const [isWorkspaceFormVisible, setWorkspaceFormVisible] = useState(false);
