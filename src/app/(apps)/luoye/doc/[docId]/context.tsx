@@ -7,6 +7,7 @@ import { LEAVE_EDITING_TEXT, generateDocPageTitle } from '../../configs';
 import { usePathname } from 'next/navigation';
 import Toast from '../../components/Notification/Toast';
 import { create } from 'zustand';
+import useHydrationEffect from '@/app/hooks/useHydrationEffect';
 
 export let useDocStore = create<{
     userId: string | null;
@@ -62,13 +63,10 @@ type Props = {
     children: ReactNode;
 };
 
-const isServer = typeof window === 'undefined';
-let isStoreCreated = false;
-
 export const DocContextProvider = ({ userId, doc, workspace, children }: Props) => {
     const pathname = usePathname();
 
-    if (isServer || !isStoreCreated) {
+    useHydrationEffect(() => {
         useDocStore = create((set, get) => ({
             userId,
             isLoading: false,
@@ -93,10 +91,10 @@ export const DocContextProvider = ({ userId, doc, workspace, children }: Props) 
                 history.pushState(null, '', Path.of(`/luoye/doc/${id}`));
             },
         }));
-        isStoreCreated = true;
-    }
+    });
 
     useEffect(() => {
+        const { doc } = useDocStore.getState();
         const { docId } = /\/luoye\/doc\/(?<docId>[^/]+)$/.exec(pathname)?.groups ?? {
             docId: doc?.id,
         };

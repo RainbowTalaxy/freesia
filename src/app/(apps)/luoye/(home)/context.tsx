@@ -4,6 +4,7 @@ import { WorkspaceItem } from '@/app/api/luoye';
 import { ReactNode } from 'react';
 import { splitWorkspace } from '../configs';
 import { create } from 'zustand';
+import useHydrationEffect from '@/app/hooks/useHydrationEffect';
 
 export let useHomeStore = create<{
     userId: string | null;
@@ -28,30 +29,32 @@ interface Props {
 }
 
 export const HomeContextProvider = ({ userId, allWorkspaces, children }: Props) => {
-    const { workspaces, userWorkspace } =
-        userId && allWorkspaces
-            ? splitWorkspace(allWorkspaces, userId)
-            : {
-                  workspaces: null,
-                  userWorkspace: null,
-              };
+    useHydrationEffect(() => {
+        const { workspaces, userWorkspace } =
+            userId && allWorkspaces
+                ? splitWorkspace(allWorkspaces, userId)
+                : {
+                      workspaces: null,
+                      userWorkspace: null,
+                  };
 
-    useHomeStore = create((set, get) => ({
-        userId,
-        workspaces,
-        userWorkspace,
-        allWorkspaces,
-        setAllWorkspaces: (workspaces: WorkspaceItem[]) => {
-            const userId = get().userId;
-            if (!userId) return;
-            set({ allWorkspaces: workspaces, ...splitWorkspace(workspaces, userId) });
-        },
-        refreshContext: async () => {
-            if (!get().userId) return;
-            const _allWorkspaces = await clientFetch(API.luoye.workspaceItems());
-            get().setAllWorkspaces(_allWorkspaces);
-        },
-    }));
+        useHomeStore = create((set, get) => ({
+            userId,
+            workspaces,
+            userWorkspace,
+            allWorkspaces,
+            setAllWorkspaces: (workspaces: WorkspaceItem[]) => {
+                const userId = get().userId;
+                if (!userId) return;
+                set({ allWorkspaces: workspaces, ...splitWorkspace(workspaces, userId) });
+            },
+            refreshContext: async () => {
+                if (!get().userId) return;
+                const _allWorkspaces = await clientFetch(API.luoye.workspaceItems());
+                get().setAllWorkspaces(_allWorkspaces);
+            },
+        }));
+    });
 
     return children;
 };
