@@ -2,12 +2,13 @@
 import API, { clientFetch } from '@/app/api';
 import { Doc, Workspace } from '@/app/api/luoye';
 import { Logger, Path } from '@/app/utils';
-import { ReactNode, createContext, useCallback, useEffect, useRef, useState } from 'react';
+import { ReactNode, useEffect } from 'react';
 import { LEAVE_EDITING_TEXT, generateDocPageTitle } from '../../configs';
 import { usePathname } from 'next/navigation';
 import Toast from '../../components/Notification/Toast';
+import { create } from 'zustand';
 
-export const DocContext = createContext<{
+export let useDocStore = create<{
     userId: string | null;
     isLoading: boolean;
     isEditing: boolean;
@@ -17,7 +18,7 @@ export const DocContext = createContext<{
     setWorkspace: (newWorkspace: Workspace) => void;
     updateDoc: (newDoc: Doc, needUpdateWorkspace?: boolean) => void;
     navigateDoc: (id: string) => void;
-}>({
+}>()(() => ({
     userId: null,
     isLoading: false,
     isEditing: false,
@@ -27,7 +28,32 @@ export const DocContext = createContext<{
     setWorkspace: () => {},
     updateDoc: () => {},
     navigateDoc: () => {},
-});
+}));
+
+const changeDoc = (() => {
+    let fetchAbortController = new AbortController();
+
+    return async (id: string) => {
+        useDocStore.setState({
+            isLoading: true,
+            isEditing: false,
+        });
+        fetchAbortController.abort('navigate');
+        try {
+            fetchAbortController = new AbortController();
+            const newDoc = await clientFetch(API.luoye.doc(id), fetchAbortController);
+            document.title = generateDocPageTitle(newDoc);
+            useDocStore.setState({
+                isLoading: false,
+                doc: newDoc,
+            });
+        } catch (error: any) {
+            if (error.name === 'AbortError') return;
+            Logger.error(error.message);
+            Toast.notify(error.message);
+        }
+    };
+})();
 
 type Props = {
     userId: string | null;
@@ -36,73 +62,56 @@ type Props = {
     children: ReactNode;
 };
 
-export const DocContextProvider = ({ userId, doc: _doc, workspace: _workspace, children }: Props) => {
-    const pathname = usePathname();
-    const [isLoading, setLoading] = useState(false);
-    const [isEditing, setEditing] = useState(_doc?.content.length === 0);
-    const [doc, setDoc] = useState<Doc | null>(_doc);
-    const fetchAbortController = useRef(new AbortController());
-    const [workspace, setWorkspace] = useState<Workspace | null>(_workspace);
+const isServer = typeof window === 'undefined';
+let isStoreCreated = false;
 
-    const changeDoc = useCallback(async (id: string) => {
-        setLoading(true);
-        setEditing(false);
-        fetchAbortController.current.abort('navigate');
-        try {
-            fetchAbortController.current = new AbortController();
-            const newDoc = await clientFetch(API.luoye.doc(id), fetchAbortController.current);
-            document.title = generateDocPageTitle(newDoc);
-            setDoc(newDoc);
-            setLoading(false);
-        } catch (error: any) {
-            if (error.name === 'AbortError') return;
-            Logger.error(error.message);
-            Toast.notify(error.message);
-        }
-    }, []);
+export const DocContextProvider = ({ userId, doc, workspace, children }: Props) => {
+    const pathname = usePathname();
+
+    if (isServer || !isStoreCreated) {
+        useDocStore = create((set, get) => ({
+            userId,
+            isLoading: false,
+            isEditing: doc?.content.length === 0,
+            doc,
+            workspace,
+            setEditing: (isEditing) => set({ isEditing }),
+            setWorkspace: (workspace) => set({ workspace }),
+            updateDoc: async (newDoc, needUpdateWorkspace = true) => {
+                set({ doc: newDoc });
+                if (!needUpdateWorkspace) return;
+                const newWorkspace = await clientFetch(API.luoye.workspace(newDoc.workspaces[0]));
+                set({ workspace: newWorkspace });
+            },
+            navigateDoc: (id: string) => {
+                const { doc, isEditing } = get();
+                if (doc?.id === id) return;
+                if (isEditing) {
+                    const result = confirm(LEAVE_EDITING_TEXT);
+                    if (!result) return;
+                }
+                history.pushState(null, '', Path.of(`/luoye/doc/${id}`));
+            },
+        }));
+        isStoreCreated = true;
+    }
 
     useEffect(() => {
         const { docId } = /\/luoye\/doc\/(?<docId>[^/]+)$/.exec(pathname)?.groups ?? {
             docId: doc?.id,
         };
         if (docId && doc && docId !== doc.id) changeDoc(docId);
-    }, [changeDoc, doc, pathname]);
+    }, [doc, pathname]);
 
     // 初始化
     useEffect(() => {
-        setLoading(false);
-        setEditing(_doc?.content.length === 0);
-        setDoc(_doc);
-        setWorkspace(_workspace);
-    }, [_doc, _workspace]);
+        useDocStore.setState({
+            isLoading: false,
+            isEditing: doc?.content.length === 0,
+            doc,
+            workspace,
+        });
+    }, [doc, workspace]);
 
-    return (
-        <DocContext.Provider
-            value={{
-                userId,
-                isLoading,
-                isEditing,
-                doc,
-                workspace,
-                setWorkspace,
-                setEditing,
-                updateDoc: async (newDoc, needUpdateWorkspace = true) => {
-                    setDoc(newDoc);
-                    if (!needUpdateWorkspace) return;
-                    const newWorkspace = await clientFetch(API.luoye.workspace(newDoc.workspaces[0]));
-                    setWorkspace(newWorkspace);
-                },
-                navigateDoc: (id: string) => {
-                    if (doc?.id === id) return;
-                    if (isEditing) {
-                        const result = confirm(LEAVE_EDITING_TEXT);
-                        if (!result) return;
-                    }
-                    history.pushState(null, '', Path.of(`/luoye/doc/${id}`));
-                },
-            }}
-        >
-            {children}
-        </DocContext.Provider>
-    );
+    return children;
 };

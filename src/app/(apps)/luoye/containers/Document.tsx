@@ -2,7 +2,7 @@
 import styles from '../styles/document.module.css';
 import { DocType } from '@/app/api/luoye';
 import { useRouter } from 'next/navigation';
-import { useContext, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import EditingModeGlobalStyle from '../styles/EditingModeGlobalStyle';
 import DocForm from './DocForm';
 import dayjs from 'dayjs';
@@ -14,12 +14,12 @@ import clsx from 'clsx';
 import Toast from '../components/Notification/Toast';
 import API, { clientFetch } from '@/app/api';
 import Markdown from '../components/Markdown';
-import { DocContext } from '../doc/[docId]/context';
+import { useDocStore } from '../doc/[docId]/context';
 import { TextEditor, MarkdownEditor, EditorRef } from '../components/Editor';
 
 const Document = () => {
     const router = useRouter();
-    const { userId, doc, workspace, isLoading, isEditing, setEditing, updateDoc } = useContext(DocContext);
+    const { userId, doc, workspace, isLoading, isEditing, setEditing, updateDoc } = useDocStore();
 
     const [isDocFormVisible, setDocFormVisible] = useState(false);
     const textRef = useRef<EditorRef>(null);
