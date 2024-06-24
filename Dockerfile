@@ -23,6 +23,5 @@ COPY --from=builder /app/next.config.mjs ./next.config.mjs
 
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV HOSTNAME="0.0.0.0"
-ENV NODE_ENV="development"
 EXPOSE 3000
 CMD ["node", ".next/standalone/server.js"]
