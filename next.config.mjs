@@ -1,3 +1,5 @@
+const isStandalone = process.env.STANDALONE === 'true';
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
     basePath: '/freesia',
@@ -10,6 +12,7 @@ const nextConfig = {
             },
         ];
     },
+    output: isStandalone ? 'standalone' : undefined,
 };
 
 export default nextConfig;
