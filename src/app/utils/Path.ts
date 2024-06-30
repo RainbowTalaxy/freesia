@@ -1,13 +1,6 @@
 import { BASE_PATH } from '../constants';
 
 const Path = {
-    toUserConfig: () => {
-        window.location.href =
-            BASE_PATH +
-            '/user' +
-            '?next_url=' +
-            encodeURIComponent(window.location.href);
-    },
     of: (path: string, query?: any) => {
         return (
             BASE_PATH +
@@ -17,6 +10,11 @@ const Path = {
     },
     static: (path: string) => {
         return Path.of(path);
+    },
+    toUserConfig: (nextUrl?: string) => {
+        window.location.href = Path.of('/user', {
+            next_url: nextUrl ?? window.location.href,
+        });
     },
     ofTokenDigest: (token: string, nextUrl: string) => {
         return Path.of('/user/token', { token, next_url: nextUrl });
