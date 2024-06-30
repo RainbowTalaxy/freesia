@@ -6,6 +6,7 @@ import { ReactNode, createContext, useCallback, useEffect, useRef, useState } fr
 import { LEAVE_EDITING_TEXT, generateDocPageTitle } from '../../configs';
 import { usePathname } from 'next/navigation';
 import Toast from '../../components/Notification/Toast';
+import useHydrationState from '@/app/hooks/useHydrationState';
 
 export const DocContext = createContext<{
     userId: string | null;
@@ -36,30 +37,34 @@ type Props = {
     children: ReactNode;
 };
 
+const path = '/luoye/doc/[docId]';
+
 export const DocContextProvider = ({ userId, doc: _doc, workspace: _workspace, children }: Props) => {
     const pathname = usePathname();
+    const [doc, setDoc] = useHydrationState<Doc | null>(_doc, `${path}.doc`);
+    const [workspace, setWorkspace] = useHydrationState<Workspace | null>(_workspace, `${path}.workspace`);
     const [isLoading, setLoading] = useState(false);
-    const [isEditing, setEditing] = useState(_doc?.content.length === 0);
-    const [doc, setDoc] = useState<Doc | null>(_doc);
-    const fetchAbortController = useRef(new AbortController());
-    const [workspace, setWorkspace] = useState<Workspace | null>(_workspace);
+    const [isEditing, setEditing] = useState(doc?.content.length === 0);
+    const abortController = useRef(new AbortController());
 
-    const changeDoc = useCallback(async (id: string) => {
-        setLoading(true);
-        setEditing(false);
-        fetchAbortController.current.abort('navigate');
-        try {
-            fetchAbortController.current = new AbortController();
-            const newDoc = await clientFetch(API.luoye.doc(id), fetchAbortController.current);
-            document.title = generateDocPageTitle(newDoc);
-            setDoc(newDoc);
-            setLoading(false);
-        } catch (error: any) {
-            if (error.name === 'AbortError') return;
-            Logger.error(error.message);
-            Toast.notify(error.message);
-        }
-    }, []);
+    const changeDoc = useCallback(
+        async (id: string) => {
+            setLoading(true);
+            setEditing(false);
+            abortController.current.abort('navigate');
+            try {
+                abortController.current = new AbortController();
+                const newDoc = await clientFetch(API.luoye.doc(id), abortController.current);
+                setDoc(newDoc);
+                setLoading(false);
+            } catch (error: any) {
+                if (error.name === 'AbortError') return;
+                Logger.error(error.message);
+                Toast.notify(error.message);
+            }
+        },
+        [setDoc],
+    );
 
     useEffect(() => {
         const { docId } = /\/luoye\/doc\/(?<docId>[^/]+)$/.exec(pathname)?.groups ?? {
@@ -68,13 +73,13 @@ export const DocContextProvider = ({ userId, doc: _doc, workspace: _workspace, c
         if (docId && doc && docId !== doc.id) changeDoc(docId);
     }, [changeDoc, doc, pathname]);
 
-    // 初始化
     useEffect(() => {
         setLoading(false);
-        setEditing(_doc?.content.length === 0);
-        setDoc(_doc);
-        setWorkspace(_workspace);
     }, [_doc, _workspace]);
+
+    useEffect(() => {
+        document.title = generateDocPageTitle(doc);
+    }, [doc]);
 
     return (
         <DocContext.Provider

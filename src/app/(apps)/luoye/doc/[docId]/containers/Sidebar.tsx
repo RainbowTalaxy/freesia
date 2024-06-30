@@ -1,17 +1,17 @@
 'use client';
 import { useRouter } from 'next/navigation';
-import { SideBarList, SideBarListItem } from '../../components/PageLayout';
+import { SideBarList, SideBarListItem } from '../../../components/PageLayout';
 import { Scope } from '@/app/api/luoye';
-import Placeholder from '../../components/PlaceHolder';
-import SVG from '../../components/SVG';
+import Placeholder from '../../../components/PlaceHolder';
+import SVG from '../../../components/SVG';
 import { DragDropContext, Draggable, Droppable, OnDragEndResponder } from '@hello-pangea/dnd';
 import { useContext, useEffect, useState } from 'react';
 import API, { clientFetch } from '@/app/api';
-import { checkAuth, workSpaceName } from '../../configs';
-import Toast from '../../components/Notification/Toast';
-import WorkspaceForm from '../../containers/WorkspaceForm';
-import DocForm from '../../containers/DocForm';
-import { DocContext } from '../[docId]/context';
+import { checkAuth, workSpaceName } from '../../../configs';
+import Toast from '../../../components/Notification/Toast';
+import WorkspaceForm from '../../../containers/WorkspaceForm';
+import DocForm from '../../../containers/DocForm';
+import { DocContext } from '../../[docId]/context';
 import { Path } from '@/app/utils';
 
 const SideBar = () => {
