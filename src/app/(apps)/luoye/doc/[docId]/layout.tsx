@@ -3,7 +3,7 @@ import clsx from 'clsx';
 import { ReactNode } from 'react';
 import PageLayout from '../../components/PageLayout';
 import ProjectTitle from '../../containers/ProjectTitle';
-import SideBar from '../containers/Sidebar';
+import SideBar from './containers/Sidebar';
 import { fetchDocInfo } from './cache';
 import { DocContextProvider } from './context';
 

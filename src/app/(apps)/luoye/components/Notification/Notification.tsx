@@ -15,7 +15,7 @@ class Notification {
     private static _container: HTMLDivElement | null = null;
     private static root: Root | null = null;
 
-    private static get container() {
+    static get container() {
         if (this._container) return this._container;
         let container = document.querySelector<HTMLDivElement>(`.${NOTIFICATION_CONTAINER_CLASS}`)! as HTMLDivElement;
         if (!container) {
@@ -56,6 +56,10 @@ class Notification {
             }, duration);
         }
     }
+}
+
+if (typeof window !== 'undefined') {
+    Notification.container;
 }
 
 export default Notification;
