@@ -6,7 +6,7 @@
 
 目前项目包含这些应用：
 
--   [落页] - 一个在线文档工具
+-   [落页] - 一个在线文档工具（后端服务仍在 [blog](https://github.com/RainbowTalaxy/blog/tree/main/server/modules/luoye) 项目中）
 
 如需创建站点账号请与本人联系。更多请见 [更新日志] 。
 
