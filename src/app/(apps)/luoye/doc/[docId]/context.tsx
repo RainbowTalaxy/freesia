@@ -17,7 +17,7 @@ export const DocContext = createContext<{
     setEditing: (editing: boolean) => void;
     setWorkspace: (newWorkspace: Workspace) => void;
     updateDoc: (newDoc: Doc, needUpdateWorkspace?: boolean) => void;
-    navigateDoc: (id: string) => void;
+    navigateDoc: (id: string, isEditing?: boolean) => void;
 }>({
     userId: null,
     isLoading: false,
@@ -44,13 +44,19 @@ export const DocContextProvider = ({ userId, doc: _doc, workspace: _workspace, c
     const [doc, setDoc] = useHydrationState<Doc | null>(_doc, `${path}.doc`);
     const [workspace, setWorkspace] = useHydrationState<Workspace | null>(_workspace, `${path}.workspace`);
     const [isLoading, setLoading] = useState(false);
+    const editingRequest = useRef(false);
     const [isEditing, setEditing] = useState(doc?.content.length === 0);
     const abortController = useRef(new AbortController());
 
     const changeDoc = useCallback(
         async (id: string) => {
             setLoading(true);
-            setEditing(false);
+            if (editingRequest.current) {
+                setEditing(true);
+                editingRequest.current = false;
+            } else {
+                setEditing(false);
+            }
             abortController.current.abort('navigate');
             try {
                 abortController.current = new AbortController();
@@ -97,12 +103,13 @@ export const DocContextProvider = ({ userId, doc: _doc, workspace: _workspace, c
                     const newWorkspace = await clientFetch(API.luoye.workspace(newDoc.workspaces[0]));
                     setWorkspace(newWorkspace);
                 },
-                navigateDoc: (id: string) => {
+                navigateDoc: (id: string, editing: boolean = false) => {
                     if (doc?.id === id) return;
                     if (isEditing) {
                         const result = confirm(LEAVE_EDITING_TEXT);
                         if (!result) return;
                     }
+                    if (editing) editingRequest.current = true;
                     history.pushState(null, '', Path.of(`/luoye/doc/${id}`));
                 },
             }}
