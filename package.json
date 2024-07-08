@@ -5,7 +5,11 @@
     "scripts": {
         "dev": "next dev",
         "build": "next build",
-        "start": "next build && next start",
+        "start": "next start",
+        "local": "next build && next start",
+        "server:build": "STANDALONE=true next build && cp -r public/ .next/standalone/public/ && cp -r .next/static/ .next/standalone/.next/static/",
+        "server:start": "node .next/standalone/server.js",
+        "server": "STANDALONE=true next build && cp -r public/ .next/standalone/public/ && cp -r .next/static/ .next/standalone/.next/static/ && node .next/standalone/server.js",
         "lint": "next lint"
     },
     "dependencies": {
