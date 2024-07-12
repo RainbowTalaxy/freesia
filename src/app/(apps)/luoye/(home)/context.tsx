@@ -1,7 +1,7 @@
 'use client';
 import API, { clientFetch } from '@/app/api';
 import { WorkspaceItem } from '@/app/api/luoye';
-import { ReactNode, createContext, useState } from 'react';
+import { ReactNode, createContext } from 'react';
 import { splitWorkspace } from '../configs';
 import useHydrationState from '@/app/hooks/useHydrationState';
 
@@ -27,12 +27,12 @@ interface Props {
     children: ReactNode;
 }
 
-const path = '/luoye/home';
+const PATH = '/luoye/home';
 
 export const HomeContextProvider = ({ userId, allWorkspaces: _allWorkspaces, children }: Props) => {
     const [allWorkspaces, setAllWorkspaces] = useHydrationState<WorkspaceItem[] | null>(
         _allWorkspaces,
-        `${path}.allWorkspaces`,
+        `${PATH}-allWorkspaces`,
     );
 
     const workspaceInfo =

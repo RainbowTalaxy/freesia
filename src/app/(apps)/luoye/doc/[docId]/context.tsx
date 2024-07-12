@@ -37,16 +37,20 @@ type Props = {
     children: ReactNode;
 };
 
-const path = '/luoye/doc/[docId]';
+const PATH = '/luoye/doc/[docId]';
+const ABORT_MESSAGE = 'navigate';
 
 export const DocContextProvider = ({ userId, doc: _doc, workspace: _workspace, children }: Props) => {
     const pathname = usePathname();
-    const [doc, setDoc] = useHydrationState<Doc | null>(_doc, `${path}.doc`);
-    const [workspace, setWorkspace] = useHydrationState<Workspace | null>(_workspace, `${path}.workspace`);
+    const [doc, setDoc] = useHydrationState<Doc | null>(_doc, `${PATH}-doc-${_doc?.id}`);
+    const [workspace, setWorkspace] = useHydrationState<Workspace | null>(
+        _workspace,
+        `${PATH}-workspace-${_workspace?.id}`,
+    );
     const [isLoading, setLoading] = useState(false);
     const editingRequest = useRef(false);
     const [isEditing, setEditing] = useState(doc?.content.length === 0);
-    const abortController = useRef(new AbortController());
+    const abortController = useRef<AbortController | null>(null);
 
     const changeDoc = useCallback(
         async (id: string) => {
@@ -57,15 +61,15 @@ export const DocContextProvider = ({ userId, doc: _doc, workspace: _workspace, c
             } else {
                 setEditing(false);
             }
-            abortController.current.abort('navigate');
+            abortController.current?.abort(ABORT_MESSAGE);
             try {
                 abortController.current = new AbortController();
                 const newDoc = await clientFetch(API.luoye.doc(id), abortController.current);
                 setDoc(newDoc);
                 setLoading(false);
             } catch (error: any) {
-                if (error.name === 'AbortError') return;
-                Logger.error(error.message);
+                if (error === ABORT_MESSAGE) return;
+                Logger.error('获取文章信息失败', error);
                 Toast.notify(error.message);
             }
         },
