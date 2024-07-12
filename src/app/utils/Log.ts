@@ -3,8 +3,8 @@ export default class Logger {
         console.log(`[${new Date().toLocaleString()}]`, icon, ...message);
     }
 
-    static error(message: string) {
-        this.info('🚫', message);
+    static error(...message: string[]) {
+        this.info('🚫', ...message);
     }
 
     static render(componentName: string) {

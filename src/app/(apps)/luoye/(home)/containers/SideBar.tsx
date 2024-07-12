@@ -41,7 +41,7 @@ const SideBar = () => {
             setAllWorkspaces(newWorkspaceItems);
         } catch (error: any) {
             Toast.notify(error.message);
-            Logger.error(error);
+            Logger.error('工作区顺序更新失败', error);
             setWorkspaces(workspaces);
         }
     };

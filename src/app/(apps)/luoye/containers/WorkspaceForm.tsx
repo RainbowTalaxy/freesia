@@ -46,7 +46,7 @@ const WorkspaceForm = ({ userId, workspace, onClose }: Props) => {
             }
             await onClose(newWorkspace);
         } catch (error: any) {
-            Logger.error(error);
+            Logger.error('工作区信息更新失败', error);
             Toast.notify(error.message);
         }
     };
