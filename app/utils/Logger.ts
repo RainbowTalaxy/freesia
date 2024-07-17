@@ -24,7 +24,12 @@ export default class Logger {
         );
     }
 
-    static visit(url: string, userId: string = 'unknown') {
-        Logger.info('🙂', `[${userId}] Visit ${url}`);
+    static route(ip: string, pathname: string, searchParams?: any) {
+        let url = pathname;
+        const searchParamsString = new URLSearchParams(searchParams).toString();
+        if (searchParamsString) {
+            url += '?' + searchParamsString;
+        }
+        Logger.info('🙂', `[${ip}] ${url}`);
     }
 }

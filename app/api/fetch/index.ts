@@ -1,11 +1,13 @@
-function request<Data>(url: string, method: string, data?: any) {
+export type HTTPMethod = 'GET' | 'POST' | 'PUT' | 'DELETE';
+
+function request<Data>(url: string, method: HTTPMethod, data?: any) {
     return {
         url,
         method,
         data,
     } as {
         url: string;
-        method: string;
+        method: HTTPMethod;
         data: any;
         _responseTypeHolder?: Data;
     };
