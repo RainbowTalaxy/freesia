@@ -1,9 +1,9 @@
-import { request } from '.';
+import { API } from '.';
 import { ResponseError } from '../types';
 import { BODY_ENABLED_METHODS } from './constants';
 
 export default async function clientFetch<Data>(
-    api: ReturnType<typeof request<Data>>,
+    api: API<Data>,
     controller?: AbortController,
 ) {
     let { url, method, data } = api;

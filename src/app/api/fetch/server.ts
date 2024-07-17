@@ -2,8 +2,8 @@ import { cookies } from 'next/headers';
 import { BODY_ENABLED_METHODS, LOCAL_URL } from './constants';
 import { ResponseError } from '../types';
 import Logger from '@/app/utils/Log';
-import { request } from '.';
 import { cache } from 'react';
+import { API } from '.';
 
 async function _rawServerFetch<Data>(
     url: string,
@@ -28,8 +28,6 @@ async function _rawServerFetch<Data>(
 }
 
 const rawServerFetch = cache(_rawServerFetch);
-
-type API<Data> = ReturnType<typeof request<Data>>;
 
 async function serverFetch<Data>(api: API<Data>): Promise<Data>;
 async function serverFetch<Data>(

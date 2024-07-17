@@ -1,4 +1,4 @@
-export function request<Data>(url: string, method: string, data?: any) {
+function request<Data>(url: string, method: string, data?: any) {
     return {
         url,
         method,
@@ -7,9 +7,11 @@ export function request<Data>(url: string, method: string, data?: any) {
         url: string;
         method: string;
         data: any;
-        resData?: Data;
+        _responseTypeHolder?: Data;
     };
 }
+
+export type API<Data> = ReturnType<typeof request<Data>>;
 
 export const Rocket = {
     get<Data>(url: string, query?: any) {
