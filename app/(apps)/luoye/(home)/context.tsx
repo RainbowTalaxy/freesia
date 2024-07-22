@@ -2,8 +2,8 @@
 import { ReactNode, createContext } from 'react';
 import API, { clientFetch } from '@/api';
 import { WorkspaceItem } from '@/api/luoye';
+import useHydrationState from '@/hooks/useHydrationState';
 import { splitWorkspace } from '../configs';
-import useHydrationState from '../../../hooks/useHydrationState';
 
 export const HomeContext = createContext<{
     userId: string | null;
