@@ -2,14 +2,7 @@
 import API, { clientFetch } from '../../../../api';
 import { Doc, Workspace } from '../../../../api/luoye';
 import { Logger, Path } from '../../../../utils';
-import {
-    ReactNode,
-    createContext,
-    useCallback,
-    useEffect,
-    useRef,
-    useState,
-} from 'react';
+import { ReactNode, createContext, useCallback, useEffect, useRef, useState } from 'react';
 import { LEAVE_EDITING_TEXT, generateDocPageTitle } from '../../configs';
 import { usePathname } from 'next/navigation';
 import Toast from '../../components/Notification/Toast';
@@ -47,17 +40,9 @@ type Props = {
 const PATH = '/luoye/doc/[docId]';
 const ABORT_MESSAGE = 'navigate';
 
-export const DocContextProvider = ({
-    userId,
-    doc: _doc,
-    workspace: _workspace,
-    children,
-}: Props) => {
+export const DocContextProvider = ({ userId, doc: _doc, workspace: _workspace, children }: Props) => {
     const pathname = usePathname();
-    const [doc, setDoc] = useHydrationState<Doc | null>(
-        _doc,
-        `${PATH}-doc-${_doc?.id}`,
-    );
+    const [doc, setDoc] = useHydrationState<Doc | null>(_doc, `${PATH}-doc-${_doc?.id}`);
     const [workspace, setWorkspace] = useHydrationState<Workspace | null>(
         _workspace,
         `${PATH}-workspace-${_workspace?.id}`,
@@ -79,10 +64,7 @@ export const DocContextProvider = ({
             abortController.current?.abort(ABORT_MESSAGE);
             try {
                 abortController.current = new AbortController();
-                const newDoc = await clientFetch(
-                    API.luoye.doc(id),
-                    abortController.current,
-                );
+                const newDoc = await clientFetch(API.luoye.doc(id), abortController.current);
                 setDoc(newDoc);
                 setLoading(false);
             } catch (error: any) {
@@ -95,8 +77,7 @@ export const DocContextProvider = ({
     );
 
     useEffect(() => {
-        const { docId } = /\/luoye\/doc\/(?<docId>[^/]+)$/.exec(pathname)
-            ?.groups ?? {
+        const { docId } = /\/luoye\/doc\/(?<docId>[^/]+)$/.exec(pathname)?.groups ?? {
             docId: doc?.id,
         };
         if (docId && doc && docId !== doc.id) changeDoc(docId);
@@ -123,9 +104,7 @@ export const DocContextProvider = ({
                 updateDoc: async (newDoc, needUpdateWorkspace = true) => {
                     setDoc(newDoc);
                     if (!needUpdateWorkspace) return;
-                    const newWorkspace = await clientFetch(
-                        API.luoye.workspace(newDoc.workspaces[0]),
-                    );
+                    const newWorkspace = await clientFetch(API.luoye.workspace(newDoc.workspaces[0]));
                     setWorkspace(newWorkspace);
                 },
                 navigateDoc: (id: string, editing: boolean = false) => {

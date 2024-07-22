@@ -3,12 +3,7 @@ import { SideBarList, SideBarListItem } from '../../../components/PageLayout';
 import { Scope } from '../../../../../api/luoye';
 import Placeholder from '../../../components/PlaceHolder';
 import SVG from '../../../components/SVG';
-import {
-    DragDropContext,
-    Draggable,
-    Droppable,
-    OnDragEndResponder,
-} from '@hello-pangea/dnd';
+import { DragDropContext, Draggable, Droppable, OnDragEndResponder } from '@hello-pangea/dnd';
 import { useContext, useEffect, useState } from 'react';
 import API, { clientFetch } from '../../../../../api';
 import { checkAuth, workSpaceName } from '../../../configs';
@@ -27,9 +22,7 @@ const SideBar = () => {
         navigateDoc,
         setEditing,
     } = useContext(DocContext);
-    const [selectedDocId, setSelectedDocId] = useState<string | null>(
-        doc?.id ?? null,
-    );
+    const [selectedDocId, setSelectedDocId] = useState<string | null>(doc?.id ?? null);
     const [workspace, setWorkspace] = useState(_workspace);
     const [isWorkspaceFormVisible, setWorkspaceFormVisible] = useState(false);
     const [isDocFormVisible, setDocFormVisible] = useState(false);
@@ -81,16 +74,8 @@ const SideBar = () => {
             {workspaceAuth.configurable && (
                 <>
                     <SideBarList>
-                        <SideBarListItem
-                            onClick={() => setDocFormVisible(true)}
-                        >
-                            新建文档
-                        </SideBarListItem>
-                        <SideBarListItem
-                            onClick={() => setWorkspaceFormVisible(true)}
-                        >
-                            工作区属性
-                        </SideBarListItem>
+                        <SideBarListItem onClick={() => setDocFormVisible(true)}>新建文档</SideBarListItem>
+                        <SideBarListItem onClick={() => setWorkspaceFormVisible(true)}>工作区属性</SideBarListItem>
                     </SideBarList>
                     <h2>文档列表</h2>
                 </>
@@ -98,47 +83,24 @@ const SideBar = () => {
             <DragDropContext onDragEnd={handleDragEnd}>
                 <Droppable droppableId="droppable">
                     {(provided) => (
-                        <SideBarList
-                            ref={provided.innerRef}
-                            {...provided.droppableProps}
-                        >
+                        <SideBarList ref={provided.innerRef} {...provided.droppableProps}>
                             {workspace.docs.map((docDir, index) => (
-                                <Draggable
-                                    key={docDir.docId}
-                                    draggableId={docDir.docId}
-                                    index={index}
-                                >
+                                <Draggable key={docDir.docId} draggableId={docDir.docId} index={index}>
                                     {(provided) => (
                                         <SideBarListItem
                                             ref={provided.innerRef}
                                             name={docDir.name || '未命名'}
-                                            active={
-                                                docDir.docId === selectedDocId
-                                            }
-                                            draggableProps={
-                                                provided.draggableProps
-                                            }
-                                            dragHandleProps={
-                                                provided.dragHandleProps
-                                            }
-                                            href={Path.of(
-                                                `/luoye/doc/${docDir.docId}`,
-                                            )}
+                                            active={docDir.docId === selectedDocId}
+                                            draggableProps={provided.draggableProps}
+                                            dragHandleProps={provided.dragHandleProps}
+                                            href={Path.of(`/luoye/doc/${docDir.docId}`)}
                                             onClick={() => {
                                                 navigateDoc(docDir.docId);
                                                 setSelectedDocId(docDir.docId);
                                             }}
                                         >
-                                            <span>
-                                                {docDir.name || (
-                                                    <Placeholder>
-                                                        未命名
-                                                    </Placeholder>
-                                                )}
-                                            </span>
-                                            {docDir.scope === Scope.Private && (
-                                                <SVG.Lock />
-                                            )}
+                                            <span>{docDir.name || <Placeholder>未命名</Placeholder>}</span>
+                                            {docDir.scope === Scope.Private && <SVG.Lock />}
                                         </SideBarListItem>
                                     )}
                                 </Draggable>
@@ -165,9 +127,7 @@ const SideBar = () => {
                     onClose={async (newDoc) => {
                         setDocFormVisible(false);
                         if (newDoc) {
-                            const newWorkspace = await clientFetch(
-                                API.luoye.workspace(newDoc.workspaces[0]),
-                            );
+                            const newWorkspace = await clientFetch(API.luoye.workspace(newDoc.workspaces[0]));
                             setWorkspace(newWorkspace);
                             navigateDoc(newDoc.id, true);
                         }

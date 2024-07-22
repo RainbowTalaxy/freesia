@@ -28,16 +28,9 @@ const ShareAccountForm = ({ userId, onClose }: Props) => {
             if (!idRef.current) return Toast.notify('ID 不能为空');
             if (!passwordRef.current) return Toast.notify('密码不能为空');
             const { token } = await clientFetch(
-                API.user.login(
-                    idRef.current.value,
-                    passwordRef.current.value,
-                    SHARE_EXPIRE_TIME,
-                ),
+                API.user.login(idRef.current.value, passwordRef.current.value, SHARE_EXPIRE_TIME),
             );
-            setShareUrl(
-                window.location.origin +
-                    Path.ofTokenDigest(token, Path.of('/luoye')),
-            );
+            setShareUrl(window.location.origin + Path.ofTokenDigest(token, Path.of('/luoye')));
         } catch (error: any) {
             Toast.notify(error.message);
         }
@@ -47,9 +40,7 @@ const ShareAccountForm = ({ userId, onClose }: Props) => {
         <div className={styles.container}>
             <div className={styles.form}>
                 <h2>临时账号共享</h2>
-                <p className={styles.formDescription}>
-                    生成一个 {SHARE_EXPIRE_TIME} 天有效的账号分享链接
-                </p>
+                <p className={styles.formDescription}>生成一个 {SHARE_EXPIRE_TIME} 天有效的账号分享链接</p>
                 <div className={styles.formItem}>
                     <label>ID：</label>
                     <Input raf={idRef} />
@@ -74,9 +65,7 @@ const ShareAccountForm = ({ userId, onClose }: Props) => {
                             <Button
                                 onClick={async () => {
                                     try {
-                                        await navigator.clipboard.writeText(
-                                            shareUrl,
-                                        );
+                                        await navigator.clipboard.writeText(shareUrl);
                                         Toast.notify('已复制到剪贴板');
                                     } catch (error: any) {
                                         Toast.notify('复制失败');

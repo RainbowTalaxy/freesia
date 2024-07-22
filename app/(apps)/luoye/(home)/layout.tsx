@@ -22,10 +22,7 @@ export default async function Layout({ children }: Props) {
                     navbar={<ProjectTitle userId={userId} fold />}
                     sidebar={
                         <>
-                            <ProjectTitle
-                                className={styles.fixedTitle}
-                                userId={userId}
-                            />
+                            <ProjectTitle className={styles.fixedTitle} userId={userId} />
                             <SideBar />
                         </>
                     }

@@ -24,9 +24,7 @@ export default async function DocBin() {
 
             {docBinItems?.length === 0 ? (
                 <p>
-                    <Placeholder>
-                        {userId ? '暂无文档' : '请先登录'}
-                    </Placeholder>
+                    <Placeholder>{userId ? '暂无文档' : '请先登录'}</Placeholder>
                 </p>
             ) : (
                 <div className={styles.docList}>
@@ -34,17 +32,11 @@ export default async function DocBin() {
                         <Link key={doc.docId} href={`/luoye/doc/${doc.docId}`}>
                             <div className={styles.docItem}>
                                 <div className={styles.docName}>
-                                    {doc.name || (
-                                        <Placeholder>未命名文档</Placeholder>
-                                    )}
+                                    {doc.name || <Placeholder>未命名文档</Placeholder>}
                                 </div>
                                 <Spacer />
-                                <div className={styles.docUser}>
-                                    {doc.executor}
-                                </div>
-                                <div className={styles.docDate}>
-                                    {date(doc.deletedAt)}
-                                </div>
+                                <div className={styles.docUser}>{doc.executor}</div>
+                                <div className={styles.docDate}>{date(doc.deletedAt)}</div>
                             </div>
                         </Link>
                     ))}

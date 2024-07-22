@@ -19,15 +19,7 @@ import { TextEditor, MarkdownEditor, EditorRef } from '../components/Editor';
 
 const Document = () => {
     const router = useRouter();
-    const {
-        userId,
-        doc,
-        workspace,
-        isLoading,
-        isEditing,
-        setEditing,
-        updateDoc,
-    } = useContext(DocContext);
+    const { userId, doc, workspace, isLoading, isEditing, setEditing, updateDoc } = useContext(DocContext);
 
     const [isDocFormVisible, setDocFormVisible] = useState(false);
     const textRef = useRef<EditorRef>(null);
@@ -40,9 +32,7 @@ const Document = () => {
         if (!doc) return;
         const text = textRef.current?.getText();
         try {
-            const newDoc = await clientFetch(
-                API.luoye.updateDoc(doc.id, { content: text }),
-            );
+            const newDoc = await clientFetch(API.luoye.updateDoc(doc.id, { content: text }));
             Toast.cover('保存成功');
             updateDoc(newDoc, false);
         } catch {
@@ -84,9 +74,7 @@ const Document = () => {
         if (isEditing) {
             const text = textRef.current?.getText();
             try {
-                const newDoc = await clientFetch(
-                    API.luoye.updateDoc(doc.id, { content: text }),
-                );
+                const newDoc = await clientFetch(API.luoye.updateDoc(doc.id, { content: text }));
                 setEditing(false);
                 updateDoc(newDoc, false);
             } catch (error: any) {
@@ -117,14 +105,8 @@ const Document = () => {
             <header className={clsx(styles.docNavBar, styles.hasDoc)}>
                 {isSidebarVisible ? (
                     <>
-                        <div className={styles.docNavTitle}>
-                            {doc.name || <Placeholder>未命名文档</Placeholder>}
-                        </div>
-                        <ProjectTitle
-                            className={clsx(styles.docIcon)}
-                            fold={isSidebarVisible}
-                            showInfo={false}
-                        />
+                        <div className={styles.docNavTitle}>{doc.name || <Placeholder>未命名文档</Placeholder>}</div>
+                        <ProjectTitle className={clsx(styles.docIcon)} fold={isSidebarVisible} showInfo={false} />
                     </>
                 ) : (
                     <ProjectTitle fold={isSidebarVisible} showInfo={false} />
@@ -132,22 +114,11 @@ const Document = () => {
                 {!isDeleted &&
                     (docAuth.editable ? (
                         <>
-                            {!isEditing && (
-                                <Button onClick={() => setDocFormVisible(true)}>
-                                    设 置
-                                </Button>
-                            )}
-                            <Button
-                                type="primary"
-                                onClick={handleClickEditButton}
-                            >
+                            {!isEditing && <Button onClick={() => setDocFormVisible(true)}>设 置</Button>}
+                            <Button type="primary" onClick={handleClickEditButton}>
                                 {isEditing ? '保 存' : '编 辑'}
                             </Button>
-                            {isEditing && (
-                                <Button onClick={() => setEditing(false)}>
-                                    取 消
-                                </Button>
-                            )}
+                            {isEditing && <Button onClick={() => setEditing(false)}>取 消</Button>}
                         </>
                     ) : (
                         doc.creator.toUpperCase()
@@ -167,37 +138,16 @@ const Document = () => {
             >
                 {!isEditing && (
                     <>
-                        <h1 id={doc.name}>
-                            {doc.name || <Placeholder>无标题</Placeholder>}
-                        </h1>
+                        <h1 id={doc.name}>{doc.name || <Placeholder>无标题</Placeholder>}</h1>
                         {doc.docType === DocType.Text &&
-                            doc.content
-                                .split('\n')
-                                .map((item, index) => (
-                                    <p key={index}>{item}</p>
-                                ))}
-                        {doc.docType === DocType.Markdown && (
-                            <Markdown title={doc.name}>{doc.content}</Markdown>
-                        )}
+                            doc.content.split('\n').map((item, index) => <p key={index}>{item}</p>)}
+                        {doc.docType === DocType.Markdown && <Markdown title={doc.name}>{doc.content}</Markdown>}
                         <p className={styles.docInfo}>
                             <span>{doc.creator.toUpperCase()}</span>
                             {docAuth.editable ? (
-                                <>
-                                    {' '}
-                                    于{' '}
-                                    {dayjs(doc.updatedAt).format(
-                                        'YYYY年M月D日 H:mm',
-                                    )}{' '}
-                                    更新
-                                </>
+                                <> 于 {dayjs(doc.updatedAt).format('YYYY年M月D日 H:mm')} 更新</>
                             ) : (
-                                <>
-                                    {' '}
-                                    落于{' '}
-                                    {dayjs(doc.date).format(
-                                        'YYYY年M月D日',
-                                    )}{' '}
-                                </>
+                                <> 落于 {dayjs(doc.date).format('YYYY年M月D日')} </>
                             )}
                             。
                         </p>

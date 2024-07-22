@@ -4,11 +4,7 @@ import Editor, { loader } from '@monaco-editor/react';
 import { useEffect, useImperativeHandle, useRef } from 'react';
 import clsx from 'clsx';
 import * as monaco from 'monaco-editor';
-import {
-    MONACO_TOKEN_CONFIG,
-    MONACO_COLOR_CONFIG,
-    MONACO_OPTIONS,
-} from './configs/monaco';
+import { MONACO_TOKEN_CONFIG, MONACO_COLOR_CONFIG, MONACO_OPTIONS } from './configs/monaco';
 import Toast from '../Notification/Toast';
 import useKeyboard from '../../../../hooks/useKeyboard';
 import { PLACE_HOLDER, countText } from './configs';
@@ -29,21 +25,13 @@ loader.init().then((monaco) => {
     monacoLoaded = true;
 });
 
-const MarkdownEditor = ({
-    className,
-    visible,
-    keyId,
-    onSave,
-    textRef,
-    defaultValue,
-}: EditorProps) => {
+const MarkdownEditor = ({ className, visible, keyId, onSave, textRef, defaultValue }: EditorProps) => {
     const editorRef = useRef<monaco.editor.IStandaloneCodeEditor>();
 
     useKeyboard(
         's',
         () => {
-            if (visible && editorRef.current)
-                onSave(editorRef.current.getValue());
+            if (visible && editorRef.current) onSave(editorRef.current.getValue());
         },
         {
             ctrl: true,
@@ -62,8 +50,7 @@ const MarkdownEditor = ({
     );
 
     useEffect(() => {
-        if (visible && !editorRef.current?.getValue())
-            editorRef.current?.focus();
+        if (visible && !editorRef.current?.getValue()) editorRef.current?.focus();
         return () => {
             if (visible) Toast.close();
         };
@@ -84,13 +71,11 @@ const MarkdownEditor = ({
                 editor.focus();
                 if (defaultValue !== undefined) {
                     editor.setValue(defaultValue);
-                    if (visible)
-                        Toast.notify('字数：' + countText(defaultValue), false);
+                    if (visible) Toast.notify('字数：' + countText(defaultValue), false);
                 }
             }}
             onChange={(value) => {
-                if (value !== undefined)
-                    Toast.notify('字数：' + countText(value), false);
+                if (value !== undefined) Toast.notify('字数：' + countText(value), false);
             }}
         />
     );

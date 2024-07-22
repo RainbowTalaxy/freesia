@@ -29,14 +29,11 @@ interface Props {
 
 const PATH = '/luoye/home';
 
-export const HomeContextProvider = ({
-    userId,
-    allWorkspaces: _allWorkspaces,
-    children,
-}: Props) => {
-    const [allWorkspaces, setAllWorkspaces] = useHydrationState<
-        WorkspaceItem[] | null
-    >(_allWorkspaces, `${PATH}-allWorkspaces`);
+export const HomeContextProvider = ({ userId, allWorkspaces: _allWorkspaces, children }: Props) => {
+    const [allWorkspaces, setAllWorkspaces] = useHydrationState<WorkspaceItem[] | null>(
+        _allWorkspaces,
+        `${PATH}-allWorkspaces`,
+    );
 
     const workspaceInfo =
         userId && allWorkspaces
@@ -55,9 +52,7 @@ export const HomeContextProvider = ({
                 setAllWorkspaces,
                 refreshContext: async () => {
                     if (!userId) return;
-                    const _allWorkspaces = await clientFetch(
-                        API.luoye.workspaceItems(),
-                    );
+                    const _allWorkspaces = await clientFetch(API.luoye.workspaceItems());
                     setAllWorkspaces(_allWorkspaces);
                 },
             }}

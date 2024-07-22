@@ -21,9 +21,7 @@ export default async function Page({ params }: Props) {
             if (userId) return <Settings userId={userId} />;
         case 'workspace':
             if (userId) {
-                const workspace = await serverFetch(
-                    API.luoye.workspace(userId),
-                );
+                const workspace = await serverFetch(API.luoye.workspace(userId));
                 return <WorkspaceInfo userId={userId} data={workspace} />;
             }
         default:

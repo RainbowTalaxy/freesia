@@ -7,19 +7,11 @@ import useKeyboard from '../../../../hooks/useKeyboard';
 import { PLACE_HOLDER, countText } from './configs';
 import { EditorProps } from './configs/types';
 
-const TextEditor = ({
-    className,
-    visible,
-    keyId,
-    onSave,
-    defaultValue,
-    textRef,
-}: EditorProps) => {
+const TextEditor = ({ className, visible, keyId, onSave, defaultValue, textRef }: EditorProps) => {
     const eleRef = useRef<HTMLPreElement>(null);
 
     useKeyboard('Tab', () => {
-        if (visible && eleRef.current)
-            document.execCommand('insertText', false, '\t');
+        if (visible && eleRef.current) document.execCommand('insertText', false, '\t');
     });
 
     useKeyboard(
@@ -56,13 +48,8 @@ const TextEditor = ({
             if (eleRef.current) {
                 eleRef.current.focus();
                 eleRef.current.innerText = defaultValue ?? '';
-                eleRef.current.dataset.placeholder = defaultValue
-                    ? ''
-                    : PLACE_HOLDER;
-                Toast.notify(
-                    '字数：' + countText(eleRef.current?.innerText ?? ''),
-                    false,
-                );
+                eleRef.current.dataset.placeholder = defaultValue ? '' : PLACE_HOLDER;
+                Toast.notify('字数：' + countText(eleRef.current?.innerText ?? ''), false);
             }
         }
         return () => {
@@ -81,11 +68,8 @@ const TextEditor = ({
                 data-placeholder={PLACE_HOLDER}
                 onInput={(e) => {
                     const text = e.currentTarget.innerText;
-                    e.currentTarget.dataset.placeholder = text
-                        ? ''
-                        : PLACE_HOLDER;
-                    if (text !== undefined)
-                        Toast.notify('字数：' + countText(text), false);
+                    e.currentTarget.dataset.placeholder = text ? '' : PLACE_HOLDER;
+                    if (text !== undefined) Toast.notify('字数：' + countText(text), false);
                 }}
                 onPaste={(e) => {
                     e.preventDefault();

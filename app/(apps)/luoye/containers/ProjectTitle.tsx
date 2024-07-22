@@ -17,32 +17,15 @@ interface Props {
     fold?: boolean;
 }
 
-const ProjectTitle = ({
-    className,
-    userId,
-    marginBottom = 0,
-    owner,
-    fold = false,
-    showInfo = true,
-}: Props) => {
+const ProjectTitle = ({ className, userId, marginBottom = 0, owner, fold = false, showInfo = true }: Props) => {
     return (
-        <div
-            className={clsx(styles.projectTitle, className)}
-            style={{ marginBottom }}
-        >
+        <div className={clsx(styles.projectTitle, className)} style={{ marginBottom }}>
             {fold && (
-                <span
-                    className={clsx(styles.pageFoldIcon)}
-                    onClick={revealSidebar}
-                >
+                <span className={clsx(styles.pageFoldIcon)} onClick={revealSidebar}>
                     <SVG.Hamburger />
                 </span>
             )}
-            <Link
-                className={clsx(styles.pageIcon, !fold && styles.showIcon)}
-                href="/luoye"
-                prefetch={false}
-            >
+            <Link className={clsx(styles.pageIcon, !fold && styles.showIcon)} href="/luoye" prefetch={false}>
                 {PROJECT_ICON}
             </Link>
             <Link className={styles.pageName} href="/luoye" prefetch={false}>
