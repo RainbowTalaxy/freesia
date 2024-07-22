@@ -1,8 +1,8 @@
 'use client';
-import { Button } from '../../../../components/form';
+import { useState } from 'react';
+import { Button } from '@/components/form';
 import ShareAccountForm from '../containers/ShareAccountForm';
 import styles from '../../styles/home.module.css';
-import { useState } from 'react';
 
 interface Props {
     userId: string;

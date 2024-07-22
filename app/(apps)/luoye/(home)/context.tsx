@@ -1,7 +1,7 @@
 'use client';
-import API, { clientFetch } from '../../../api';
-import { WorkspaceItem } from '../../../api/luoye';
 import { ReactNode, createContext } from 'react';
+import API, { clientFetch } from '@/api';
+import { WorkspaceItem } from '@/api/luoye';
 import { splitWorkspace } from '../configs';
 import useHydrationState from '../../../hooks/useHydrationState';
 

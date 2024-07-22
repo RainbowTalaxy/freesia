@@ -1,15 +1,15 @@
 'use client';
-import styles from './editor.module.css';
-import Editor, { loader } from '@monaco-editor/react';
 import { useEffect, useImperativeHandle, useRef } from 'react';
 import clsx from 'clsx';
 import * as monaco from 'monaco-editor';
+import Editor, { loader } from '@monaco-editor/react';
+import useKeyboard from '@/hooks/useKeyboard';
 import { MONACO_TOKEN_CONFIG, MONACO_COLOR_CONFIG, MONACO_OPTIONS } from './configs/monaco';
 import Toast from '../Notification/Toast';
-import useKeyboard from '../../../../hooks/useKeyboard';
 import { PLACE_HOLDER, countText } from './configs';
 import PlaceholderContentWidget from './PlaceholderContentWidget';
 import { EditorProps } from './configs/types';
+import styles from './editor.module.css';
 
 // 用于页面判断编辑器是否加载完毕
 let monacoLoaded = false;

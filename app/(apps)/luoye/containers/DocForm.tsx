@@ -1,14 +1,14 @@
 'use client';
-import styles from '../styles/form.module.css';
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import Toast from '../components/Notification/Toast';
 import clsx from 'clsx';
-import { Doc, DocType, Scope, Workspace, WorkspaceItem } from '../../../api/luoye';
-import { formDate, time } from '../../../utils';
-import { Button, Input, Select, Toggle } from '../../../components/form';
+import API, { clientFetch } from '@/api';
+import { Doc, DocType, Scope, Workspace, WorkspaceItem } from '@/api/luoye';
+import { formDate, time } from '@/utils';
+import { Button, Input, Select, Toggle } from '@/components/form';
+import styles from '../styles/form.module.css';
+import Toast from '../components/Notification/Toast';
 import { DOCTYPE_OPTIONS, DOCTYPE_OPTIONS_NAME, workSpaceName } from '../configs';
-import API, { clientFetch } from '../../../api';
 
 interface Props {
     userId: string;

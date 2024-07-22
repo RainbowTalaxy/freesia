@@ -1,7 +1,7 @@
 'use client';
-import API, { clientFetch } from '../../../api';
-import { useRouter, useSearchParams } from 'next/navigation';
 import { HTMLInputTypeAttribute, ReactNode } from 'react';
+import API, { clientFetch } from '@/api';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 const Label = ({ field, children }: { field: string; children: ReactNode }) => (
     <label className="block font-bold mb-[4px]" htmlFor={field}>

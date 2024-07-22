@@ -1,7 +1,7 @@
+import { Suspense } from 'react';
+import { Metadata } from 'next';
 import Login from './components/Login';
 import Logout from './components/Logout';
-import { Metadata } from 'next';
-import { Suspense } from 'react';
 import Server from '../../api/server';
 
 export const metadata: Metadata = {

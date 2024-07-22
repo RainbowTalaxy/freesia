@@ -1,11 +1,11 @@
 'use client';
-import API, { clientFetch } from '../../../../api';
-import styles from '../../styles/form.module.css';
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import API, { clientFetch } from '@/api';
+import { Path } from '@/utils';
+import { Button, Input } from '@/components/form';
+import styles from '../../styles/form.module.css';
 import Toast from '../../components/Notification/Toast';
-import { Button, Input } from '../../../../components/form';
-import { Path } from '../../../../utils';
 
 const SHARE_EXPIRE_TIME = 1;
 

@@ -1,12 +1,12 @@
 'use client';
-import API, { clientFetch } from '../../../../api';
-import { Doc, Workspace } from '../../../../api/luoye';
-import { Logger, Path } from '../../../../utils';
 import { ReactNode, createContext, useCallback, useEffect, useRef, useState } from 'react';
-import { LEAVE_EDITING_TEXT, generateDocPageTitle } from '../../configs';
 import { usePathname } from 'next/navigation';
+import API, { clientFetch } from '@/api';
+import { Doc, Workspace } from '@/api/luoye';
+import useHydrationState from '@/hooks/useHydrationState';
+import { Logger, Path } from '@/utils';
+import { LEAVE_EDITING_TEXT, generateDocPageTitle } from '../../configs';
 import Toast from '../../components/Notification/Toast';
-import useHydrationState from '../../../../hooks/useHydrationState';
 
 export const DocContext = createContext<{
     userId: string | null;

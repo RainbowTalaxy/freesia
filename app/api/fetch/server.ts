@@ -1,9 +1,9 @@
+import { cache } from 'react';
 import { cookies, headers } from 'next/headers';
+import { Logger } from '@/utils';
 import { BODY_ENABLED_METHODS, LOCAL_URL } from './constants';
 import { ResponseError } from '../types';
-import { cache } from 'react';
 import { API, HTTPMethod } from '.';
-import { Logger } from '../../utils';
 
 export async function rawServerFetch<Data>(
     url: string,

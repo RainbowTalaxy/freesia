@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Logger } from '../utils';
+import { Logger } from '@/utils';
 
 const useDebugRenderCommit = (componentName: string) => {
     Logger.render(componentName);

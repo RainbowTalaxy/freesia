@@ -1,16 +1,16 @@
 'use client';
-import { Scope, type Workspace as WorkspaceInfo } from '../../../../api/luoye';
-import Spacer from '../../../../components/Spacer';
-import { Button } from '../../../../components/form';
 import { useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { Scope, type Workspace as WorkspaceInfo } from '@/api/luoye';
+import Spacer from '@/components/Spacer';
+import { Button } from '@/components/form';
 import styles from '../../styles/home.module.css';
 import { DEFAULT_WORKSPACE_PLACEHOLDER, date, workSpaceName } from '../../configs';
 import Placeholder from '../../components/PlaceHolder';
 import SVG from '../../components/SVG';
 import DocForm from '../../containers/DocForm';
-import { useRouter } from 'next/navigation';
 import WorkspaceForm from '../../containers/WorkspaceForm';
-import Link from 'next/link';
 
 interface Props {
     userId: string;

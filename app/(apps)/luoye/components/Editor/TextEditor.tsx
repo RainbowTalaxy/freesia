@@ -1,9 +1,9 @@
 'use client';
-import styles from '../../styles/document.module.css';
-import clsx from 'clsx';
 import { useEffect, useImperativeHandle, useRef } from 'react';
+import clsx from 'clsx';
+import useKeyboard from '@/hooks/useKeyboard';
+import styles from '../../styles/document.module.css';
 import Toast from '../Notification/Toast';
-import useKeyboard from '../../../../hooks/useKeyboard';
 import { PLACE_HOLDER, countText } from './configs';
 import { EditorProps } from './configs/types';
 

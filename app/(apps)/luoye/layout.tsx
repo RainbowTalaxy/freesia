@@ -1,6 +1,5 @@
 import './styles/index.css';
-import { BASE_PATH } from '../../constants';
-import { Logger, Path } from '../../utils';
+import { Path } from '../../utils';
 import { Metadata, Viewport } from 'next';
 import { ReactNode } from 'react';
 

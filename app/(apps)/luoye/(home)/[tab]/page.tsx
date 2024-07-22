@@ -1,7 +1,7 @@
-import Server, { serverFetch } from '../../../../api/server';
+import API from '@/api';
+import Server, { serverFetch } from '@/api/server';
 import DocBin from '../pages/DocBin';
 import Settings from '../pages/Settings';
-import API from '../../../../api';
 import WorkspaceInfo from '../pages/WorkspaceInfo';
 
 interface Props {

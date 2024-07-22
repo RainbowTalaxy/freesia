@@ -1,11 +1,11 @@
-import Server, { serverFetch } from '../../../../api/server';
+import Link from 'next/link';
+import API from '@/api';
+import Server, { serverFetch } from '@/api/server';
+import { DocBinItem } from '@/api/luoye';
+import Spacer from '@/components/Spacer';
 import Placeholder from '../../components/PlaceHolder';
 import styles from '../../styles/home.module.css';
-import { DocBinItem } from '../../../../api/luoye';
-import API from '../../../../api';
-import Spacer from '../../../../components/Spacer';
 import { date } from '../../configs';
-import Link from 'next/link';
 
 export default async function DocBin() {
     const userId = await Server.userId();

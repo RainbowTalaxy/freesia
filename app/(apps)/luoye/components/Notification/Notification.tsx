@@ -1,7 +1,7 @@
 'use client';
-import styles from './index.module.css';
 import { ReactNode } from 'react';
 import { Root, createRoot } from 'react-dom/client';
+import styles from './index.module.css';
 
 export const NOTIFICATION_CONTAINER_CLASS = 'notification-container';
 

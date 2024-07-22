@@ -1,18 +1,18 @@
 'use client';
-import styles from '../../styles/home.module.css';
 import { MouseEvent, useContext, useState } from 'react';
 import clsx from 'clsx';
-import { DocItem, Scope } from '../../../../api/luoye';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import API, { clientFetch } from '@/api';
+import { DocItem, Scope } from '@/api/luoye';
+import Spacer from '@/components/Spacer';
+import styles from '../../styles/home.module.css';
 import Placeholder from '../../components/PlaceHolder';
 import SVG from '../../components/SVG';
-import Spacer from '../../../../components/Spacer';
 import { date } from '../../configs';
-import API, { clientFetch } from '../../../../api';
 import Toast from '../../components/Notification/Toast';
 import WorkspaceForm from '../../containers/WorkspaceForm';
 import DocForm from '../../containers/DocForm';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { HomeContext } from '../context';
 
 interface Props {

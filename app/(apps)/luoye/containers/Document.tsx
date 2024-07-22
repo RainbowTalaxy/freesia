@@ -1,21 +1,21 @@
 'use client';
-import styles from '../styles/document.module.css';
-import { DocType } from '../../../api/luoye';
-import { useRouter } from 'next/navigation';
 import { useContext, useEffect, useRef, useState } from 'react';
+import clsx from 'clsx';
+import dayjs from 'dayjs';
+import { useRouter } from 'next/navigation';
+import API, { clientFetch } from '@/api';
+import { DocType } from '@/api/luoye';
+import { Button } from '@/components/form';
 import EditingModeGlobalStyle from '../styles/EditingModeGlobalStyle';
 import DocForm from './DocForm';
-import dayjs from 'dayjs';
 import { checkAuth } from '../configs';
 import ProjectTitle from './ProjectTitle';
 import Placeholder from '../components/PlaceHolder';
-import { Button } from '../../../components/form';
-import clsx from 'clsx';
 import Toast from '../components/Notification/Toast';
-import API, { clientFetch } from '../../../api';
 import Markdown from '../components/Markdown';
 import { DocContext } from '../doc/[docId]/context';
 import { TextEditor, MarkdownEditor, EditorRef } from '../components/Editor';
+import styles from '../styles/document.module.css';
 
 const Document = () => {
     const router = useRouter();

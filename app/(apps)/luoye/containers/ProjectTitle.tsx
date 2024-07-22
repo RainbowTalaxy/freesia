@@ -1,12 +1,12 @@
 'use client';
+import clsx from 'clsx';
+import Link from 'next/link';
+import Spacer from '@/components/Spacer';
+import { Path } from '@/utils';
 import styles from '../styles/home.module.css';
 import { PROJECT_ICON, PROJECT_NAME } from '../configs';
-import clsx from 'clsx';
 import SVG from '../components/SVG';
 import { revealSidebar } from '../components/PageLayout';
-import Spacer from '../../../components/Spacer';
-import { Path } from '../../../utils';
-import Link from 'next/link';
 
 interface Props {
     className?: string;

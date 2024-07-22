@@ -1,6 +1,6 @@
 import { cache } from 'react';
-import Server, { serverFetch } from '../../../../api/server';
-import API from '../../../../api';
+import API from '@/api';
+import Server, { serverFetch } from '@/api/server';
 
 export const fetchDocInfo = cache(async (id: string) => {
     const [userId, doc] = await Promise.all([Server.userId(), serverFetch(API.luoye.doc(id), true)]);

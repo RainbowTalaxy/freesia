@@ -1,17 +1,17 @@
 'use client';
+import { useContext, useEffect, useState } from 'react';
+import { DragDropContext, Draggable, Droppable, OnDragEndResponder } from '@hello-pangea/dnd';
+import API, { clientFetch } from '@/api';
+import { Scope } from '@/api/luoye';
+import { Path } from '@/utils';
 import { SideBarList, SideBarListItem } from '../../../components/PageLayout';
-import { Scope } from '../../../../../api/luoye';
 import Placeholder from '../../../components/PlaceHolder';
 import SVG from '../../../components/SVG';
-import { DragDropContext, Draggable, Droppable, OnDragEndResponder } from '@hello-pangea/dnd';
-import { useContext, useEffect, useState } from 'react';
-import API, { clientFetch } from '../../../../../api';
 import { checkAuth, workSpaceName } from '../../../configs';
 import Toast from '../../../components/Notification/Toast';
 import WorkspaceForm from '../../../containers/WorkspaceForm';
 import DocForm from '../../../containers/DocForm';
 import { DocContext } from '../context';
-import { Path } from '../../../../../utils';
 
 const SideBar = () => {
     const {

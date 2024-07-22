@@ -1,15 +1,15 @@
 'use client';
+import { useContext, useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
+import { DragDropContext, Draggable, Droppable, OnDragEndResponder } from '@hello-pangea/dnd';
+import API, { clientFetch } from '@/api';
+import { Logger } from '@/utils';
+import { Scope } from '@/api/luoye';
 import { SideBarList, SideBarListItem } from '../../components/PageLayout';
-import { Scope } from '../../../../api/luoye';
 import Placeholder from '../../components/PlaceHolder';
 import SVG from '../../components/SVG';
-import { DragDropContext, Draggable, Droppable, OnDragEndResponder } from '@hello-pangea/dnd';
-import { useContext, useEffect, useState } from 'react';
 import { HomeContext } from '../context';
-import API, { clientFetch } from '../../../../api';
 import Toast from '../../components/Notification/Toast';
-import { Logger } from '../../../../utils';
 
 const SideBar = () => {
     const { tab, workspaceId } = useParams<{
