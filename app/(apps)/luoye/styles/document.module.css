@@ -164,7 +164,7 @@
     padding-left: calc(var(--toc-width) + var(--h-padding) + 12px);
 }
 
-@media screen and (max-width: 1400px) and (min-width: 769px) {
+@media screen and (min-width: 1201px) and (max-width: 1400px) {
     .document:not(.centeredDoc).hiddenEditor {
         margin-left: 4%;
     }
@@ -181,9 +181,14 @@
     }
 }
 
-@media screen and (max-width: 1200px) and (min-width: 769px) {
+@media screen and (min-width: 769px) and (max-width: 1200px) {
     .document {
         max-width: 100%;
+    }
+
+    .document:not(.centeredDoc).hiddenEditor {
+        margin-left: 4%;
+        margin-right: 4%;
     }
 
     .centeredDoc {
