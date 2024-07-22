@@ -5,7 +5,7 @@
     "singleQuote": true,
     "overrides": [
         {
-            "files": ["src/app/\\(apps\\)/luoye/**/*.tsx"],
+            "files": ["app/\\(apps\\)/luoye/**/*.tsx"],
             "options": {
                 "printWidth": 120
             }
