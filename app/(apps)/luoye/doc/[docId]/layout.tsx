@@ -1,6 +1,6 @@
-import styles from '../../styles/home.module.css';
-import clsx from 'clsx';
 import { ReactNode } from 'react';
+import clsx from 'clsx';
+import styles from '../../styles/home.module.css';
 import PageLayout from '../../components/PageLayout';
 import ProjectTitle from '../../containers/ProjectTitle';
 import SideBar from './containers/Sidebar';

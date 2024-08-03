@@ -1,13 +1,13 @@
 'use client';
-import styles from '../styles/form.module.css';
-import clsx from 'clsx';
 import { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
+import clsx from 'clsx';
+import API, { clientFetch } from '@/api';
+import { Scope, Workspace, WorkspaceItem } from '@/api/luoye';
+import { Button, Input, TextArea, Toggle } from '@/components/form';
+import { Logger } from '@/utils';
 import Toast from '../components/Notification/Toast';
-import { Scope, Workspace, WorkspaceItem } from '../../../api/luoye';
-import { Button, Input, TextArea, Toggle } from '../../../components/form';
-import API, { clientFetch } from '../../../api';
-import { Logger } from '../../../utils';
+import styles from '../styles/form.module.css';
 
 interface Props {
     userId: string;
@@ -40,13 +40,9 @@ const WorkspaceForm = ({ userId, workspace, onClose }: Props) => {
         try {
             let newWorkspace: Workspace;
             if (workspace) {
-                newWorkspace = await clientFetch(
-                    API.luoye.updateWorkspace(workspace.id, props),
-                );
+                newWorkspace = await clientFetch(API.luoye.updateWorkspace(workspace.id, props));
             } else {
-                newWorkspace = await clientFetch(
-                    API.luoye.createWorkspace(props),
-                );
+                newWorkspace = await clientFetch(API.luoye.createWorkspace(props));
             }
             await onClose(newWorkspace);
         } catch (error: any) {
@@ -59,23 +55,13 @@ const WorkspaceForm = ({ userId, workspace, onClose }: Props) => {
         <div className={styles.container}>
             <div className={styles.form}>
                 <h2>{workspace ? '工作区属性' : '新建工作区'}</h2>
-                <div
-                    className={clsx(
-                        styles.formItem,
-                        isUserWorkspace && styles.hidden,
-                    )}
-                >
+                <div className={clsx(styles.formItem, isUserWorkspace && styles.hidden)}>
                     <label>
                         <span>*</span>标题：
                     </label>
                     <Input raf={nameRef} />
                 </div>
-                <div
-                    className={clsx(
-                        styles.formItem,
-                        isUserWorkspace && styles.hidden,
-                    )}
-                >
+                <div className={clsx(styles.formItem, isUserWorkspace && styles.hidden)}>
                     <label>描述：</label>
                     <TextArea raf={descriptionRef} />
                 </div>

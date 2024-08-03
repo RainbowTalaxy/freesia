@@ -1,5 +1,5 @@
-import API from '../../../../../api';
-import Server, { serverFetch } from '../../../../../api/server';
+import API from '@/api';
+import Server, { serverFetch } from '@/api/server';
 import WorkspaceInfo from '../../pages/WorkspaceInfo';
 
 interface Props {

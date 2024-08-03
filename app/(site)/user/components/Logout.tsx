@@ -1,6 +1,6 @@
 'use client';
-import API, { clientFetch } from '../../../api';
 import { useRouter } from 'next/navigation';
+import API, { clientFetch } from '@/api';
 
 export default function Logout() {
     const router = useRouter();

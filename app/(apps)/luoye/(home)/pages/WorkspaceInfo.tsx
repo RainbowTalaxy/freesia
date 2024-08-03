@@ -1,20 +1,16 @@
 'use client';
-import { Scope, type Workspace as WorkspaceInfo } from '../../../../api/luoye';
-import Spacer from '../../../../components/Spacer';
-import { Button } from '../../../../components/form';
 import { useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { Scope, type Workspace as WorkspaceInfo } from '@/api/luoye';
+import Spacer from '@/components/Spacer';
+import { Button } from '@/components/form';
 import styles from '../../styles/home.module.css';
-import {
-    DEFAULT_WORKSPACE_PLACEHOLDER,
-    date,
-    workSpaceName,
-} from '../../configs';
+import { DEFAULT_WORKSPACE_PLACEHOLDER, date, workSpaceName } from '../../configs';
 import Placeholder from '../../components/PlaceHolder';
 import SVG from '../../components/SVG';
 import DocForm from '../../containers/DocForm';
-import { useRouter } from 'next/navigation';
 import WorkspaceForm from '../../containers/WorkspaceForm';
-import Link from 'next/link';
 
 interface Props {
     userId: string;
@@ -29,20 +25,13 @@ const WorkspaceInfo = ({ userId, data }: Props) => {
     return (
         <>
             <div className={styles.titleBar}>
-                <h2 className={styles.pageTitle}>
-                    {workSpaceName(data, userId)}
-                </h2>
-                <span
-                    className={styles.settings}
-                    onClick={() => setWorkspaceFormVisible(true)}
-                >
+                <h2 className={styles.pageTitle}>{workSpaceName(data, userId)}</h2>
+                <span className={styles.settings} onClick={() => setWorkspaceFormVisible(true)}>
                     设置
                 </span>
             </div>
             <p className={styles.pageDescription}>
-                {userId === data.id
-                    ? DEFAULT_WORKSPACE_PLACEHOLDER.description
-                    : data.description}
+                {userId === data.id ? DEFAULT_WORKSPACE_PLACEHOLDER.description : data.description}
             </p>
             <h2 className={styles.docTitleBar}>
                 文档列表
@@ -58,21 +47,11 @@ const WorkspaceInfo = ({ userId, data }: Props) => {
                     </div>
                 ) : (
                     data.docs.map((docDir) => (
-                        <Link
-                            className={styles.docItem}
-                            key={docDir.docId}
-                            href={`/luoye/doc/${docDir.docId}`}
-                        >
-                            <div className={styles.docName}>
-                                {docDir.name || (
-                                    <Placeholder>未命名文档</Placeholder>
-                                )}
-                            </div>
+                        <Link className={styles.docItem} key={docDir.docId} href={`/luoye/doc/${docDir.docId}`}>
+                            <div className={styles.docName}>{docDir.name || <Placeholder>未命名文档</Placeholder>}</div>
                             {docDir.scope === Scope.Private && <SVG.Lock />}
                             <Spacer />
-                            <div className={styles.docDate}>
-                                {date(docDir.updatedAt)}
-                            </div>
+                            <div className={styles.docDate}>{date(docDir.updatedAt)}</div>
                         </Link>
                     ))
                 )}

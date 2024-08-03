@@ -1,7 +1,7 @@
 'use client';
-import styles from './index.module.css';
 import { ReactNode } from 'react';
 import Notification from './Notification';
+import styles from './index.module.css';
 
 const Toast = {
     name: 'toast',

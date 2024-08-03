@@ -1,9 +1,9 @@
 'use client';
-import styles from '../styles/layout.module.css';
-import clsx from 'clsx';
 import { ForwardedRef, ReactNode, forwardRef } from 'react';
-import { DraggableProvidedDragHandleProps, DraggableProvidedDraggableProps } from '@hello-pangea/dnd';
+import clsx from 'clsx';
 import Link from 'next/link';
+import { DraggableProvidedDragHandleProps, DraggableProvidedDraggableProps } from '@hello-pangea/dnd';
+import styles from '../styles/layout.module.css';
 
 interface ListProps {
     className?: string;

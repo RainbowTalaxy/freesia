@@ -1,11 +1,11 @@
+import { ReactNode } from 'react';
+import API from '@/api';
+import Server, { serverFetch } from '@/api/server';
 import styles from '../styles/home.module.css';
 import PageLayout from '../components/PageLayout';
 import ProjectTitle from '../containers/ProjectTitle';
-import { ReactNode } from 'react';
 import SideBar from './containers/SideBar';
 import { HomeContextProvider } from './context';
-import Server, { serverFetch } from '../../../api/server';
-import API from '../../../api';
 
 interface Props {
     children: ReactNode;
@@ -22,10 +22,7 @@ export default async function Layout({ children }: Props) {
                     navbar={<ProjectTitle userId={userId} fold />}
                     sidebar={
                         <>
-                            <ProjectTitle
-                                className={styles.fixedTitle}
-                                userId={userId}
-                            />
+                            <ProjectTitle className={styles.fixedTitle} userId={userId} />
                             <SideBar />
                         </>
                     }

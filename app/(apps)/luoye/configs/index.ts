@@ -1,4 +1,4 @@
-import { Doc, DocType, Workspace, WorkspaceItem } from '../../../api/luoye';
+import { Doc, DocType, Workspace, WorkspaceItem } from '@/api/luoye';
 import dayjs from 'dayjs';
 
 export const PROJECT_ICON = '🍂';

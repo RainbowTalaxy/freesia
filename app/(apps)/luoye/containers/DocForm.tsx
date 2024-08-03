@@ -1,24 +1,14 @@
 'use client';
-import styles from '../styles/form.module.css';
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import Toast from '../components/Notification/Toast';
 import clsx from 'clsx';
-import {
-    Doc,
-    DocType,
-    Scope,
-    Workspace,
-    WorkspaceItem,
-} from '../../../api/luoye';
-import { formDate, time } from '../../../utils';
-import { Button, Input, Select, Toggle } from '../../../components/form';
-import {
-    DOCTYPE_OPTIONS,
-    DOCTYPE_OPTIONS_NAME,
-    workSpaceName,
-} from '../configs';
-import API, { clientFetch } from '../../../api';
+import API, { clientFetch } from '@/api';
+import { Doc, DocType, Scope, Workspace, WorkspaceItem } from '@/api/luoye';
+import { formDate, time } from '@/utils';
+import { Button, Input, Select, Toggle } from '@/components/form';
+import styles from '../styles/form.module.css';
+import Toast from '../components/Notification/Toast';
+import { DOCTYPE_OPTIONS, DOCTYPE_OPTIONS_NAME, workSpaceName } from '../configs';
 
 interface Props {
     userId: string;
@@ -29,14 +19,7 @@ interface Props {
     onDelete?: () => void;
 }
 
-const DocForm = ({
-    userId,
-    workspace,
-    workspaceItems,
-    doc,
-    onClose,
-    onDelete,
-}: Props) => {
+const DocForm = ({ userId, workspace, workspaceItems, doc, onClose, onDelete }: Props) => {
     const nameRef = useRef<HTMLInputElement>(null);
     const workspaceRef = useRef<HTMLSelectElement>(null);
     const scopeRef = useRef<HTMLInputElement>(null);
@@ -55,12 +38,9 @@ const DocForm = ({
             if (doc) {
                 newDoc = await clientFetch(API.luoye.updateDoc(doc.id, props));
             } else {
-                const workspaceId =
-                    workspaceRef.current?.value ?? workspace?.id;
+                const workspaceId = workspaceRef.current?.value ?? workspace?.id;
                 if (!workspaceId) return Toast.notify('请选择工作区');
-                newDoc = await clientFetch(
-                    API.luoye.createDoc(workspaceId, props),
-                );
+                newDoc = await clientFetch(API.luoye.createDoc(workspaceId, props));
             }
             await onClose(newDoc);
         } catch (error: any) {
@@ -114,11 +94,7 @@ const DocForm = ({
                 </div>
                 <div className={styles.formItem}>
                     <label>日期：</label>
-                    <Input
-                        raf={dateRef}
-                        type="date"
-                        defaultValue={formDate()}
-                    />
+                    <Input raf={dateRef} type="date" defaultValue={formDate()} />
                 </div>
                 {!doc && (
                     <div className={styles.formItem}>
@@ -127,10 +103,7 @@ const DocForm = ({
                             {DOCTYPE_OPTIONS.map((t) => (
                                 <div
                                     key={t}
-                                    className={clsx(
-                                        styles.option,
-                                        t === docType && styles.selected,
-                                    )}
+                                    className={clsx(styles.option, t === docType && styles.selected)}
                                     onClick={() => setDocType(t)}
                                 >
                                     {DOCTYPE_OPTIONS_NAME[t]}

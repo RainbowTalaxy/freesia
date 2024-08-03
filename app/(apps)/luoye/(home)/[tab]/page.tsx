@@ -1,7 +1,7 @@
-import Server, { serverFetch } from '../../../../api/server';
+import API from '@/api';
+import Server, { serverFetch } from '@/api/server';
 import DocBin from '../pages/DocBin';
 import Settings from '../pages/Settings';
-import API from '../../../../api';
 import WorkspaceInfo from '../pages/WorkspaceInfo';
 
 interface Props {
@@ -21,9 +21,7 @@ export default async function Page({ params }: Props) {
             if (userId) return <Settings userId={userId} />;
         case 'workspace':
             if (userId) {
-                const workspace = await serverFetch(
-                    API.luoye.workspace(userId),
-                );
+                const workspace = await serverFetch(API.luoye.workspace(userId));
                 return <WorkspaceInfo userId={userId} data={workspace} />;
             }
         default:

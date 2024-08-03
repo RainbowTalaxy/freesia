@@ -1,18 +1,18 @@
 'use client';
-import styles from '../../styles/home.module.css';
 import { MouseEvent, useContext, useState } from 'react';
 import clsx from 'clsx';
-import { DocItem, Scope } from '../../../../api/luoye';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import API, { clientFetch } from '@/api';
+import { DocItem, Scope } from '@/api/luoye';
+import Spacer from '@/components/Spacer';
+import styles from '../../styles/home.module.css';
 import Placeholder from '../../components/PlaceHolder';
 import SVG from '../../components/SVG';
-import Spacer from '../../../../components/Spacer';
 import { date } from '../../configs';
-import API, { clientFetch } from '../../../../api';
 import Toast from '../../components/Notification/Toast';
 import WorkspaceForm from '../../containers/WorkspaceForm';
 import DocForm from '../../containers/DocForm';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { HomeContext } from '../context';
 
 interface Props {
@@ -25,8 +25,7 @@ const WORKSPACE_FOLD_THRESHOLD = 7;
 const Welcome = ({ userId, recentDocs }: Props) => {
     const router = useRouter();
 
-    const { userWorkspace, workspaces, refreshContext } =
-        useContext(HomeContext);
+    const { userWorkspace, workspaces, refreshContext } = useContext(HomeContext);
 
     const [isWorkspaceListFolded, setWorkspaceListFolded] = useState(true);
     const [isWorkspaceFormVisible, setWorkspaceFormVisible] = useState(false);
@@ -36,12 +35,8 @@ const Welcome = ({ userId, recentDocs }: Props) => {
 
     const allWorkspaces = [userWorkspace, ...workspaces];
 
-    const foldedWorkspaces = isWorkspaceListFolded
-        ? allWorkspaces.slice(0, WORKSPACE_FOLD_THRESHOLD)
-        : allWorkspaces;
-    const isWorkspaceFolderVisible =
-        isWorkspaceListFolded &&
-        allWorkspaces.length > WORKSPACE_FOLD_THRESHOLD + 1;
+    const foldedWorkspaces = isWorkspaceListFolded ? allWorkspaces.slice(0, WORKSPACE_FOLD_THRESHOLD) : allWorkspaces;
+    const isWorkspaceFolderVisible = isWorkspaceListFolded && allWorkspaces.length > WORKSPACE_FOLD_THRESHOLD + 1;
 
     const handleDeleteRecentDoc = async (e: MouseEvent, doc: DocItem) => {
         e.stopPropagation();
@@ -63,49 +58,30 @@ const Welcome = ({ userId, recentDocs }: Props) => {
                 <h2 className={styles.pageTitle}>开始</h2>
             </div>
             <div className={styles.actionSheet}>
-                <div
-                    className={styles.action}
-                    onClick={() => setWorkspaceFormVisible(true)}
-                >
+                <div className={styles.action} onClick={() => setWorkspaceFormVisible(true)}>
                     <span>🪸</span>新建工作区
                 </div>
-                <div
-                    className={styles.action}
-                    onClick={() => setDocFormVisible(true)}
-                >
+                <div className={styles.action} onClick={() => setDocFormVisible(true)}>
                     <span>🍂</span>新建文档
                 </div>
             </div>
             <h2 className={styles.header}>工作区</h2>
             <div className={styles.workspaceList}>
                 {foldedWorkspaces.map((workspace) => (
-                    <Link
-                        className={styles.workspaceItem}
-                        key={workspace.id}
-                        href={`/luoye/workspace/${workspace.id}`}
-                    >
+                    <Link className={styles.workspaceItem} key={workspace.id} href={`/luoye/workspace/${workspace.id}`}>
                         <div className={styles.workspaceName}>
                             <span>🪴</span>
-                            <div>
-                                {workspace.name || (
-                                    <Placeholder>未命名</Placeholder>
-                                )}
-                            </div>
+                            <div>{workspace.name || <Placeholder>未命名</Placeholder>}</div>
                             {workspace.scope === Scope.Private && <SVG.Lock />}
                         </div>
                         <div className={styles.description}>
-                            {workspace.description || (
-                                <Placeholder>暂无描述</Placeholder>
-                            )}
+                            {workspace.description || <Placeholder>暂无描述</Placeholder>}
                         </div>
                     </Link>
                 ))}
                 {isWorkspaceFolderVisible && (
                     <a
-                        className={clsx(
-                            styles.workspaceItem,
-                            styles.workspaceFolder,
-                        )}
+                        className={clsx(styles.workspaceItem, styles.workspaceFolder)}
                         onClick={() => setWorkspaceListFolded(false)}
                     >
                         <div className={styles.workspaceName}>
@@ -123,26 +99,13 @@ const Welcome = ({ userId, recentDocs }: Props) => {
             ) : (
                 <div className={styles.docList}>
                     {recentDocs.map((doc) => (
-                        <Link
-                            className={styles.docItem}
-                            key={doc.id}
-                            href={`/luoye/doc/${doc.id}`}
-                        >
-                            <div className={styles.docName}>
-                                {doc.name || (
-                                    <Placeholder>未命名文档</Placeholder>
-                                )}
-                            </div>
+                        <Link className={styles.docItem} key={doc.id} href={`/luoye/doc/${doc.id}`}>
+                            <div className={styles.docName}>{doc.name || <Placeholder>未命名文档</Placeholder>}</div>
                             {doc.scope === Scope.Private && <SVG.Lock />}
                             <Spacer />
                             <div className={styles.docUser}>{doc.creator}</div>
-                            <div className={styles.docDate}>
-                                {date(doc.updatedAt)}
-                            </div>
-                            <div
-                                className={styles.docAction}
-                                onClick={(e) => handleDeleteRecentDoc(e, doc)}
-                            >
+                            <div className={styles.docDate}>{date(doc.updatedAt)}</div>
+                            <div className={styles.docAction} onClick={(e) => handleDeleteRecentDoc(e, doc)}>
                                 删除
                             </div>
                         </Link>
