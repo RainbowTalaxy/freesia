@@ -10,6 +10,27 @@ const Server = {
             return null;
         }
     },
+    uploadLog: (() => {
+        const logToken = process.env.LOG_TOKEN;
+        if (!logToken) return () => {};
+        let lastUploadTime: number = 0;
+        let messageBuffer: string[] = [];
+        return (message: string) => {
+            messageBuffer.push(message);
+            if (Date.now() - lastUploadTime > 1000) {
+                lastUploadTime = Date.now();
+                const messageCount = messageBuffer.length;
+                const messages = messageBuffer
+                    .splice(0, messageCount)
+                    .join('\n');
+                serverFetch(
+                    API.support.uploadLog(messages, logToken),
+                    true,
+                    false,
+                );
+            }
+        };
+    })(),
 };
 
 export default Server;

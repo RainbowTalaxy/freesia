@@ -31,7 +31,7 @@ export async function rawServerFetch<Data>(
     };
 }
 
-const cachedRawServerFetch = cache(rawServerFetch);
+const cachedRawServerFetch = cache?.(rawServerFetch);
 
 async function serverFetch<Data>(api: API<Data>): Promise<Data>;
 async function serverFetch<Data>(
