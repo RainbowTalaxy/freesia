@@ -1,0 +1,18 @@
+.page {
+    margin: 0 auto;
+    padding: 36px 24px;
+    max-width: 540px;
+}
+
+.page h1 {
+    margin-bottom: 16px;
+    font-size: 32px;
+    font-weight: bold;
+}
+
+.page h2 {
+    margin-left: 4px;
+    margin-bottom: 16px;
+    font-size: 24px;
+    font-weight: bold;
+}
