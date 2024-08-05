@@ -1,0 +1,13 @@
+/* Cover */
+
+.cover {
+    --cover-length: 200px;
+    background: var(--background);
+}
+
+.cover,
+.cover img {
+    width: var(--cover-length);
+    height: var(--cover-length);
+    border-radius: calc(var(--cover-length) / 24);
+}

@@ -3,6 +3,7 @@ import API, { clientFetch } from '@/api';
 import listStyle from '../styles/list.module.css';
 import { PlaylistItem } from '@/api/playlist';
 import { useRouter } from 'next/navigation';
+import Cover from './Cover';
 
 interface Props {
     playlist: PlaylistItem;
@@ -12,12 +13,13 @@ const PlaylistListItem = ({ playlist }: Props) => {
     const router = useRouter();
 
     return (
-        <li className={listStyle.listItem}>
-            <div className={listStyle.listItemCover}>
-                {playlist.tinyCoverImgUrl && (
-                    <img src={playlist.tinyCoverImgUrl} alt="cover" />
-                )}
-            </div>
+        <li
+            className={listStyle.listItem}
+            onClick={() =>
+                router.push(`/playlist/data/playlist/${playlist.id}`)
+            }
+        >
+            <Cover url={playlist.tinyCoverImgUrl} size={36} />
             <div className={listStyle.listItemName}>{playlist.name}</div>
             <div
                 className={listStyle.listItemAction}

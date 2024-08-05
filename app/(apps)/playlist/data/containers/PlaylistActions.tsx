@@ -10,11 +10,7 @@ const PlaylistActions = () => {
 
     return (
         <div>
-            <Button
-                onClick={() => {
-                    setPlaylistFormVisible(true);
-                }}
-            >
+            <Button onClick={() => setPlaylistFormVisible(true)}>
                 创建播放列表
             </Button>
             {isPlaylistFormVisible && (

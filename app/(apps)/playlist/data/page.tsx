@@ -1,22 +1,27 @@
-import './style.css';
 import listStyle from './styles/list.module.css';
 import { serverFetch } from '@/api/server';
 import API from '@/api';
 import dayjs from 'dayjs';
 import PlaylistListItem from './components/PlaylistListItem';
-import PlaylistActions from './components/PlaylistActions';
+import PlaylistActions from './containers/PlaylistActions';
 import { Metadata } from 'next';
 import { Fragment } from 'react';
+import { PlaylistItem } from '@/api/playlist';
 
 export const metadata: Metadata = {
     title: '播放列表库',
 };
 
+const sortPlaylistItems = (list: PlaylistItem[]) => {
+    return list.slice().sort((a, b) => a.name.localeCompare(b.name));
+};
+
 export default async function Page() {
     const library = await serverFetch(API.playlist.library());
 
-    const defaultGroup = library.playlists.filter(
-        (playlist) => !playlist.category,
+    // 根据名称排序
+    const defaultGroup = sortPlaylistItems(
+        library.playlists.filter((playlist) => !playlist.category),
     );
 
     // 根据 category 分组
@@ -49,19 +54,24 @@ export default async function Page() {
                     ))}
                 </ul>
             )}
-            {categories.map((category) => (
-                <Fragment key={category}>
-                    <header className={listStyle.listHeader}>{category}</header>
-                    <ul className={listStyle.list}>
-                        {playlistGroups[category].map((playlist) => (
-                            <PlaylistListItem
-                                key={playlist.id}
-                                playlist={playlist}
-                            />
-                        ))}
-                    </ul>
-                </Fragment>
-            ))}
+            {categories.map((category) => {
+                const sortedGroup = sortPlaylistItems(playlistGroups[category]);
+                return (
+                    <Fragment key={category}>
+                        <header className={listStyle.listHeader}>
+                            {category}
+                        </header>
+                        <ul className={listStyle.list}>
+                            {sortedGroup.map((playlist) => (
+                                <PlaylistListItem
+                                    key={playlist.id}
+                                    playlist={playlist}
+                                />
+                            ))}
+                        </ul>
+                    </Fragment>
+                );
+            })}
         </div>
     );
 }
