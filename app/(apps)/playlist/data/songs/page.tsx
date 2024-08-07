@@ -8,8 +8,6 @@ import SongListItem from '../components/SongListItem';
 export default async function Page() {
     const library = await serverFetch(API.playlist.songs());
 
-    console.log(library);
-
     return (
         <div className="page">
             <h1>曲库</h1>
