@@ -7,7 +7,7 @@
 }
 
 .listHeader {
-    margin: 0 0 8px 4px;
+    margin: 0 0 8px 8px;
     font-weight: bold;
 }
 
@@ -17,35 +17,10 @@
     padding: 8px;
     border-bottom: var(--list-border);
     font-size: 16px;
-    color: var(--secondary);
 }
 
 .listItem > * + * {
     margin-left: 16px;
-}
-
-.listItemName {
-    flex: 1;
-    line-height: 1.65;
-    color: var(--primary);
-}
-
-.listItemAction {
-    font-size: 16px;
-    color: var(--error);
-}
-
-.listItemAction {
-    flex-shrink: 0;
-    padding: 0 12px;
-    font-variant: tabular-nums;
-    font-feature-settings: 'tnum';
-}
-
-.listItemName {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
 }
 
 @media (pointer: fine) {

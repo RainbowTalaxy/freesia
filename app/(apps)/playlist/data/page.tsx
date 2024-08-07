@@ -7,6 +7,7 @@ import PlaylistActions from './containers/PlaylistActions';
 import { Metadata } from 'next';
 import { Fragment } from 'react';
 import { PlaylistItem } from '@/api/playlist';
+import List from './components/List';
 
 export const metadata: Metadata = {
     title: '播放列表库',
@@ -45,31 +46,26 @@ export default async function Page() {
             </p>
             <PlaylistActions />
             {defaultGroup.length > 0 && (
-                <ul className={listStyle.list}>
+                <List>
                     {defaultGroup.map((playlist) => (
                         <PlaylistListItem
                             key={playlist.id}
                             playlist={playlist}
                         />
                     ))}
-                </ul>
+                </List>
             )}
             {categories.map((category) => {
                 const sortedGroup = sortPlaylistItems(playlistGroups[category]);
                 return (
-                    <Fragment key={category}>
-                        <header className={listStyle.listHeader}>
-                            {category}
-                        </header>
-                        <ul className={listStyle.list}>
-                            {sortedGroup.map((playlist) => (
-                                <PlaylistListItem
-                                    key={playlist.id}
-                                    playlist={playlist}
-                                />
-                            ))}
-                        </ul>
-                    </Fragment>
+                    <List key={category} header={category}>
+                        {sortedGroup.map((playlist) => (
+                            <PlaylistListItem
+                                key={playlist.id}
+                                playlist={playlist}
+                            />
+                        ))}
+                    </List>
                 );
             })}
         </div>

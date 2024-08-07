@@ -1,9 +1,10 @@
 'use client';
 import API, { clientFetch } from '@/api';
-import listStyle from '../styles/list.module.css';
+import style from './PlaylistItem.module.css';
 import { PlaylistItem } from '@/api/playlist';
 import { useRouter } from 'next/navigation';
-import Cover from './Cover';
+import Cover from '../Cover';
+import { ListItem } from '../List';
 
 interface Props {
     playlist: PlaylistItem;
@@ -13,16 +14,15 @@ const PlaylistListItem = ({ playlist }: Props) => {
     const router = useRouter();
 
     return (
-        <li
-            className={listStyle.listItem}
+        <ListItem
             onClick={() =>
                 router.push(`/playlist/data/playlist/${playlist.id}`)
             }
         >
             <Cover url={playlist.tinyCoverImgUrl} size={36} />
-            <div className={listStyle.listItemName}>{playlist.name}</div>
+            <div className={style.listItemName}>{playlist.name}</div>
             <div
-                className={listStyle.listItemAction}
+                className={style.listItemAction}
                 onClick={async () => {
                     const granted = confirm(`确定删除 ${playlist.name} 吗？`);
                     if (!granted) return;
@@ -38,7 +38,7 @@ const PlaylistListItem = ({ playlist }: Props) => {
             >
                 删 除
             </div>
-        </li>
+        </ListItem>
     );
 };
 
