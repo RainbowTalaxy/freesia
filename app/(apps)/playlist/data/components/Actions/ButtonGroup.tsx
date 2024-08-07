@@ -1,4 +1,4 @@
-import style from './Actions.module.css';
+import style from './style.module.css';
 import { ReactNode } from 'react';
 
 interface Props {

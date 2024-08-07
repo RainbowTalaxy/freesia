@@ -4,6 +4,11 @@ import dayjs from 'dayjs';
 import SongActions from './containers/SongActions';
 import List from '../components/List';
 import SongListItem from '../components/SongListItem';
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+    title: '曲库',
+};
 
 export default async function Page() {
     const library = await serverFetch(API.playlist.songs());

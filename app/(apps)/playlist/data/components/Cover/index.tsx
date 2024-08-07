@@ -1,5 +1,5 @@
 import clsx from 'clsx';
-import style from './Cover.module.css';
+import style from './style.module.css';
 
 interface Props {
     className?: string;
