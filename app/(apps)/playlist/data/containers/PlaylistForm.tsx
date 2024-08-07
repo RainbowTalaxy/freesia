@@ -57,7 +57,7 @@ const PlaylistForm = ({ playlist, onClose }: Props) => {
             }
             await onClose(newPlaylist);
         } catch (error: any) {
-            Logger.error('工作区信息更新失败', error);
+            Logger.error('播放列表更新失败', error);
             alert(error.message);
         }
     };

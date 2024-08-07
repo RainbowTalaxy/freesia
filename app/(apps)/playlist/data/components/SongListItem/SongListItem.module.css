@@ -1,0 +1,27 @@
+.listItemName {
+    flex: 1;
+    line-height: 1.65;
+}
+
+.listItemArtist {
+    width: 300px;
+    color: var(--primary);
+}
+
+.listItemDuration {
+    width: 50px;
+    color: var(--primary);
+}
+
+.listItemName,
+.listItemArtist {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+@media screen and (max-width: 768px) {
+    .listItemArtist {
+        display: none;
+    }
+}
