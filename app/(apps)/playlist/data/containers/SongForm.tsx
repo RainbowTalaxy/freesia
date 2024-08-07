@@ -67,7 +67,7 @@ const SongForm = ({ song, onClose }: Props) => {
                 <h2>{song ? '编辑歌曲' : '新建歌曲'}</h2>
                 <div className={clsx(styles.formItem)}>
                     <label>
-                        <span>*</span>歌名：
+                        <span>*</span>歌曲名：
                     </label>
                     <Input raf={nameRef} />
                 </div>

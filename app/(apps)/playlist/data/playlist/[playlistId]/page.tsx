@@ -1,4 +1,4 @@
-import style from '../../styles/playlist.module.css';
+import style from './style.module.css';
 import API from '@/api';
 import { serverFetch } from '@/api/server';
 import Cover from '../../components/Cover';

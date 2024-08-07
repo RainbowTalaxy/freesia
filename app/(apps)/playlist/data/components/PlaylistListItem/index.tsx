@@ -1,6 +1,6 @@
 'use client';
 import API, { clientFetch } from '@/api';
-import style from './PlaylistItem.module.css';
+import style from './style.module.css';
 import { PlaylistItem } from '@/api/playlist';
 import { useRouter } from 'next/navigation';
 import Cover from '../Cover';
@@ -23,7 +23,9 @@ const PlaylistListItem = ({ playlist }: Props) => {
             <div className={style.listItemName}>{playlist.name}</div>
             <div
                 className={style.listItemAction}
-                onClick={async () => {
+                onClick={async (e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
                     const granted = confirm(`确定删除 ${playlist.name} 吗？`);
                     if (!granted) return;
                     try {
