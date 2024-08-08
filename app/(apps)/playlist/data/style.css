@@ -1,0 +1,27 @@
+.page {
+    margin: 0 auto;
+    padding: 36px 48px;
+    max-width: 1000px;
+}
+
+.page h1 {
+    margin-bottom: 16px;
+    font-size: 36px;
+    font-weight: bold;
+}
+
+.page h2 {
+    margin-bottom: 16px;
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.page > * {
+    margin-bottom: 16px;
+}
+
+@media screen and (max-width: 768px) {
+    .page {
+        padding: 20px;
+    }
+}

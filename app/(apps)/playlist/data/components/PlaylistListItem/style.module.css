@@ -1,0 +1,19 @@
+.listItemName {
+    flex: 1;
+    line-height: 1.65;
+}
+
+.listItemAction {
+    flex-shrink: 0;
+    padding: 0 12px;
+    font-size: 16px;
+    font-variant: tabular-nums;
+    font-feature-settings: 'tnum';
+    color: var(--error);
+}
+
+.listItemName {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}

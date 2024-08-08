@@ -38,9 +38,13 @@
 
     /* 通用 */
     --primary: var(--ifm-color-primary);
+    --secondary: var(--theme-secondary);
     --border: var(--theme-black-shadow);
     --shadow: var(--theme-black-shadow);
     --background: var(--theme-background);
+    --page-background: var(--pure-background);
+    --active-background: rgb(106, 139, 173, 0.05);
+    --error: #ff4d4f;
 
     /* 落页 */
     --ly-primary: #785617;
