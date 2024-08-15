@@ -6,3 +6,13 @@
 .buttonGroup > * + * {
     margin-left: 12px;
 }
+
+.actionBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.actionBtn > .icon {
+    margin-right: 6px;
+}

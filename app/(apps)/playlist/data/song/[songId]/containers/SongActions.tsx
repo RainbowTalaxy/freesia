@@ -1,9 +1,9 @@
 'use client';
-import { Button } from '@/components/form';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Song } from '@/api/playlist';
 import SongForm from '../../../containers/SongForm';
+import ActionButton from '../../../components/Actions/ActionButton';
 
 interface Props {
     song: Song;
@@ -15,9 +15,12 @@ const SongActions = ({ song }: Props) => {
 
     return (
         <div>
-            <Button type="primary" onClick={() => setPlaylistFormVisible(true)}>
+            <ActionButton
+                iconName="edit"
+                onClick={() => setPlaylistFormVisible(true)}
+            >
                 编辑歌曲
-            </Button>
+            </ActionButton>
             {isPlaylistFormVisible && (
                 <SongForm
                     song={song}

@@ -1,0 +1,29 @@
+.list {
+    border-top: none !important;
+}
+
+.listItem {
+    border-bottom: 1px solid var(--background) !important;
+}
+
+.songInfo {
+    flex: 1;
+}
+
+.artist {
+    font-size: 14px;
+    color: var(--secondary);
+}
+
+.tick {
+    margin-right: 12px;
+    font-size: 20px;
+    color: var(--primary);
+}
+
+.songName,
+.artist {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}

@@ -3,6 +3,7 @@ import { API_PREFIX } from './fetch/constants';
 import { PlaylistLibrary, Playlist, SongLibrary, Song } from './types/playlist';
 
 const PlaylistAPI = {
+    // ## 播放列表
     library: () =>
         Rocket.get<PlaylistLibrary>(`${API_PREFIX}/playlist/library`),
     playlist: (id: string) =>
@@ -28,6 +29,36 @@ const PlaylistAPI = {
     ) => Rocket.put<Playlist>(`${API_PREFIX}/playlist/${id}`, props),
     deletePlaylist: (id: string) =>
         Rocket.delete(`${API_PREFIX}/playlist/${id}`),
+
+    // ## 播放列表歌曲
+    addSongsToPlaylist: (playlistId: string, songIds: string[]) =>
+        Rocket.post<Playlist>(`${API_PREFIX}/playlist/${playlistId}/songs`, {
+            songIds,
+        }),
+    removeSongFromPlaylist: (playlistId: string, songId: string) =>
+        Rocket.delete<Playlist>(
+            `${API_PREFIX}/playlist/${playlistId}/song/${songId}`,
+        ),
+    reorderPlaylistSongs: (playlistId: string, songIds: string[]) =>
+        Rocket.put<Playlist>(
+            `${API_PREFIX}/playlist/${playlistId}/song-order`,
+            {
+                songIds,
+            },
+        ),
+    setPlaylistSongAttributes: (
+        playlistId: string,
+        songId: string,
+        props: {
+            featured?: boolean;
+        },
+    ) =>
+        Rocket.put<Playlist>(
+            `${API_PREFIX}/playlist/${playlistId}/song/${songId}/attributes`,
+            props,
+        ),
+
+    // ## 歌曲
     songs: () => Rocket.get<SongLibrary>(`${API_PREFIX}/playlist/songs`),
     song: (id: string) => Rocket.get<Song>(`${API_PREFIX}/playlist/song/${id}`),
     addSong: (props: {

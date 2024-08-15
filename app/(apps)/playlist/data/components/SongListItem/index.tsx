@@ -1,17 +1,18 @@
 'use client';
 import API, { clientFetch } from '@/api';
-import { msToDurationText } from '../../../utils';
+import { msToDurationNumText } from '../../../utils';
 import Cover from '../Cover';
 import { ListItem } from '../List';
 import style from './style.module.css';
-import { SongItem } from '@/api/playlist';
+import { Playlist, SongItem } from '@/api/playlist';
 import { useRouter } from 'next/navigation';
 
 interface Props {
+    playlist?: Playlist;
     song: SongItem;
 }
 
-const SongListItem = ({ song }: Props) => {
+const SongListItem = ({ playlist, song }: Props) => {
     const router = useRouter();
 
     return (
@@ -20,7 +21,7 @@ const SongListItem = ({ song }: Props) => {
             <div className={style.listItemName}>{song.name}</div>
             <div className={style.listItemArtist}>{song.artist}</div>
             <div className={style.listItemDuration}>
-                {msToDurationText(song.duration)}
+                {msToDurationNumText(song.duration)}
             </div>
             <div
                 className={style.listItemAction}
@@ -30,7 +31,16 @@ const SongListItem = ({ song }: Props) => {
                     const granted = confirm(`确定删除 ${song.name} 吗？`);
                     if (!granted) return;
                     try {
-                        await clientFetch(API.playlist.deleteSong(song.id));
+                        if (playlist) {
+                            await clientFetch(
+                                API.playlist.removeSongFromPlaylist(
+                                    playlist.id,
+                                    song.id,
+                                ),
+                            );
+                        } else {
+                            await clientFetch(API.playlist.deleteSong(song.id));
+                        }
                         router.refresh();
                     } catch {
                         alert('删除失败');
