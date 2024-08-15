@@ -1,29 +1,32 @@
 import { ReactNode } from 'react';
 import style from './style.module.css';
+import clsx from 'clsx';
 
 interface ListItemProps {
+    className?: string;
     children: ReactNode;
     onClick?: () => void;
 }
 
-export const ListItem = ({ children, onClick }: ListItemProps) => {
+export const ListItem = ({ className, children, onClick }: ListItemProps) => {
     return (
-        <li className={style.listItem} onClick={onClick}>
+        <li className={clsx(style.listItem, className)} onClick={onClick}>
             {children}
         </li>
     );
 };
 
 interface ListProps {
+    className?: string;
     header?: ReactNode;
     children?: ReactNode;
 }
 
-const List = ({ children, header }: ListProps) => {
+const List = ({ className, children, header }: ListProps) => {
     return (
         <>
             <header className={style.listHeader}>{header}</header>
-            <ul className={style.list}>{children}</ul>
+            <ul className={clsx(style.list, className)}>{children}</ul>
         </>
     );
 };

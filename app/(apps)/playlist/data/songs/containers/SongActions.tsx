@@ -1,10 +1,10 @@
 'use client';
-import { Button } from '@/components/form';
 import { ButtonGroup } from '../../components/Actions';
 import { useState } from 'react';
 import SongForm from '../../containers/SongForm';
 import { useRouter } from 'next/navigation';
 import BatchAddSongForm from '../../containers/BatchAddSongForm';
+import ActionButton from '../../components/Actions/ActionButton';
 
 const SongActions = () => {
     const router = useRouter();
@@ -15,18 +15,24 @@ const SongActions = () => {
     return (
         <>
             <ButtonGroup>
-                <Button type="primary" onClick={() => setSongFormVisible(true)}>
+                <ActionButton
+                    iconName="add_circle"
+                    onClick={() => setSongFormVisible(true)}
+                >
                     添加歌曲
-                </Button>
-                <Button
-                    type="primary"
+                </ActionButton>
+                <ActionButton
+                    iconName="post_add"
                     onClick={() => setBatchAddSongFormVisible(true)}
                 >
                     批量添加歌曲
-                </Button>
-                <Button onClick={() => router.push('/playlist/data')}>
+                </ActionButton>
+                <ActionButton
+                    iconName="queue_music"
+                    onClick={() => router.push('/playlist/data')}
+                >
                     查看播放列表库
-                </Button>
+                </ActionButton>
             </ButtonGroup>
             {isSongFormVisible && (
                 <SongForm
