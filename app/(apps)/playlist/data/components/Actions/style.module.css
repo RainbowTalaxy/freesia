@@ -11,8 +11,10 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    min-width: 120px;
 }
 
 .actionBtn > .icon {
+    margin-left: -4px;
     margin-right: 6px;
 }

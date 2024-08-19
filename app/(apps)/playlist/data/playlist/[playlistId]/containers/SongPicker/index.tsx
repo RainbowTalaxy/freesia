@@ -6,7 +6,7 @@ import { Playlist, SongItem } from '@/api/playlist';
 import API, { clientFetch } from '@/api';
 import List, { ListItem } from '../../../../components/List';
 import Cover from '../../../../components/Cover';
-import Icon from '@/(apps)/playlist/data/components/Icon';
+import Icon from '../../../../components/Icon';
 import { Logger } from '@/utils';
 
 interface Props {

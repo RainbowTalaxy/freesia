@@ -1,11 +1,9 @@
-import listStyle from './styles/list.module.css';
 import { serverFetch } from '@/api/server';
 import API from '@/api';
 import dayjs from 'dayjs';
 import PlaylistListItem from './components/PlaylistListItem';
 import PlaylistActions from './containers/PlaylistActions';
 import { Metadata } from 'next';
-import { Fragment } from 'react';
 import { PlaylistItem } from '@/api/playlist';
 import List from './components/List';
 
