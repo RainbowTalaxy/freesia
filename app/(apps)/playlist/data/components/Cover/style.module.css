@@ -1,11 +1,19 @@
 .cover {
     --cover-length: 200px;
+    width: var(--cover-length);
     background: var(--background);
+}
+
+.cover.shadow {
+    box-shadow: 0 0 6px 0 rgba(0, 0, 0, 0.1);
 }
 
 .cover,
 .cover img {
-    width: var(--cover-length);
     height: var(--cover-length);
-    border-radius: calc(var(--cover-length) / 24);
+    border-radius: 4px;
+}
+
+.cover img {
+    object-fit: fill;
 }

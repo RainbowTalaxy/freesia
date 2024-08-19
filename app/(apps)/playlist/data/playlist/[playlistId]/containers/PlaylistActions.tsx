@@ -23,7 +23,7 @@ const PlaylistActions = ({ playlist }: Props) => {
                     iconName="edit"
                     onClick={() => setPlaylistFormVisible(true)}
                 >
-                    编 辑
+                    编辑
                 </ActionButton>
                 <ActionButton
                     iconName="add_circle"

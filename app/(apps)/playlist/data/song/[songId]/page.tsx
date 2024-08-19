@@ -29,6 +29,7 @@ export default async function Page({ params }: Props) {
                     className={style.albumCover}
                     url={song.albumImgUrl}
                     size={120}
+                    shadow
                 />
                 <div className={style.songInfo}>
                     <h1 className={style.songName}>{song.name}</h1>

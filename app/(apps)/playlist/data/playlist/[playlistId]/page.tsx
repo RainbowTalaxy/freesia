@@ -3,10 +3,8 @@ import API from '@/api';
 import { serverFetch } from '@/api/server';
 import Cover from '../../components/Cover';
 import PlaylistActions from './containers/PlaylistActions';
-import List, { ListItem } from '../../components/List';
-import Placeholder from '../../components/Placeholder';
-import SongListItem from '../../components/SongListItem';
-import { msToDurationText } from '@/(apps)/playlist/utils';
+import { msToDurationText } from '../../../utils';
+import SongList from './containers/SongList';
 
 interface Props {
     params: {
@@ -32,6 +30,7 @@ export default async function Page({ params }: Props) {
                 <Cover
                     className={styles.playlistCover}
                     url={playlist.coverImgUrl}
+                    shadow
                 />
                 <div className={styles.playlistInfo}>
                     <h1 className={styles.playlistName}>{playlist.name}</h1>
@@ -41,20 +40,7 @@ export default async function Page({ params }: Props) {
                     <PlaylistActions playlist={playlist} />
                 </div>
             </div>
-            <List>
-                {playlist.songs.length === 0 && (
-                    <ListItem>
-                        <Placeholder>暂无歌曲</Placeholder>
-                    </ListItem>
-                )}
-                {playlist.songs.map((song) => (
-                    <SongListItem
-                        key={song.id}
-                        playlist={playlist}
-                        song={song}
-                    />
-                ))}
-            </List>
+            <SongList playlist={playlist} />
             {playlist.songs.length > 0 && (
                 <span className={styles.totalDuration}>
                     {playlist.songs.length}首歌，
