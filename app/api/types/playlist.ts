@@ -52,3 +52,8 @@ export interface PlaylistLibrary {
     playlists: PlaylistItem[];
     updatedAt: number;
 }
+
+export interface Config {
+    version: string;
+    resourcePrefix: string;
+}
