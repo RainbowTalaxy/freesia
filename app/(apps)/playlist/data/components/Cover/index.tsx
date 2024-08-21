@@ -16,10 +16,10 @@ const Cover = ({ className, url, size = 200, shadow = false }: Props) => {
         >
             {url && (
                 <img
-                    src={url}
-                    alt="cover"
                     referrerPolicy="no-referrer"
                     loading="lazy"
+                    src={url}
+                    alt="cover"
                 />
             )}
         </div>
