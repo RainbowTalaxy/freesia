@@ -1,6 +1,12 @@
 import { Rocket } from './fetch';
 import { API_PREFIX } from './fetch/constants';
-import { PlaylistLibrary, Playlist, SongLibrary, Song } from './types/playlist';
+import {
+    PlaylistLibrary,
+    Playlist,
+    SongLibrary,
+    Song,
+    Config,
+} from './types/playlist';
 
 const PlaylistAPI = {
     // ## 播放列表
@@ -82,6 +88,11 @@ const PlaylistAPI = {
     ) => Rocket.put<Song>(`${API_PREFIX}/playlist/song/${id}`, props),
     deleteSong: (id: string) =>
         Rocket.delete<Song>(`${API_PREFIX}/playlist/song/${id}`),
+
+    // ## 配置
+    config: () => Rocket.get<Config>(`${API_PREFIX}/playlist/config`),
+    updateConfig: (props: { resourcePrefix?: string }) =>
+        Rocket.put<Config>(`${API_PREFIX}/playlist/config`, props),
 };
 
 export default PlaylistAPI;

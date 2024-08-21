@@ -24,6 +24,12 @@ const PlaylistActions = () => {
                 >
                     查看曲库
                 </ActionButton>
+                <ActionButton
+                    iconName="settings"
+                    onClick={() => router.push('/playlist/data/config')}
+                >
+                    配置
+                </ActionButton>
             </ButtonGroup>
             {isPlaylistFormVisible && (
                 <PlaylistForm
