@@ -6,9 +6,9 @@ export interface Song {
     duration: number; // 单位：毫秒
     albumImgUrl: string | null;
     tinyAlbumImgUrl: string | null;
-    audios: Array<{
+    resources: Array<{
         label: string;
-        url: string;
+        path: string;
     }>;
     lyrics: object[];
     background: string | object | null;
@@ -56,4 +56,9 @@ export interface PlaylistLibrary {
 export interface Config {
     version: string;
     resourcePrefix: string;
+}
+
+export interface Resource {
+    label: string;
+    path: string;
 }

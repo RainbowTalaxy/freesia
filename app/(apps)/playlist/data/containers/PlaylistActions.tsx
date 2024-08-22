@@ -16,7 +16,7 @@ const PlaylistActions = () => {
                     iconName="playlist_add"
                     onClick={() => setPlaylistFormVisible(true)}
                 >
-                    创建播放列表
+                    创建
                 </ActionButton>
                 <ActionButton
                     iconName="library_music"

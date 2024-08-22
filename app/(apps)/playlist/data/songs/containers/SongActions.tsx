@@ -25,13 +25,13 @@ const SongActions = () => {
                     iconName="post_add"
                     onClick={() => setBatchAddSongFormVisible(true)}
                 >
-                    批量添加歌曲
+                    批量添加
                 </ActionButton>
                 <ActionButton
                     iconName="queue_music"
                     onClick={() => router.push('/playlist/data')}
                 >
-                    查看播放列表库
+                    播放列表库
                 </ActionButton>
             </ButtonGroup>
             {isSongFormVisible && (
