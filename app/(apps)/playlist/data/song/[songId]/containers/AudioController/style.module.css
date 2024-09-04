@@ -1,0 +1,40 @@
+.header {
+    margin: 36px 0 8px 8px;
+    font-weight: bold;
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    padding: 16px 0;
+    border-top: 1px solid var(--border);
+    background: #fff;
+}
+
+.container > * + * {
+    margin-top: 16px;
+}
+
+.audio {
+    width: 100%;
+}
+
+.controller {
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+}
+
+.controller > * + * {
+    margin-left: 24px;
+}
+
+.time {
+    flex: 1;
+    min-width: 7rem;
+}
+
+.action {
+    flex-shrink: 0;
+    color: var(--primary);
+}

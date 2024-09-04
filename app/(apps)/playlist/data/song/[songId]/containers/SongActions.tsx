@@ -34,8 +34,8 @@ const SongActions = ({ song }: Props) => {
                 {isPlaylistFormVisible && (
                     <SongForm
                         song={song}
-                        onClose={async () => {
-                            router.refresh();
+                        onClose={async (newSong) => {
+                            if (newSong) router.refresh();
                             setPlaylistFormVisible(false);
                         }}
                     />

@@ -105,6 +105,17 @@ const PlaylistAPI = {
         Rocket.delete<Song>(
             `${API_PREFIX}/playlist/song/${songId}/resource/${label}`,
         ),
+    updateAttributesOfSong: (
+        songId: string,
+        props: {
+            lyrics?: object[];
+            theme?: string | object | null;
+        },
+    ) =>
+        Rocket.put<Song>(
+            `${API_PREFIX}/playlist/song/${songId}/attributes`,
+            props,
+        ),
 
     // ## 配置
     config: () => Rocket.get<Config>(`${API_PREFIX}/playlist/config`),

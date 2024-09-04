@@ -5,7 +5,10 @@
     "singleQuote": true,
     "overrides": [
         {
-            "files": ["app/\\(apps\\)/luoye/**/*.tsx"],
+            "files": [
+                "app/\\(apps\\)/luoye/**/*.tsx",
+                "app/\\(apps\\)/playlist/**/*.tsx"
+            ],
             "options": {
                 "printWidth": 120
             }

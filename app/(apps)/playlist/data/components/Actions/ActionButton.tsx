@@ -11,7 +11,7 @@ interface Props {
 const ActionButton = ({ iconName, children, onClick }: Props) => {
     return (
         <Button className={styles.actionBtn} type="primary" onClick={onClick}>
-            <Icon className={styles.icon} name={iconName} />
+            <Icon className={styles.icon} name={iconName} fill />
             {children}
         </Button>
     );
