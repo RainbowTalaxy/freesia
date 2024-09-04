@@ -1,9 +1,9 @@
-/* Material Icon */
+/* Material Icon: https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:FILL@0..1 */
 @font-face {
     font-family: 'Material Symbols Outlined';
     font-style: normal;
     font-weight: 400;
-    src: url(https://fonts.gstatic.com/s/materialsymbolsoutlined/v203/kJF1BvYX7BgnkSrUwT8OhrdQw4oELdPIeeII9v6oDMzByHX9rA6RzazHD_dY43zj-jCxv3fzvRNU22ZXGJpEpjC_1v-p_4MrImHCIJIZrDCvHOejbd5zrDAt.woff2)
+    src: url(https://fonts.gstatic.com/s/materialsymbolsoutlined/v206/kJF4BvYX7BgnkSrUwT8OhrdQw4oELdPIeeII9v6oDMzBwG-RpA6RzaxHMPdY40KH8nGzv3fzfVJU22ZZLsYEpzC_1ver5Y0J1Llf.woff2)
         format('woff2');
 }
 

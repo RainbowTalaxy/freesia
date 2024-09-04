@@ -6,6 +6,7 @@ import {
     SongLibrary,
     Song,
     Config,
+    Resource,
 } from './types/playlist';
 
 const PlaylistAPI = {
@@ -88,6 +89,33 @@ const PlaylistAPI = {
     ) => Rocket.put<Song>(`${API_PREFIX}/playlist/song/${id}`, props),
     deleteSong: (id: string) =>
         Rocket.delete<Song>(`${API_PREFIX}/playlist/song/${id}`),
+    addResourceToSong: (songId: string, resource: Resource) =>
+        Rocket.post<Song>(
+            `${API_PREFIX}/playlist/song/${songId}/resource`,
+            resource,
+        ),
+    updateResourceOfSong: (songId: string, label: string, path: string) =>
+        Rocket.put<Song>(
+            `${API_PREFIX}/playlist/song/${songId}/resource/${label}`,
+            {
+                path,
+            },
+        ),
+    removeResourceFromSong: (songId: string, label: string) =>
+        Rocket.delete<Song>(
+            `${API_PREFIX}/playlist/song/${songId}/resource/${label}`,
+        ),
+    updateAttributesOfSong: (
+        songId: string,
+        props: {
+            lyrics?: object[];
+            theme?: string | object | null;
+        },
+    ) =>
+        Rocket.put<Song>(
+            `${API_PREFIX}/playlist/song/${songId}/attributes`,
+            props,
+        ),
 
     // ## 配置
     config: () => Rocket.get<Config>(`${API_PREFIX}/playlist/config`),
