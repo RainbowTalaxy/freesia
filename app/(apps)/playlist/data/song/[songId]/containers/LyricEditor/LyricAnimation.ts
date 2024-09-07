@@ -29,8 +29,8 @@ class LyricAnimation {
                     const lyricWord = {
                         lineIdx: i,
                         wordIdxInLine: j,
-                        offset: word.offset - 60,
-                        duration: word.duration + 200,
+                        offset: word.offset,
+                        duration: word.duration,
                         node: document.querySelector(
                             `.lyric-word-${i}-${j}`,
                         ) as HTMLSpanElement,

@@ -64,6 +64,7 @@ const convertRawLyric = (rawLyric: string, breakOption: (typeof breakOptions)[nu
         version: VERSION,
         data: lines,
         footer,
+        source: 'manual',
     } as Lyric;
 };
 

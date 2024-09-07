@@ -22,7 +22,8 @@ export interface Line {
 
 export interface Lyric {
     /** 数据版本 */
-    version: string;
+    version: '1.0.0';
     data: Array<Line>;
     footer: string;
+    source: string;
 }
