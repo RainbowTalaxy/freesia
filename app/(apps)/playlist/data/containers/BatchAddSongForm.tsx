@@ -44,10 +44,7 @@ const BatchAddSongForm = ({ onClose }: Props) => {
 
     return createPortal(
         <div className={styles.container}>
-            <div
-                className={styles.form}
-                style={{ ['--field-label-width' as string]: '8em' }}
-            >
+            <div className={styles.form} style={{ ['--field-label-width' as string]: '8em' }}>
                 <h2>批量上传歌曲</h2>
                 <div className={clsx(styles.formItem)}>
                     <label>

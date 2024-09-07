@@ -19,16 +19,10 @@ const PlaylistActions = ({ playlist }: Props) => {
     return (
         <>
             <ButtonGroup>
-                <ActionButton
-                    iconName="edit"
-                    onClick={() => setPlaylistFormVisible(true)}
-                >
+                <ActionButton iconName="edit" onClick={() => setPlaylistFormVisible(true)}>
                     编辑
                 </ActionButton>
-                <ActionButton
-                    iconName="add_circle"
-                    onClick={() => setSongPickerVisible(true)}
-                >
+                <ActionButton iconName="add_circle" onClick={() => setSongPickerVisible(true)}>
                     添加歌曲
                 </ActionButton>
             </ButtonGroup>

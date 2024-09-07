@@ -17,13 +17,7 @@ interface ListItemProps {
 
 export const ListItem = forwardRef(
     (
-        {
-            className,
-            children,
-            onClick,
-            draggableProps,
-            dragHandleProps,
-        }: ListItemProps,
+        { className, children, onClick, draggableProps, dragHandleProps }: ListItemProps,
         ref: ForwardedRef<HTMLLIElement>,
     ) => {
         return (
@@ -48,18 +42,11 @@ interface ListProps {
 }
 
 const List = forwardRef(
-    (
-        { className, children, header, droppableProps }: ListProps,
-        ref: ForwardedRef<HTMLUListElement>,
-    ) => {
+    ({ className, children, header, droppableProps }: ListProps, ref: ForwardedRef<HTMLUListElement>) => {
         return (
             <>
                 <header className={style.listHeader}>{header}</header>
-                <ul
-                    ref={ref}
-                    className={clsx(style.list, className)}
-                    {...droppableProps}
-                >
+                <ul ref={ref} className={clsx(style.list, className)} {...droppableProps}>
                     {children}
                 </ul>
             </>

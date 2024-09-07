@@ -14,14 +14,7 @@ const Cover = ({ className, url, size = 200, shadow = false }: Props) => {
             className={clsx(style.cover, shadow && style.shadow, className)}
             style={{ ['--cover-length' as string]: size + 'px' }}
         >
-            {url && (
-                <img
-                    referrerPolicy="no-referrer"
-                    loading="lazy"
-                    src={url}
-                    alt="cover"
-                />
-            )}
+            {url && <img referrerPolicy="no-referrer" loading="lazy" src={url} alt="cover" />}
         </div>
     );
 };

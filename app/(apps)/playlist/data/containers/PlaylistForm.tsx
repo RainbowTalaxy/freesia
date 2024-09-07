@@ -40,20 +40,14 @@ const PlaylistForm = ({ playlist, onClose }: Props) => {
             category: categoryRef.current!.value || null,
             coverImgUrl: coverImgUrlRef.current!.value || null,
             tinyCoverImgUrl: tinyCoverImgUrlRef.current!.value || null,
-            releaseDate: releaseDateRef.current!.value
-                ? time(releaseDateRef.current!.value)
-                : null,
+            releaseDate: releaseDateRef.current!.value ? time(releaseDateRef.current!.value) : null,
         };
         try {
             let newPlaylist: Playlist;
             if (playlist) {
-                newPlaylist = await clientFetch(
-                    API.playlist.updatePlaylist(playlist.id, props),
-                );
+                newPlaylist = await clientFetch(API.playlist.updatePlaylist(playlist.id, props));
             } else {
-                newPlaylist = await clientFetch(
-                    API.playlist.createPlaylist(props),
-                );
+                newPlaylist = await clientFetch(API.playlist.createPlaylist(props));
             }
             await onClose(newPlaylist);
         } catch (error: any) {
@@ -64,10 +58,7 @@ const PlaylistForm = ({ playlist, onClose }: Props) => {
 
     return createPortal(
         <div className={styles.container}>
-            <div
-                className={styles.form}
-                style={{ ['--field-label-width' as string]: '8em' }}
-            >
+            <div className={styles.form} style={{ ['--field-label-width' as string]: '8em' }}>
                 <h2>{playlist ? '编辑播放列表' : '新建播放列表'}</h2>
                 <div className={clsx(styles.formItem)}>
                     <label>

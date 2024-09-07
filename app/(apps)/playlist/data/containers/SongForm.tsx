@@ -45,9 +45,7 @@ const SongForm = ({ song, onClose }: Props) => {
         try {
             let newSong: Song;
             if (song) {
-                newSong = await clientFetch(
-                    API.playlist.updateSong(song.id, props),
-                );
+                newSong = await clientFetch(API.playlist.updateSong(song.id, props));
             } else {
                 newSong = await clientFetch(API.playlist.addSong(props));
             }
@@ -60,10 +58,7 @@ const SongForm = ({ song, onClose }: Props) => {
 
     return createPortal(
         <div className={styles.container}>
-            <div
-                className={styles.form}
-                style={{ ['--field-label-width' as string]: '8em' }}
-            >
+            <div className={styles.form} style={{ ['--field-label-width' as string]: '8em' }}>
                 <h2>{song ? '编辑歌曲' : '新建歌曲'}</h2>
                 <div className={clsx(styles.formItem)}>
                     <label>

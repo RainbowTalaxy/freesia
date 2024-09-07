@@ -12,22 +12,13 @@ const PlaylistActions = () => {
     return (
         <>
             <ButtonGroup>
-                <ActionButton
-                    iconName="playlist_add"
-                    onClick={() => setPlaylistFormVisible(true)}
-                >
+                <ActionButton iconName="playlist_add" onClick={() => setPlaylistFormVisible(true)}>
                     创建
                 </ActionButton>
-                <ActionButton
-                    iconName="library_music"
-                    onClick={() => router.push('/playlist/data/songs')}
-                >
+                <ActionButton iconName="library_music" onClick={() => router.push('/playlist/data/songs')}>
                     查看曲库
                 </ActionButton>
-                <ActionButton
-                    iconName="settings"
-                    onClick={() => router.push('/playlist/data/config')}
-                >
+                <ActionButton iconName="settings" onClick={() => router.push('/playlist/data/config')}>
                     配置
                 </ActionButton>
             </ButtonGroup>
