@@ -10,6 +10,7 @@ import Icon from '../Icon';
 import clsx from 'clsx';
 import { ForwardedRef, forwardRef, useEffect, useState } from 'react';
 import { DraggableProvidedDragHandleProps, DraggableProvidedDraggableProps } from '@hello-pangea/dnd';
+import usePlayerStore from '@/(apps)/playlist/contexts/usePlayerStore';
 
 interface Props {
     playlist?: Playlist;
@@ -22,6 +23,7 @@ const SongListItem = forwardRef(
     ({ playlist, song, draggableProps, dragHandleProps }: Props, ref: ForwardedRef<HTMLLIElement>) => {
         const router = useRouter();
         const [isFeatured, setFeatured] = useState('featured' in song ? song.featured : false);
+        const setPlaylist = usePlayerStore((state) => state.setPlaylist);
 
         useEffect(() => {
             if ('featured' in song) setFeatured(song.featured);
@@ -61,7 +63,7 @@ const SongListItem = forwardRef(
                 ref={ref}
                 draggableProps={draggableProps}
                 dragHandleProps={dragHandleProps}
-                onClick={() => router.push(`/playlist/data/song/${song.id}`)}
+                onClick={() => setPlaylist(playlist!, true, song.id)}
             >
                 {playlist && 'featured' in song && (
                     <div
@@ -79,8 +81,9 @@ const SongListItem = forwardRef(
                 <div className={style.name}>{song.name}</div>
                 <div className={style.artist}>{song.artist}</div>
                 <div className={style.duration}>{msToDurationNumText(song.duration)}</div>
+                <div className={style.action}>编辑</div>
                 <div
-                    className={style.action}
+                    className={clsx(style.action, style.danger)}
                     onClick={async (e) => {
                         e.stopPropagation();
                         e.preventDefault();

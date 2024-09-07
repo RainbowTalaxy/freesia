@@ -19,7 +19,7 @@
 }
 
 .artist {
-    width: 36%;
+    width: 32%;
     color: var(--primary);
 }
 
@@ -41,6 +41,14 @@
     font-size: 16px;
     font-variant: tabular-nums;
     font-feature-settings: 'tnum';
+    color: var(--primary);
+}
+
+.action + .action {
+    padding-left: 0px;
+}
+
+.danger {
     color: var(--danger);
 }
 
@@ -51,7 +59,8 @@
 }
 
 @media screen and (max-width: 768px) {
-    .artist {
+    .artist,
+    .duration {
         display: none;
     }
 }

@@ -34,6 +34,20 @@
     color: var(--secondary);
 }
 
+.bottomBar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.bottomBar {
+    margin: 0 auto;
+    padding: 0 48px 16px;
+    width: 100%;
+    max-width: 1000px;
+}
+
 @media (max-width: 768px) {
     .playlistMain {
         flex-direction: column;
@@ -53,5 +67,9 @@
 
     .playlistName {
         font-size: 24px;
+    }
+
+    .bottomBar {
+        padding: 0 16px 16px;
     }
 }

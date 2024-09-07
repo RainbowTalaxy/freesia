@@ -1,5 +1,6 @@
 .cover {
     --cover-length: 200px;
+    flex-shrink: 0;
     width: var(--cover-length);
     background: var(--background);
 }
