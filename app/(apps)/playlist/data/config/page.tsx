@@ -32,8 +32,7 @@ export default function Page() {
                         try {
                             const newConfig = await clientFetch(
                                 API.playlist.updateConfig({
-                                    resourcePrefix:
-                                        resourcePrefixInputRef.current?.value,
+                                    resourcePrefix: resourcePrefixInputRef.current?.value,
                                 }),
                             );
                             setConfig(newConfig);

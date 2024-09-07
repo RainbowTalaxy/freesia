@@ -9,10 +9,7 @@ import { useRouter } from 'next/navigation';
 import Icon from '../Icon';
 import clsx from 'clsx';
 import { ForwardedRef, forwardRef, useEffect, useState } from 'react';
-import {
-    DraggableProvidedDragHandleProps,
-    DraggableProvidedDraggableProps,
-} from '@hello-pangea/dnd';
+import { DraggableProvidedDragHandleProps, DraggableProvidedDraggableProps } from '@hello-pangea/dnd';
 
 interface Props {
     playlist?: Playlist;
@@ -22,14 +19,9 @@ interface Props {
 }
 
 const SongListItem = forwardRef(
-    (
-        { playlist, song, draggableProps, dragHandleProps }: Props,
-        ref: ForwardedRef<HTMLLIElement>,
-    ) => {
+    ({ playlist, song, draggableProps, dragHandleProps }: Props, ref: ForwardedRef<HTMLLIElement>) => {
         const router = useRouter();
-        const [isFeatured, setFeatured] = useState(
-            'featured' in song ? song.featured : false,
-        );
+        const [isFeatured, setFeatured] = useState('featured' in song ? song.featured : false);
 
         useEffect(() => {
             if ('featured' in song) setFeatured(song.featured);
@@ -38,13 +30,9 @@ const SongListItem = forwardRef(
         const toggleFeatured = async () => {
             try {
                 await clientFetch(
-                    API.playlist.setPlaylistSongAttributes(
-                        playlist!.id,
-                        song.id,
-                        {
-                            featured: !isFeatured,
-                        },
-                    ),
+                    API.playlist.setPlaylistSongAttributes(playlist!.id, song.id, {
+                        featured: !isFeatured,
+                    }),
                 );
                 setFeatured(!isFeatured);
                 router.refresh();
@@ -58,12 +46,7 @@ const SongListItem = forwardRef(
             if (!granted) return;
             try {
                 if (playlist) {
-                    await clientFetch(
-                        API.playlist.removeSongFromPlaylist(
-                            playlist.id,
-                            song.id,
-                        ),
-                    );
+                    await clientFetch(API.playlist.removeSongFromPlaylist(playlist.id, song.id));
                 } else {
                     await clientFetch(API.playlist.deleteSong(song.id));
                 }
@@ -82,29 +65,20 @@ const SongListItem = forwardRef(
             >
                 {playlist && 'featured' in song && (
                     <div
-                        className={clsx(
-                            style.featured,
-                            isFeatured && style.active,
-                        )}
+                        className={clsx(style.featured, isFeatured && style.active)}
                         onClick={async (e) => {
                             e.stopPropagation();
                             e.preventDefault();
                             toggleFeatured();
                         }}
                     >
-                        <Icon name="fiber_manual_record" />
+                        <Icon name="fiber_manual_record" fill />
                     </div>
                 )}
-                <Cover
-                    className={style.cover}
-                    url={song.tinyAlbumImgUrl}
-                    size={36}
-                />
+                <Cover className={style.cover} url={song.tinyAlbumImgUrl} size={36} />
                 <div className={style.name}>{song.name}</div>
                 <div className={style.artist}>{song.artist}</div>
-                <div className={style.duration}>
-                    {msToDurationNumText(song.duration)}
-                </div>
+                <div className={style.duration}>{msToDurationNumText(song.duration)}</div>
                 <div
                     className={style.action}
                     onClick={async (e) => {

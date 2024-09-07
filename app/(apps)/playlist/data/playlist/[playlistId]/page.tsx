@@ -27,16 +27,10 @@ export default async function Page({ params }: Props) {
     return (
         <div className="page">
             <div className={styles.playlistMain}>
-                <Cover
-                    className={styles.playlistCover}
-                    url={playlist.coverImgUrl}
-                    shadow
-                />
+                <Cover className={styles.playlistCover} url={playlist.coverImgUrl} shadow />
                 <div className={styles.playlistInfo}>
                     <h1 className={styles.playlistName}>{playlist.name}</h1>
-                    <p className={styles.playlistDescription}>
-                        {playlist.description}
-                    </p>
+                    <p className={styles.playlistDescription}>{playlist.description}</p>
                     <PlaylistActions playlist={playlist} />
                 </div>
             </div>
@@ -44,12 +38,7 @@ export default async function Page({ params }: Props) {
             {playlist.songs.length > 0 && (
                 <span className={styles.totalDuration}>
                     {playlist.songs.length}首歌，
-                    {msToDurationText(
-                        playlist.songs.reduce(
-                            (total, song) => total + song.duration,
-                            0,
-                        ),
-                    )}
+                    {msToDurationText(playlist.songs.reduce((total, song) => total + song.duration, 0))}
                 </span>
             )}
         </div>

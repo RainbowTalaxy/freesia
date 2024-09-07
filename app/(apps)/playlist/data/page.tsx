@@ -19,9 +19,7 @@ export default async function Page() {
     const library = await serverFetch(API.playlist.library());
 
     // 根据名称排序
-    const defaultGroup = sortPlaylistItems(
-        library.playlists.filter((playlist) => !playlist.category),
-    );
+    const defaultGroup = sortPlaylistItems(library.playlists.filter((playlist) => !playlist.category));
 
     // 根据 category 分组
     const playlistGroups = library.playlists.reduce((acc, playlist) => {
@@ -46,10 +44,7 @@ export default async function Page() {
             {defaultGroup.length > 0 && (
                 <List>
                     {defaultGroup.map((playlist) => (
-                        <PlaylistListItem
-                            key={playlist.id}
-                            playlist={playlist}
-                        />
+                        <PlaylistListItem key={playlist.id} playlist={playlist} />
                     ))}
                 </List>
             )}
@@ -58,10 +53,7 @@ export default async function Page() {
                 return (
                     <List key={category} header={category}>
                         {sortedGroup.map((playlist) => (
-                            <PlaylistListItem
-                                key={playlist.id}
-                                playlist={playlist}
-                            />
+                            <PlaylistListItem key={playlist.id} playlist={playlist} />
                         ))}
                     </List>
                 );

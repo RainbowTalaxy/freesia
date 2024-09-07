@@ -20,9 +20,7 @@ const SongPicker = ({ playlist, onClose }: Props) => {
 
     const handleAddSongs = async () => {
         try {
-            await clientFetch(
-                API.playlist.addSongsToPlaylist(playlist.id, pickedSongIds),
-            );
+            await clientFetch(API.playlist.addSongsToPlaylist(playlist.id, pickedSongIds));
             onClose();
         } catch (error: any) {
             Logger.error('添加歌曲失败', error);
@@ -32,11 +30,7 @@ const SongPicker = ({ playlist, onClose }: Props) => {
 
     useEffect(() => {
         clientFetch(API.playlist.songs()).then((data) =>
-            setSongs(
-                data.songs.filter((song) =>
-                    playlist.songs.every((s) => s.id !== song.id),
-                ),
-            ),
+            setSongs(data.songs.filter((song) => playlist.songs.every((s) => s.id !== song.id))),
         );
     }, [playlist]);
 
@@ -55,29 +49,19 @@ const SongPicker = ({ playlist, onClose }: Props) => {
                                 onClick={() => {
                                     setPickedSongIds(
                                         isPicked
-                                            ? pickedSongIds.filter(
-                                                  (id) => id !== song.id,
-                                              )
+                                            ? pickedSongIds.filter((id) => id !== song.id)
                                             : [...pickedSongIds, song.id],
                                     );
                                 }}
                             >
                                 <Cover url={song.tinyAlbumImgUrl} size={36} />
                                 <div className={styles.songInfo}>
-                                    <div className={styles.songName}>
-                                        {song.name}
-                                    </div>
-                                    <div className={styles.artist}>
-                                        {song.artist}
-                                    </div>
+                                    <div className={styles.songName}>{song.name}</div>
+                                    <div className={styles.artist}>{song.artist}</div>
                                 </div>
                                 <Icon
                                     className={styles.tick}
-                                    name={
-                                        isPicked
-                                            ? 'check_box'
-                                            : 'check_box_outline_blank'
-                                    }
+                                    name={isPicked ? 'check_box' : 'check_box_outline_blank'}
                                 />
                             </ListItem>
                         );

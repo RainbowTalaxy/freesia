@@ -3,12 +3,7 @@ import { Playlist } from '@/api/playlist';
 import List, { ListItem } from '../../../components/List';
 import Placeholder from '../../../components/Placeholder';
 import SongListItem from '../../../components/SongListItem';
-import {
-    DragDropContext,
-    Draggable,
-    Droppable,
-    OnDragEndResponder,
-} from '@hello-pangea/dnd';
+import { DragDropContext, Draggable, Droppable, OnDragEndResponder } from '@hello-pangea/dnd';
 import API, { clientFetch } from '@/api';
 import { useEffect, useState } from 'react';
 import { Logger } from '@/utils';
@@ -53,30 +48,21 @@ const SongList = ({ playlist }: Props) => {
         <DragDropContext onDragEnd={handleDragEnd}>
             <Droppable droppableId="droppable">
                 {(provided) => (
-                    <List
-                        ref={provided.innerRef}
-                        droppableProps={provided.droppableProps}
-                    >
+                    <List ref={provided.innerRef} droppableProps={provided.droppableProps}>
                         {songs.length === 0 && (
                             <ListItem>
                                 <Placeholder>暂无歌曲</Placeholder>
                             </ListItem>
                         )}
                         {songs.map((song, index) => (
-                            <Draggable
-                                key={song.id}
-                                draggableId={song.id}
-                                index={index}
-                            >
+                            <Draggable key={song.id} draggableId={song.id} index={index}>
                                 {(provided) => (
                                     <SongListItem
                                         ref={provided.innerRef}
                                         playlist={playlist}
                                         song={song}
                                         draggableProps={provided.draggableProps}
-                                        dragHandleProps={
-                                            provided.dragHandleProps
-                                        }
+                                        dragHandleProps={provided.dragHandleProps}
                                     />
                                 )}
                             </Draggable>

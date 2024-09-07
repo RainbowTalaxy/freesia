@@ -14,11 +14,7 @@ const PlaylistListItem = ({ playlist }: Props) => {
     const router = useRouter();
 
     return (
-        <ListItem
-            onClick={() =>
-                router.push(`/playlist/data/playlist/${playlist.id}`)
-            }
-        >
+        <ListItem onClick={() => router.push(`/playlist/data/playlist/${playlist.id}`)}>
             <Cover url={playlist.tinyCoverImgUrl} size={36} />
             <div className={style.listItemName}>{playlist.name}</div>
             <div
@@ -29,9 +25,7 @@ const PlaylistListItem = ({ playlist }: Props) => {
                     const granted = confirm(`确定删除 ${playlist.name} 吗？`);
                     if (!granted) return;
                     try {
-                        await clientFetch(
-                            API.playlist.deletePlaylist(playlist.id),
-                        );
+                        await clientFetch(API.playlist.deletePlaylist(playlist.id));
                         router.refresh();
                     } catch {
                         alert('删除失败');
