@@ -5,6 +5,8 @@ import Cover from '../../components/Cover';
 import PlaylistActions from './containers/PlaylistActions';
 import { msToDurationText } from '../../../utils';
 import SongList from './containers/SongList';
+import PlayerControl from '../../../components/player/PlayerControl';
+import Effect from './effect';
 
 interface Props {
     params: {
@@ -41,6 +43,12 @@ export default async function Page({ params }: Props) {
                     {msToDurationText(playlist.songs.reduce((total, song) => total + song.duration, 0))}
                 </span>
             )}
+            <Effect playlist={playlist} />
+            <div className={styles.bottomBarContainer}>
+                <div className={styles.bottomBar}>
+                    <PlayerControl />
+                </div>
+            </div>
         </div>
     );
 }
