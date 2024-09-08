@@ -11,7 +11,7 @@ export interface Song {
         path: string;
     }>;
     lyrics: object[];
-    background: string | object | null;
+    theme: string | object | null;
     updatedAt: number;
 }
 

@@ -28,6 +28,8 @@
     margin: 0 auto;
     padding: 36px 48px;
     max-width: 1000px;
+    height: 100%;
+    overflow: auto;
 }
 
 .page h1 {

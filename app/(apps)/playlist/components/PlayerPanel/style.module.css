@@ -1,0 +1,127 @@
+.container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    transition: background 0.5s;
+}
+
+.handle {
+    flex-shrink: 0;
+    margin: 16px 0;
+    width: 40px;
+    height: 4px;
+    border-radius: 2px;
+    background: rgba(255, 255, 255, 0.5);
+}
+
+.content {
+    --max-content-width: 400px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    overflow: hidden;
+    color: #fff;
+}
+
+.coverContainer {
+    --h-padding: 24px;
+    --length: 100vw;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 24px;
+    width: var(--length);
+    max-width: var(--max-content-width);
+    height: calc(var(--length) - 2 * var(--h-padding));
+    max-height: calc(var(--max-content-width) - 2 * var(--h-padding));
+    padding: 0 var(--h-padding);
+}
+
+.mainCover {
+    width: 70%;
+    height: 70%;
+    transition: all 0.5s;
+}
+
+.mainCover.active {
+    width: 100%;
+    height: 100%;
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    padding: 0 36px;
+    width: 100%;
+    max-width: var(--max-content-width);
+}
+
+.songInfo {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.songName {
+    font-weight: 500;
+}
+
+.artist {
+    color: rgba(255, 255, 255, 0.75);
+}
+
+.songName,
+.artist {
+    line-height: 1.2;
+}
+
+.mainControl,
+.durationControl,
+.volumeControl {
+    padding: 0 36px;
+    width: 100%;
+    max-width: var(--max-content-width);
+}
+
+.mainControl {
+    --button-size: 60px;
+    --secondary-button-size: calc(var(--button-size) * 0.75);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: var(--button-size);
+    fill: #fff;
+}
+
+.mainControl .playButton {
+    width: var(--button-size);
+    height: var(--button-size);
+}
+
+.mainControl > button + button {
+    margin-left: 10%;
+}
+
+.mainControl .prev,
+.mainControl .next {
+    width: var(--secondary-button-size);
+    height: var(--secondary-button-size);
+}
+
+.durationControl {
+    margin: 0;
+}
+
+.volumeControl {
+    margin: 10px 0;
+}
