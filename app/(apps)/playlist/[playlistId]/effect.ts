@@ -1,6 +1,6 @@
 'use client';
 
-import usePlayerStore from '../../../contexts/usePlayerStore';
+import usePlayerStore from '@/(apps)/playlist/contexts/usePlayerStore';
 import { Playlist } from '@/api/playlist';
 import { useEffect } from 'react';
 

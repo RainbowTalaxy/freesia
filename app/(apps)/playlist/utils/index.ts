@@ -1,7 +1,13 @@
-export const msToDurationNumText = (ms: number) => {
+export const msToDurationNumText = (ms: number, ceil = false) => {
+    const minusFlag = ms < 0;
+    ms = Math.abs(ms);
     const minutes = Math.floor(ms / 60000);
-    const seconds = Math.floor((ms % 60000) / 1000);
-    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    const seconds = ceil
+        ? Math.ceil((ms % 60000) / 1000)
+        : Math.floor((ms % 60000) / 1000);
+    return `${minusFlag ? '-' : ''}${minutes}:${seconds
+        .toString()
+        .padStart(2, '0')}`;
 };
 
 export const msToDurationText = (ms: number) => {

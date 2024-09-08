@@ -10,7 +10,7 @@ interface PlayerStore {
     songIds: string[];
     song: Song | null;
     isPlaying: boolean;
-    time: number;
+    audio: HTMLAudioElement | null;
     duration: number;
     volume: number;
     shuffle: boolean;
@@ -56,7 +56,6 @@ const usePlayerStore = create<PlayerStore>()((set, get) => {
             set({
                 song: null,
                 isPlaying: false,
-                time: 0,
                 duration: Infinity,
             });
             return;
@@ -66,7 +65,7 @@ const usePlayerStore = create<PlayerStore>()((set, get) => {
             clientFetch(API.playlist.song(songId)),
             clientFetch(API.playlist.config()),
         ]);
-        set({ song, time: 0, duration: song.duration });
+        set({ song, duration: song.duration });
         const audioUrl = config.resourcePrefix + song.resources[0]?.path;
         if (!audioUrl) return;
         AudioPlayer.shift(audioUrl, isPlaying);
@@ -105,15 +104,17 @@ const usePlayerStore = create<PlayerStore>()((set, get) => {
         }
     });
 
+    AudioPlayer.audio.volume = 0.5;
+
     return {
         songIds: [],
         song: null,
         isPlaying: false,
-        time: 0,
+        audio: AudioPlayer.audio,
         duration: Infinity,
         volume: 0.5,
         shuffle: false,
-        mode: 'normal' as const,
+        mode: 'loop' as const,
         setPlaylist: (playlist, autoPlay, songId) => {
             const { song } = get();
             setList(playlist.songs.map((song) => song.id));
@@ -131,7 +132,6 @@ const usePlayerStore = create<PlayerStore>()((set, get) => {
             AudioPlayer.pause();
         },
         seek: (time) => {
-            set({ time });
             AudioPlayer.audio.currentTime = time;
         },
         setVolume: (value) => {
@@ -149,6 +149,7 @@ const usePlayerStore = create<PlayerStore>()((set, get) => {
         prev: () => {
             const { song } = get();
             const songIdx = songList.indexOf(song!.id);
+            if (AudioPlayer.audio.currentTime >= 5) return AudioPlayer.replay();
             if (songIdx === -1 || songIdx === 0) return;
             switchSong(songList[songIdx - 1]);
         },
