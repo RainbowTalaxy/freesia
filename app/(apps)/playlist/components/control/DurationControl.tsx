@@ -13,10 +13,14 @@ const DurationControl = ({ className }: Props) => {
     const audio = usePlayerStore((state) => state.audio);
     const duration = usePlayerStore((state) => state.duration);
     const seek = usePlayerStore((state) => state.seek);
-    const touchInfo = useRef({
+    const touchInfo = useRef<{
+        ongoing: boolean;
+        startX: number | null;
+        newProgress: number | null;
+    }>({
         ongoing: false,
-        startX: 0,
-        newProgress: 0, // 0 - 100
+        startX: null,
+        newProgress: null, // 0 - 100
     });
     const containerRef = useRef<HTMLDivElement>(null);
     const controlElementRef = useRef<HTMLDivElement>(null);
@@ -47,7 +51,7 @@ const DurationControl = ({ className }: Props) => {
     };
 
     const handlePointerMove = (e: PointerEvent) => {
-        if (!touchInfo.current.ongoing) return;
+        if (!touchInfo.current.ongoing || touchInfo.current.startX === null) return;
         const offset = e.clientX - touchInfo.current.startX;
         const controlWidth = controlElementRef.current?.clientWidth ?? Infinity;
         const newProgress = Math.min(Math.max(0, progress + (offset * 100) / controlWidth), 100);
@@ -58,11 +62,14 @@ const DurationControl = ({ className }: Props) => {
         restTimeElementRef.current!.textContent = '-' + msToDurationNumText(duration - (newProgress * duration) / 100);
     };
 
-    const handlePointerOut = () => {
+    const handlePointerUp = () => {
         if (!touchInfo.current.ongoing) return;
         touchInfo.current.ongoing = false;
         containerRef.current?.classList.remove(styles.active);
+        if (touchInfo.current.newProgress === null) return;
         seek((touchInfo.current.newProgress * duration) / 100 / 1000);
+        touchInfo.current.startX = null;
+        touchInfo.current.newProgress = null;
     };
 
     return (
@@ -71,7 +78,7 @@ const DurationControl = ({ className }: Props) => {
             className={clsx(styles.container, className)}
             onPointerDown={handlePointerDown}
             onPointerMove={handlePointerMove}
-            onPointerUp={handlePointerOut}
+            onPointerUp={handlePointerUp}
             style={{
                 ['--progress' as string]: `${progress}%`,
             }}
@@ -86,7 +93,7 @@ const DurationControl = ({ className }: Props) => {
                     {currentTimeText}
                 </span>
                 <span ref={restTimeElementRef} className={styles.duration}>
-                    -{restTimeText}
+                    {'-' + restTimeText}
                 </span>
             </div>
         </div>

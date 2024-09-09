@@ -23,10 +23,14 @@ interface Props {
 const VolumeControl = ({ className }: Props) => {
     const volume = usePlayerStore((state) => state.volume); // 0 - 1
     const setVolume = usePlayerStore((state) => state.setVolume);
-    const touchInfo = useRef({
+    const touchInfo = useRef<{
+        ongoing: boolean;
+        startX: number | null;
+        prevProgress: number | null;
+    }>({
         ongoing: false,
-        startX: 0,
-        prevProgress: 0, // 0 - 100
+        startX: null,
+        prevProgress: null, // 0 - 100
     });
     const containerRef = useRef<HTMLDivElement>(null);
     const controlElementRef = useRef<HTMLDivElement>(null);
@@ -41,17 +45,20 @@ const VolumeControl = ({ className }: Props) => {
     };
 
     const handlePointerMove = (e: PointerEvent) => {
-        if (!touchInfo.current.ongoing) return;
+        if (!touchInfo.current.ongoing || touchInfo.current.startX === null || touchInfo.current.prevProgress === null)
+            return;
         const offset = e.clientX - touchInfo.current.startX;
         const controlWidth = controlElementRef.current?.clientWidth ?? Infinity;
         const newProgress = Math.min(Math.max(0, touchInfo.current.prevProgress + (offset * 100) / controlWidth), 100);
         setVolume(newProgress / 100);
     };
 
-    const handlePointerOut = () => {
+    const handlePointerUp = () => {
         if (!touchInfo.current.ongoing) return;
         touchInfo.current.ongoing = false;
         containerRef.current?.classList.remove(styles.active);
+        touchInfo.current.startX = null;
+        touchInfo.current.prevProgress = null;
     };
 
     return (
@@ -60,7 +67,7 @@ const VolumeControl = ({ className }: Props) => {
             className={clsx(styles.container, className)}
             onPointerDown={handlePointerDown}
             onPointerMove={handlePointerMove}
-            onPointerUp={handlePointerOut}
+            onPointerUp={handlePointerUp}
             style={{
                 ['--progress' as string]: `${progress}%`,
             }}

@@ -4,18 +4,23 @@ import usePlayerStore from '../../contexts/usePlayerStore';
 import Cover from '../Cover';
 import styles from './style.module.css';
 import Previous from '../player/Previous';
-import PlayButton from '../player/PlayButton';
 import Next from '../player/Next';
 import DurationControl from '../control/DurationControl';
 import { useEffect } from 'react';
 import API, { clientFetch } from '@/api';
 import VolumeControl from '../control/VolumeControl';
+import PlayButton from '../PlayButton';
 
 const PlayerPanel = () => {
     const song = usePlayerStore((state) => state.song);
     const isPlaying = usePlayerStore((state) => state.isPlaying);
 
     useEffect(() => {
+        clientFetch(
+            API.playlist.updateAttributesOfSong('8f99fde1-d9e9-489e-a569-a5d7aaa88cb1', {
+                theme: 'rgb(30, 44, 62)',
+            }),
+        );
         clientFetch(
             API.playlist.updateAttributesOfSong('8966bd20-db22-4f12-91e3-0dfea70cc17c', {
                 theme: '#725835',
@@ -33,6 +38,7 @@ const PlayerPanel = () => {
             }}
         >
             <div className={styles.handle} />
+            <div className={styles.spacer} />
             <div className={styles.content}>
                 <div className={styles.coverContainer}>
                     <Cover className={clsx(styles.mainCover, isPlaying && styles.active)} url={song.albumImgUrl} />
@@ -51,6 +57,7 @@ const PlayerPanel = () => {
                 </div>
                 <VolumeControl className={styles.volumeControl} />
             </div>
+            <div className={styles.spacer} />
         </div>
     );
 };
