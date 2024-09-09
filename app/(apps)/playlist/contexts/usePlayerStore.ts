@@ -104,6 +104,20 @@ const usePlayerStore = create<PlayerStore>()((set, get) => {
         }
     });
 
+    AudioPlayer.audio.addEventListener('play', () => {
+        set({ isPlaying: true });
+    });
+
+    AudioPlayer.audio.addEventListener('pause', () => {
+        if (AudioPlayer.audio.currentTime === AudioPlayer.audio.duration)
+            return;
+        set({ isPlaying: false });
+    });
+
+    AudioPlayer.audio.addEventListener('durationchange', () => {
+        set({ duration: AudioPlayer.audio.duration * 1000 });
+    });
+
     AudioPlayer.audio.volume = 0.5;
 
     return {
@@ -112,7 +126,7 @@ const usePlayerStore = create<PlayerStore>()((set, get) => {
         isPlaying: false,
         audio: AudioPlayer.audio,
         duration: Infinity,
-        volume: 0.5,
+        volume: AudioPlayer.audio.volume,
         shuffle: false,
         mode: 'loop' as const,
         setPlaylist: (playlist, autoPlay, songId) => {
@@ -124,19 +138,17 @@ const usePlayerStore = create<PlayerStore>()((set, get) => {
             switchSong(songList[0] ?? null);
         },
         play: () => {
-            set({ isPlaying: true });
             AudioPlayer.play();
         },
         pause: () => {
-            set({ isPlaying: false });
             AudioPlayer.pause();
         },
         seek: (time) => {
             AudioPlayer.audio.currentTime = time;
         },
         setVolume: (value) => {
-            set({ volume: value });
             AudioPlayer.audio.volume = value;
+            set({ volume: AudioPlayer.audio.volume });
         },
         toggleShuffle: () => {
             const { songIds, shuffle } = get();
