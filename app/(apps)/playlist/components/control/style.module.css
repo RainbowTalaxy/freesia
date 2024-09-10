@@ -3,7 +3,7 @@
     flex-direction: column;
     align-items: center;
     padding-top: 16px;
-    padding-bottom: 16px;
+    padding-bottom: 12px;
     width: 100%;
     transition: transform 0.3s;
     cursor: pointer;
@@ -15,11 +15,11 @@
     align-items: center;
     justify-content: center;
     width: 100%;
-    height: 18px;
+    height: 20px;
 }
 
 .control {
-    --height: 6px;
+    --height: 8px;
     flex: 1;
     width: 100%;
     height: var(--height);
@@ -66,11 +66,11 @@
 }
 
 .container.active {
-    transform: scale(1.05);
+    transform: scale(1.08);
 }
 
 .container.active .control {
-    --height: 12px;
+    --height: 16px;
 }
 
 .container.active .progressSideIcon {
