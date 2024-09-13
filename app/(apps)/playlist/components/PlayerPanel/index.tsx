@@ -6,14 +6,16 @@ import styles from './style.module.css';
 import Previous from '../player/Previous';
 import Next from '../player/Next';
 import DurationControl from '../control/DurationControl';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import API, { clientFetch } from '@/api';
 import VolumeControl from '../control/VolumeControl';
 import PlayButton from '../PlayButton';
+import LyricToggle from '../LyricToggle';
 
 const PlayerPanel = () => {
     const song = usePlayerStore((state) => state.song);
     const isPlaying = usePlayerStore((state) => state.isPlaying);
+    const [lyricOn, setLyricOn] = useState(false);
 
     useEffect(() => {
         clientFetch(
@@ -37,27 +39,44 @@ const PlayerPanel = () => {
                 backgroundColor: (song.theme as string) ?? 'black',
             }}
         >
+            <div className={styles.shadow} />
             <div className={styles.handle} />
-            <div className={styles.spacer} />
             <div className={styles.content}>
-                <div className={styles.coverContainer}>
-                    <Cover className={clsx(styles.mainCover, isPlaying && styles.active)} url={song.albumImgUrl} />
-                </div>
-                <div className={styles.header}>
-                    <div className={styles.songInfo}>
-                        <span className={styles.songName}>{song.name}</span>
-                        <span className={styles.artist}>{song.artist}</span>
+                <div className={clsx(styles.headerContainer, lyricOn && styles.active)}>
+                    <Cover
+                        className={clsx(styles.mainCover, isPlaying && styles.active, lyricOn && styles.move)}
+                        url={song.albumImgUrl}
+                        onClick={() => setLyricOn(false)}
+                    />
+                    <div className={clsx(styles.header, lyricOn && styles.active)}>
+                        <div className={clsx(styles.songInfo, lyricOn && styles.active)}>
+                            <span className={styles.songName} onClick={() => setLyricOn((p) => !p)}>
+                                {song.name}
+                            </span>
+                            <span className={styles.artist}>{song.artist}</span>
+                        </div>
+                        <LyricToggle
+                            className={clsx(styles.lyricToggle, lyricOn && styles.active)}
+                            value={lyricOn}
+                            onClick={() => setLyricOn((p) => !p)}
+                        />
                     </div>
                 </div>
-                <DurationControl className={styles.durationControl} />
-                <div className={styles.mainControl}>
-                    <Previous className={styles.prev} />
-                    <PlayButton className={styles.playButton} />
-                    <Next className={styles.next} />
+                <div className={clsx(styles.lyric, lyricOn && styles.active)} />
+                <div className={styles.controlCenter}>
+                    <DurationControl className={styles.durationControl} />
+                    <div className={styles.spacer} />
+                    <div className={styles.mainControl}>
+                        <Previous className={styles.prev} />
+                        <PlayButton className={styles.playButton} />
+                        <Next className={styles.next} />
+                    </div>
+                    <div className={styles.spacer} />
+                    <VolumeControl className={styles.volumeControl} />
+                    <div className={styles.spacer} />
+                    <div className={styles.spacer} />
                 </div>
-                <VolumeControl className={styles.volumeControl} />
             </div>
-            <div className={styles.spacer} />
         </div>
     );
 };
