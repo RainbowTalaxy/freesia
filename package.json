@@ -13,6 +13,7 @@
         "@monaco-editor/react": "^4.6.0",
         "clsx": "^2.1.1",
         "dayjs": "^1.11.11",
+        "gsap": "^3.12.5",
         "immer": "^10.1.1",
         "mdast": "^3.0.0",
         "mdast-util-toc": "^7.0.1",
