@@ -67,7 +67,7 @@ const DurationControl = ({ className }: Props) => {
         touchInfo.current.ongoing = false;
         containerRef.current?.classList.remove(styles.active);
         if (touchInfo.current.newProgress === null) return;
-        seek((touchInfo.current.newProgress * duration) / 100 / 1000);
+        seek((touchInfo.current.newProgress * duration) / 100);
         touchInfo.current.startX = null;
         touchInfo.current.newProgress = null;
     };

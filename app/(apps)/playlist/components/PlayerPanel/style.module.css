@@ -51,8 +51,7 @@
 
     --lyric-initial-height: 24px;
 
-    flex-grow: 1;
-    flex-shrink: 0;
+    flex: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -161,15 +160,20 @@
     line-height: 1.2;
 }
 
-.lyric {
+.lyricContainer {
     flex: 1;
     width: 100%;
+    max-width: var(--content-width);
     height: var(--lyric-initial-height);
+    opacity: 0;
     transition: all var(--lyric-toggle-animation);
+    overflow: hidden;
 }
 
-.lyric.active {
+.lyricContainer.active {
+    /* flex: 1; */
     height: 100%;
+    opacity: 1;
 }
 
 .controlCenter {

@@ -11,6 +11,7 @@ interface PlayerStore {
     song: Song | null;
     isPlaying: boolean;
     audio: HTMLAudioElement | null;
+    getTime: () => number;
     duration: number;
     volume: number;
     shuffle: boolean;
@@ -125,6 +126,7 @@ const usePlayerStore = create<PlayerStore>()((set, get) => {
         song: null,
         isPlaying: false,
         audio: AudioPlayer.audio,
+        getTime: () => Math.floor(AudioPlayer.audio.currentTime * 1000),
         duration: Infinity,
         volume: AudioPlayer.audio.volume,
         shuffle: false,
@@ -144,7 +146,7 @@ const usePlayerStore = create<PlayerStore>()((set, get) => {
             AudioPlayer.pause();
         },
         seek: (time) => {
-            AudioPlayer.audio.currentTime = time;
+            AudioPlayer.audio.currentTime = time / 1000;
         },
         setVolume: (value) => {
             AudioPlayer.audio.volume = value;

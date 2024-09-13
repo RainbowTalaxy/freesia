@@ -11,24 +11,29 @@ import API, { clientFetch } from '@/api';
 import VolumeControl from '../control/VolumeControl';
 import PlayButton from '../PlayButton';
 import LyricToggle from '../LyricToggle';
+import dynamic from 'next/dynamic';
+
+const LyricView = dynamic(() => import('../LyricView'), {
+    ssr: false,
+});
 
 const PlayerPanel = () => {
     const song = usePlayerStore((state) => state.song);
     const isPlaying = usePlayerStore((state) => state.isPlaying);
-    const [lyricOn, setLyricOn] = useState(false);
+    const [lyricOn, setLyricOn] = useState(true);
 
-    useEffect(() => {
-        clientFetch(
-            API.playlist.updateAttributesOfSong('8f99fde1-d9e9-489e-a569-a5d7aaa88cb1', {
-                theme: 'rgb(30, 44, 62)',
-            }),
-        );
-        clientFetch(
-            API.playlist.updateAttributesOfSong('8966bd20-db22-4f12-91e3-0dfea70cc17c', {
-                theme: '#725835',
-            }),
-        );
-    }, []);
+    // useEffect(() => {
+    //     clientFetch(
+    //         API.playlist.updateAttributesOfSong('8f99fde1-d9e9-489e-a569-a5d7aaa88cb1', {
+    //             theme: 'rgb(30, 44, 62)',
+    //         }),
+    //     );
+    //     clientFetch(
+    //         API.playlist.updateAttributesOfSong('8966bd20-db22-4f12-91e3-0dfea70cc17c', {
+    //             theme: '#725835',
+    //         }),
+    //     );
+    // }, []);
 
     if (!song) return null;
 
@@ -62,7 +67,9 @@ const PlayerPanel = () => {
                         />
                     </div>
                 </div>
-                <div className={clsx(styles.lyric, lyricOn && styles.active)} />
+                <div className={clsx(styles.lyricContainer, lyricOn && styles.active)}>
+                    <LyricView className={styles.lyric} />
+                </div>
                 <div className={styles.controlCenter}>
                     <DurationControl className={styles.durationControl} />
                     <div className={styles.spacer} />
