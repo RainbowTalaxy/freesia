@@ -44,3 +44,17 @@
     transform: scale(0);
     opacity: 0;
 }
+
+@media (pointer: fine) {
+    .container:hover {
+        transform: scale(0.9);
+    }
+
+    .container:hover .indicator {
+        opacity: 0.1;
+    }
+
+    .container:hover .icon:not(.hidden) {
+        transform: scale(0.9);
+    }
+}
