@@ -1,7 +1,11 @@
 import API from '@/api';
 import { serverFetch } from '@/api/server';
 import Effect from './effect';
-import PlayerPanel from '../components/PlayerPanel';
+import dynamic from 'next/dynamic';
+
+const MusicPanel = dynamic(() => import('../components/MusicPanel'), {
+    ssr: false,
+});
 
 interface Props {
     params: {
@@ -24,7 +28,7 @@ export default async function Page({ params }: Props) {
     return (
         <>
             <h1>Playlist</h1>
-            <PlayerPanel />
+            <MusicPanel />
             <Effect playlist={playlist} />
         </>
     );

@@ -45,12 +45,12 @@ const Svg = {
 interface Props {
     className?: string;
     value: boolean;
-    onClick: () => void;
+    onClick: (value: boolean) => void;
 }
 
 const LyricToggle = ({ className, value, onClick }: Props) => {
     return (
-        <button className={clsx(styles.toggle, className)} onClick={onClick}>
+        <button className={clsx(styles.toggle, className)} onClick={() => onClick(!value)}>
             <div className={styles.hotbox}>{value ? Svg.lyricOn() : Svg.lyric()}</div>
         </button>
     );
