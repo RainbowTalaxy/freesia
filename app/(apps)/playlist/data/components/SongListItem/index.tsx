@@ -88,7 +88,14 @@ const SongListItem = forwardRef(
                 <div className={style.artist}>{song.artist}</div>
                 <div className={style.duration}>{msToDurationNumText(song.duration)}</div>
                 {playlist && (
-                    <div className={style.action} onClick={() => router.push(`/playlist/data/song/${song.id}`)}>
+                    <div
+                        className={style.action}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            e.preventDefault();
+                            router.push(`/playlist/data/song/${song.id}`);
+                        }}
+                    >
                         编辑
                     </div>
                 )}
