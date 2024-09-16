@@ -54,6 +54,11 @@ class LineAnimation {
             gsap.set(wordData.node, {
                 '--progress': percentToProgress(progress),
             });
+            if (progress === 100 && wordData.next) {
+                gsap.set(wordData.next.node, {
+                    '--progress': '0%',
+                });
+            }
         });
     }
 
@@ -182,12 +187,12 @@ class Animation {
 
     static scrollToLine(line: LineData) {
         gsap.to(this.scrollContainer, {
-            duration: 0.8,
+            duration: 0.4,
             scrollTo: {
                 y: line.node,
                 offsetY: this.scrollContainer!.clientHeight * 0.4 - 80,
             },
-            ease: 'power4.out',
+            ease: 'power2.out',
         });
     }
 
@@ -241,7 +246,7 @@ class Animation {
                         setTimeout(() => {
                             lineData.node.classList.remove(styles.active);
                             lineData.lineAnimation.finish();
-                        }, 100);
+                        }, 400);
                     });
                     this.activeLines = [line];
                     line.node.classList.add(styles.active);
@@ -251,7 +256,7 @@ class Animation {
                 if (!line.data.continue) {
                     this.scrollToLine(line);
                 }
-            }, currentLine.offset - time - 400);
+            }, currentLine.offset - time - 200);
             this.timers.push(timer);
         }
     }

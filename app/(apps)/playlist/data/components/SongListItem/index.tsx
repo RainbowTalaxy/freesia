@@ -63,7 +63,13 @@ const SongListItem = forwardRef(
                 ref={ref}
                 draggableProps={draggableProps}
                 dragHandleProps={dragHandleProps}
-                onClick={() => setPlaylist(playlist!, true, song.id)}
+                onClick={() => {
+                    if (playlist) {
+                        setPlaylist(playlist, true, song.id);
+                    } else {
+                        router.push(`/playlist/data/song/${song.id}`);
+                    }
+                }}
             >
                 {playlist && 'featured' in song && (
                     <div
@@ -81,7 +87,11 @@ const SongListItem = forwardRef(
                 <div className={style.name}>{song.name}</div>
                 <div className={style.artist}>{song.artist}</div>
                 <div className={style.duration}>{msToDurationNumText(song.duration)}</div>
-                <div className={style.action}>编辑</div>
+                {playlist && (
+                    <div className={style.action} onClick={() => router.push(`/playlist/data/song/${song.id}`)}>
+                        编辑
+                    </div>
+                )}
                 <div
                     className={clsx(style.action, style.danger)}
                     onClick={async (e) => {
