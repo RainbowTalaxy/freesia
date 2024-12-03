@@ -1,0 +1,72 @@
+.featured {
+    margin: -8px;
+    padding: 8px;
+    font-size: 12px;
+    color: var(--shadow);
+}
+
+.featured.active {
+    color: var(--primary);
+}
+
+.cover {
+    margin-left: 8px;
+}
+
+.name {
+    flex: 1;
+    line-height: 1.65;
+}
+
+.artist {
+    width: 32%;
+    color: var(--primary);
+}
+
+.duration {
+    width: 50px;
+    color: var(--primary);
+}
+
+.name,
+.artist {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.action {
+    flex-shrink: 0;
+    padding: 0 12px;
+    font-size: 16px;
+    font-variant: tabular-nums;
+    font-feature-settings: 'tnum';
+    color: var(--primary);
+}
+
+.action + .action {
+    padding-left: 0px;
+}
+
+.danger {
+    color: var(--danger);
+}
+
+.duration,
+.action {
+    font-variant: tabular-nums;
+    font-feature-settings: 'tnum';
+}
+
+@media screen and (max-width: 768px) {
+    .artist,
+    .duration {
+        display: none;
+    }
+}
+
+@media (pointer: fine) {
+    .featured:hover {
+        color: var(--primary);
+    }
+}

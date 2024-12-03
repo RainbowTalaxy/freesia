@@ -1,0 +1,113 @@
+.header {
+    margin: 36px 0 8px 8px;
+    font-weight: bold;
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    padding: 16px 0;
+    border-top: 1px solid var(--border);
+    background: #fff;
+}
+
+.container > * + * {
+    margin-top: 16px;
+}
+
+.container > label {
+    margin-left: 8px;
+    margin-bottom: -4px;
+}
+
+.container label {
+    color: var(--secondary);
+}
+
+.rawLyricTextarea {
+    height: 30rem;
+}
+
+.align {
+    margin-left: 8px;
+}
+
+.lyricList > * + * {
+    margin-top: 12px;
+}
+
+/* .lineEditor {
+    display: flex;
+    flex-direction: column;
+    padding: 16px 24px;
+    border-radius: 36px;
+    background: var(--background);
+} */
+
+.line {
+    display: flex;
+    align-items: center;
+    margin: 0 -16px;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.line:hover {
+    background: var(--background);
+}
+
+.lineText {
+    flex: 1;
+    font-size: 32px;
+    font-weight: 600;
+}
+
+.lineWord {
+    border-bottom: 2px solid var(--primary);
+    opacity: 0.4;
+    background-image: linear-gradient(
+        90deg,
+        rgba(0, 0, 0, 1) var(--progress),
+        rgba(0, 0, 0, 0.3) calc(var(--progress) + 20%)
+    );
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    -webkit-background-clip: text;
+}
+
+.lineWord.active {
+    opacity: 1;
+    border-bottom: none;
+}
+
+.space {
+    margin-right: 10px;
+}
+
+.break {
+    opacity: 0.4;
+}
+
+.lineAction {
+    font-size: 16px;
+    color: var(--primary);
+}
+
+.recordAction {
+    display: flex;
+    align-items: center;
+    color: var(--primary);
+}
+
+.recordAction > span {
+    margin-right: 4px;
+}
+
+.recordAction.active {
+    color: var(--danger);
+}
+
+.danger {
+    color: var(--danger);
+}

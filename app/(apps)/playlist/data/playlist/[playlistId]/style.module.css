@@ -1,0 +1,75 @@
+.playlistMain {
+    display: flex;
+    align-items: flex-end;
+    margin-bottom: 24px;
+}
+
+.playlistCover {
+    margin-right: 24px;
+}
+
+.playlistInfo {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    height: 200px;
+}
+
+.playlistName {
+    margin: 16px 0;
+    font-size: 36px;
+    font-weight: bold;
+}
+
+.playlistDescription {
+    flex: 1;
+    margin-bottom: 24px;
+    font-size: 14px;
+    color: var(--secondary);
+}
+
+.totalDuration {
+    margin-left: 8px;
+    color: var(--secondary);
+}
+
+.bottomBar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.bottomBar {
+    margin: 0 auto;
+    padding: 0 48px 16px;
+    width: 100%;
+    max-width: 1000px;
+}
+
+@media (max-width: 768px) {
+    .playlistMain {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .playlistCover {
+        margin-right: 0;
+        margin-bottom: 12px;
+    }
+
+    .playlistInfo {
+        align-items: center;
+        text-align: center;
+        height: auto;
+    }
+
+    .playlistName {
+        font-size: 24px;
+    }
+
+    .bottomBar {
+        padding: 0 16px 16px;
+    }
+}

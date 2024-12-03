@@ -1,0 +1,32 @@
+.list {
+    --list-border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 16px;
+    border-top: var(--list-border);
+}
+
+.listHeader {
+    margin: 0 0 8px 8px;
+    font-weight: bold;
+}
+
+.listItem {
+    display: flex;
+    align-items: center;
+    padding: 8px;
+    min-height: 53px;
+    border-bottom: var(--list-border);
+    font-size: 16px;
+}
+
+.listItem > * + * {
+    margin-left: 16px;
+}
+
+@media (pointer: fine) {
+    .listItem:hover {
+        cursor: pointer;
+        background: var(--active-background);
+    }
+}
