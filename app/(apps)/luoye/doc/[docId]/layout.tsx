@@ -17,13 +17,13 @@ interface Props {
 export default async function Layout({ children, params }: Props) {
     const { docId } = params;
     const docInfo = await fetchDocInfo(docId);
-    const { userId, doc, workspace } = docInfo;
+    const { userId, doc, workspace, workspaceItems } = docInfo;
 
     const isDeleted = Boolean(doc?.deletedAt);
     const isSidebarVisible = Boolean(workspace) && !isDeleted;
 
     return (
-        <DocContextProvider userId={userId} doc={doc} workspace={workspace}>
+        <DocContextProvider userId={userId} doc={doc} workspace={workspace} workspaceItems={workspaceItems}>
             <div className={clsx(styles.container)}>
                 <PageLayout
                     navbar={<ProjectTitle owner={doc?.creator ?? '404'} fold />}

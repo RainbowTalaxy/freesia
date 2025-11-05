@@ -2,7 +2,7 @@
 import { ReactNode, createContext, useCallback, useEffect, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import API, { clientFetch } from '@/api';
-import { Doc, Workspace } from '@/api/luoye';
+import { Doc, Workspace, WorkspaceItem } from '@/api/luoye';
 import useHydrationState from '@/hooks/useHydrationState';
 import { Logger, Path } from '@/utils';
 import { LEAVE_EDITING_TEXT, generateDocPageTitle } from '../../configs';
@@ -14,6 +14,7 @@ export const DocContext = createContext<{
     isEditing: boolean;
     doc: Doc | null;
     workspace: Workspace | null;
+    workspaceItems: WorkspaceItem[] | null;
     setEditing: (editing: boolean) => void;
     setWorkspace: (newWorkspace: Workspace) => void;
     updateDoc: (newDoc: Doc, needUpdateWorkspace?: boolean) => void;
@@ -24,6 +25,7 @@ export const DocContext = createContext<{
     isEditing: false,
     doc: null,
     workspace: null,
+    workspaceItems: null,
     setEditing: () => {},
     setWorkspace: () => {},
     updateDoc: () => {},
@@ -34,19 +36,27 @@ type Props = {
     userId: string | null;
     doc: Doc | null;
     workspace: Workspace | null;
+    workspaceItems: WorkspaceItem[] | null;
     children: ReactNode;
 };
 
 const PATH = '/luoye/doc/[docId]';
 const ABORT_MESSAGE = 'navigate';
 
-export const DocContextProvider = ({ userId, doc: _doc, workspace: _workspace, children }: Props) => {
+export const DocContextProvider = ({
+    userId,
+    doc: _doc,
+    workspace: _workspace,
+    workspaceItems: _workspaceItems,
+    children,
+}: Props) => {
     const pathname = usePathname();
     const [doc, setDoc] = useHydrationState<Doc | null>(_doc, `${PATH}-doc-${_doc?.id}`);
     const [workspace, setWorkspace] = useHydrationState<Workspace | null>(
         _workspace,
         `${PATH}-workspace-${_workspace?.id}`,
     );
+    const [workspaceItems, _] = useHydrationState<WorkspaceItem[] | null>(_workspaceItems, `${PATH}-workspaceItems`);
     const [isLoading, setLoading] = useState(false);
     const editingRequest = useRef(false);
     const [isEditing, setEditing] = useState(doc?.content.length === 0);
@@ -77,9 +87,8 @@ export const DocContextProvider = ({ userId, doc: _doc, workspace: _workspace, c
     );
 
     useEffect(() => {
-        const { docId } = /\/luoye\/doc\/(?<docId>[^/]+)$/.exec(pathname)?.groups ?? {
-            docId: doc?.id,
-        };
+        const match = /\/luoye\/doc\/([^/]+)$/.exec(pathname);
+        const docId = match?.[1] ?? doc?.id;
         if (docId && doc && docId !== doc.id) changeDoc(docId);
     }, [changeDoc, doc, pathname]);
 
@@ -99,6 +108,7 @@ export const DocContextProvider = ({ userId, doc: _doc, workspace: _workspace, c
                 isEditing,
                 doc,
                 workspace,
+                workspaceItems,
                 setWorkspace,
                 setEditing,
                 updateDoc: async (newDoc, needUpdateWorkspace = true) => {

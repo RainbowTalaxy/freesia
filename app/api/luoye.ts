@@ -60,6 +60,7 @@ const LuoyeAPI = {
             content?: string;
             scope?: Scope;
             date?: number;
+            workspaces?: string[];
         },
     ) => Rocket.put<Doc>(`${API_PREFIX}/luoye/doc/${id}`, props),
     deleteDoc: (id: string) =>

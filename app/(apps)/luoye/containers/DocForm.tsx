@@ -27,17 +27,28 @@ const DocForm = ({ userId, workspace, workspaceItems, doc, onClose, onDelete }: 
     const [docType, setDocType] = useState<DocType>(DocType.Text);
 
     const handleSubmit = async () => {
-        const props = {
+        const props: {
+            name: string;
+            scope: Scope;
+            date: number;
+            docType?: DocType;
+            workspaces?: string[];
+        } = {
             name: nameRef.current!.value,
             scope: scopeRef.current!.checked ? Scope.Public : Scope.Private,
             date: time(dateRef.current!.value),
-            docType,
         };
         try {
             let newDoc: Doc;
             if (doc) {
+                // 编辑文档：如果工作区选择器存在且值改变,则添加 workspaces 参数
+                if (workspaceRef.current && workspaceRef.current.value !== workspace?.id) {
+                    props.workspaces = [workspaceRef.current.value];
+                }
                 newDoc = await clientFetch(API.luoye.updateDoc(doc.id, props));
             } else {
+                // 新建文档
+                props.docType = docType;
                 const workspaceId = workspaceRef.current?.value ?? workspace?.id;
                 if (!workspaceId) return Toast.notify('请选择工作区');
                 newDoc = await clientFetch(API.luoye.createDoc(workspaceId, props));
@@ -73,7 +84,7 @@ const DocForm = ({ userId, workspace, workspaceItems, doc, onClose, onDelete }: 
         <div className={styles.container}>
             <div className={styles.form}>
                 <h2>{doc ? '文档属性' : '新建文档'}</h2>
-                {!doc && workspaceItems && (
+                {workspaceItems && (
                     <div className={styles.formItem}>
                         <label>
                             <span>*</span>工作区：
