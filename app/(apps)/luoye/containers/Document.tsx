@@ -19,7 +19,8 @@ import styles from '../styles/document.module.css';
 
 const Document = () => {
     const router = useRouter();
-    const { userId, doc, workspace, isLoading, isEditing, setEditing, updateDoc } = useContext(DocContext);
+    const { userId, doc, workspace, workspaceItems, isLoading, isEditing, setEditing, updateDoc } =
+        useContext(DocContext);
 
     const [isDocFormVisible, setDocFormVisible] = useState(false);
     const textRef = useRef<EditorRef>(null);
@@ -164,6 +165,8 @@ const Document = () => {
             {isDocFormVisible && (
                 <DocForm
                     userId={userId!}
+                    workspace={workspace}
+                    workspaceItems={workspaceItems ?? undefined}
                     doc={doc}
                     onClose={async (newDoc) => {
                         if (newDoc) updateDoc(newDoc);
