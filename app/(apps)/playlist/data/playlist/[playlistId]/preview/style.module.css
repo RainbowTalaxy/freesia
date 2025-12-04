@@ -1,0 +1,229 @@
+.container {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.background {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: blur(40px) brightness(0.6);
+    transform: scale(1.1);
+    z-index: 0;
+}
+
+.overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.2);
+    z-index: 1;
+}
+
+.player {
+    position: relative;
+    z-index: 2;
+    width: 600px;
+    padding: 24px;
+    border-radius: 24px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    color: white;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.mainRow {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    width: 100%;
+}
+
+.cover {
+    width: 80px;
+    height: 80px;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    flex-shrink: 0;
+}
+
+.cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+.info {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+    flex: 1;
+    min-width: 0;
+}
+
+.titleBase {
+    font-size: 20px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.scrollOuter {
+    width: 100%;
+    position: relative;
+}
+
+.scrollContainer {
+    overflow: hidden;
+    width: 100%;
+}
+
+.scrollContainer.scrolling {
+    width: calc(100% + 40px);
+    margin-left: -20px;
+    padding: 0 20px;
+    mask-image: linear-gradient(
+        90deg,
+        transparent 0%,
+        #000 20px,
+        #000 calc(100% - 20px),
+        transparent 100%
+    );
+}
+
+.scrollWrapper {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.scrollWrapper.scrolling {
+    display: inline-flex;
+    gap: 32px;
+    overflow: visible;
+    text-overflow: clip;
+    animation: scroll var(--duration) linear;
+}
+
+@keyframes scroll {
+    0% {
+        transform: translateX(0);
+    }
+    100% {
+        transform: translateX(calc(-1 * var(--scroll-width)));
+    }
+}
+
+.artist {
+    font-size: 20px;
+    opacity: 0.8;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.controls {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+}
+
+.controlBtn {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.1s;
+    color: white;
+    background: transparent;
+    border: none;
+    width: 48px;
+    height: 48px;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+.playBtn {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.1s;
+    color: white;
+    background: transparent;
+    border: none;
+    width: 64px;
+    height: 64px;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+.controlBtn:hover,
+.playBtn:hover {
+    transform: scale(1.25);
+}
+
+.controlBtn:active,
+.playBtn:active {
+    transform: scale(0.85);
+}
+
+.controlBtn svg {
+    width: 32px;
+    height: 32px;
+    fill: currentColor;
+}
+
+.playBtn svg {
+    width: 48px;
+    height: 48px;
+    fill: currentColor;
+}
+
+.progressContainer {
+    margin: 0 6px;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    cursor: pointer;
+    position: relative;
+}
+
+.progressBar {
+    height: 100%;
+    background: white;
+    border-radius: 4px;
+    position: relative;
+}
+
+.progressKnob {
+    position: absolute;
+    right: -6px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 12px;
+    height: 12px;
+    background: white;
+    border-radius: 50%;
+    opacity: 0;
+    transition: opacity 0.2s;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.progressContainer:hover .progressKnob {
+    opacity: 1;
+}
