@@ -1,0 +1,103 @@
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.container {
+    position: fixed;
+    left: 0;
+    top: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    z-index: 200;
+    user-select: none;
+    animation: fadeIn 0.1s ease-in-out;
+}
+
+.mask {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 5;
+}
+
+.form {
+    --field-label-width: 5em;
+    padding: 32px;
+    width: 90vw;
+    max-width: 600px;
+    max-height: 80%;
+    border-radius: 0.25rem;
+    border: 1px solid var(--background);
+    color: var(--primary);
+    background: var(--page-background);
+    overflow: auto;
+    z-index: 10;
+}
+
+.form .hidden {
+    display: none;
+}
+
+.form > h2 {
+    margin-bottom: 24px;
+    font-size: 24px;
+    font-weight: bold;
+    color: var(--primary);
+}
+
+.formDescription {
+    margin-top: -20px;
+}
+
+.formItem {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 20px;
+    font-size: 18px;
+}
+
+.formItem > label:first-of-type {
+    flex-shrink: 0;
+    margin: 5px 0;
+    width: var(--field-label-width);
+    font-weight: bold;
+    line-height: 1.65;
+    text-align: right;
+}
+
+.formItem > label:first-of-type > span {
+    margin-right: 4px;
+    color: red;
+}
+
+.formItem button {
+    margin: 0 16px 0 0;
+}
+
+@media screen and (max-width: 768px) {
+    .form {
+        padding: calc(16px + 2vw);
+    }
+
+    .formItem {
+        flex-direction: column;
+    }
+
+    .formItem > label:first-of-type {
+        text-align: left;
+    }
+
+    .formItem > label {
+        text-align: left;
+    }
+}

@@ -9,8 +9,8 @@
     --theme-black-half: rgb(0, 0, 0, 0.8);
     --theme-black-shadow: rgb(0, 0, 0, 0.1);
     --theme-color: rgb(106, 139, 173);
-    --theme-primary: rgb(106, 139, 173, 0.75);
-    --theme-secondary: rgb(106, 139, 173, 0.5);
+    --theme-primary: var(--theme-color);
+    --theme-secondary: rgb(125, 131, 137);
     --theme-background: rgb(106, 139, 173, 0.1);
     --theme-page-background: rgb(255, 255, 255, 0.7);
     --ifm-color-primary: rgb(106, 139, 173);
@@ -38,9 +38,14 @@
 
     /* 通用 */
     --primary: var(--ifm-color-primary);
+    --secondary: var(--theme-secondary);
     --border: var(--theme-black-shadow);
     --shadow: var(--theme-black-shadow);
     --background: var(--theme-background);
+    --page-background: var(--pure-background);
+    --active-background: rgb(106, 139, 173, 0.05);
+    --error: #ff4d4f;
+    --danger: var(--error);
 
     /* 落页 */
     --ly-primary: #785617;

@@ -1,0 +1,78 @@
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.container {
+    position: fixed;
+    left: 0;
+    top: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    z-index: 200;
+    user-select: none;
+    animation: fadeIn 0.1s ease-in-out;
+}
+
+.mask {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 5;
+}
+
+.popup {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 90vw;
+    max-width: 600px;
+    height: 80vh;
+    max-height: 600px;
+    border-radius: 8px;
+    border: 1px solid var(--background);
+    background: var(--page-background);
+    overflow: hidden;
+    z-index: 10;
+}
+
+.titleBar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 20px;
+    width: 100%;
+    border-bottom: 1px solid var(--background);
+}
+
+.titleBar > .title {
+    font-weight: bold;
+}
+
+.titleBar > .closeBtn,
+.titleBar > .doneBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    color: var(--primary);
+    cursor: pointer;
+}
+
+.content {
+    flex: 1;
+    padding: 6px;
+    width: 100%;
+    overflow: auto;
+}

@@ -1,0 +1,25 @@
+.toggle {
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    border-radius: 4px;
+    fill: rgba(255, 255, 255, 0.7);
+    transition: all 0.3s;
+}
+
+.toggle .hotbox {
+    margin: -10px;
+    padding: 10px;
+    width: 48px;
+    height: 48px;
+}
+
+.toggle svg {
+    border-radius: 6px;
+}
+
+@media (pointer: fine) {
+    .toggle:hover {
+        fill: rgba(255, 255, 255, 1);
+    }
+}

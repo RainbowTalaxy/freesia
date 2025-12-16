@@ -1,0 +1,27 @@
+.songMain {
+    display: flex;
+    align-items: flex-end;
+}
+
+.songMain > .albumCover {
+    margin-right: 24px;
+}
+
+.songInfo {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    height: 120px;
+}
+
+.songInfo > .songName {
+    margin: 0;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.songInfo > .artist {
+    flex: 1;
+    color: var(--primary);
+}

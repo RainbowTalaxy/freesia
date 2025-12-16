@@ -1,0 +1,20 @@
+.cover {
+    --cover-length: 200px;
+    flex-shrink: 0;
+    width: var(--cover-length);
+    background: var(--background);
+}
+
+.cover.shadow {
+    box-shadow: 0 0 2px 0 rgba(0, 0, 0, 0.2);
+}
+
+.cover,
+.cover img {
+    height: var(--cover-length);
+    border-radius: 4px;
+}
+
+.cover img {
+    object-fit: fill;
+}

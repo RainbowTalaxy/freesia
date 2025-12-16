@@ -1,0 +1,17 @@
+.container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 200px;
+    height: 200px;
+}
+
+.container > img {
+    object-fit: fill;
+    box-shadow: 0 0 8px 1px rgba(0, 0, 0, 0.1);
+}
+
+.container,
+.container > img {
+    border-radius: 12px;
+}

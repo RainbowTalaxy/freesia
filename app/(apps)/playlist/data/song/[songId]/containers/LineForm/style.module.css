@@ -1,0 +1,21 @@
+.line {
+    margin-top: -8px;
+    font-size: 32px;
+    color: black;
+}
+
+.divider {
+    margin: 0 -3px !important;
+    padding: 0 7px;
+    /* font-size: 16px; */
+    opacity: 0.1;
+}
+
+.divider.active {
+    color: var(--danger);
+    opacity: 1;
+}
+
+.space {
+    margin: 0 8px;
+}
