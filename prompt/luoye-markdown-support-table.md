@@ -9,5 +9,5 @@
 ### 总结
 
 - 安装 `remark-gfm@4.0.1` 插件
-- 在 [Markdown/index.tsx](../app/(apps)/luoye/components/Markdown/index.tsx) 中引入并添加到 `remarkPlugins`
-- 在 [index.module.css](../app/(apps)/luoye/components/Markdown/index.module.css) 中添加表格样式（`table`, `th`, `td`）
+- 在 [Markdown/index.tsx](<../app/(apps)/luoye/components/Markdown/index.tsx>) 中引入并添加到 `remarkPlugins`
+- 在 [index.module.css](<../app/(apps)/luoye/components/Markdown/index.module.css>) 中添加表格样式（`table`, `th`, `td`）
