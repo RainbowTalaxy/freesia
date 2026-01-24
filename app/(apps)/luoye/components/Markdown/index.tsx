@@ -1,6 +1,7 @@
 import styles from './index.module.css';
 import ReactMarkdown from 'react-markdown';
 import remarkToc from './plugins/remarkToc';
+import remarkGfm from 'remark-gfm';
 import remarkRehype from 'remark-rehype';
 import rehypeSlug from 'rehype-slug';
 import rehypeRaw from 'rehype-raw';
@@ -18,7 +19,7 @@ const Markdown = ({ children, title }: Props) => {
                 components={{
                     img: Img,
                 }}
-                remarkPlugins={[() => remarkToc(title), remarkRehype]}
+                remarkPlugins={[() => remarkToc(title), remarkGfm, remarkRehype]}
                 rehypePlugins={[rehypeSlug, rehypeRaw]}
             >
                 {children}
