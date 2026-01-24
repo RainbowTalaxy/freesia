@@ -44,7 +44,7 @@
 }
 
 .document h1 {
-    margin-bottom: 1rem;
+    margin-bottom: 1.5rem;
     font-size: 2rem;
     scroll-margin-top: var(--document-v-padding);
 }
