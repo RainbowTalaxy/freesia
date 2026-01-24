@@ -103,9 +103,9 @@
 }
 
 .article hr {
-    margin: 1.5rem 0;
+    margin: 2.5rem 0;
     height: 1px;
-    background: #bec3c9;
+    background: rgb(190, 195, 201, 0.5);
     border: none;
 }
 
@@ -113,4 +113,26 @@
 .article code,
 .article a:hover {
     color: var(--primary);
+}
+
+.article table {
+    width: 100%;
+    margin-bottom: 1rem;
+    border-collapse: collapse;
+    border-spacing: 0;
+}
+
+.article th,
+.article td {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #dadde1;
+}
+
+.article th {
+    font-weight: 600;
+    background: var(--page);
+}
+
+.article tbody tr:hover {
+    background: var(--page);
 }
