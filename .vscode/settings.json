@@ -6,6 +6,7 @@
         "nums",
         "pangea",
         "rehype",
+        "shiki",
         "zustand"
     ],
     "typescript.tsdk": "node_modules/typescript/lib"

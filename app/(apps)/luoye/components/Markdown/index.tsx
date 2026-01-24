@@ -6,6 +6,7 @@ import remarkRehype from 'remark-rehype';
 import rehypeSlug from 'rehype-slug';
 import rehypeRaw from 'rehype-raw';
 import Img from './components/Image';
+import Code from './components/Code';
 
 interface Props {
     children: string;
@@ -18,6 +19,7 @@ const Markdown = ({ children, title }: Props) => {
             <ReactMarkdown
                 components={{
                     img: Img,
+                    code: Code,
                 }}
                 remarkPlugins={[() => remarkToc(title), remarkGfm, remarkRehype]}
                 rehypePlugins={[rehypeSlug, rehypeRaw]}
