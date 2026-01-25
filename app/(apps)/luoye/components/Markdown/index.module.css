@@ -44,7 +44,7 @@
 
 .article ul,
 .article ol {
-    margin: 0 0 1rem;
+    margin: 0 0 1.35rem;
     padding-left: 2rem;
 }
 
@@ -98,8 +98,8 @@
 }
 
 .article :global(.shiki) {
-    margin: 0;
-    padding: 0;
+    margin: -1em;
+    padding: 1em;
     border-radius: 0.4rem;
     font-size: 95%;
     line-height: 1.45;
