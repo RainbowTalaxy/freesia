@@ -26,7 +26,7 @@ const Code = ({ className, children }: Props) => {
                 //     dark: 'github-dark',
                 // },
                 colorReplacements: {
-                    '#fff': 'none',
+                    '#fff': 'transparent',
                 },
             }).then(setHtml);
         });
