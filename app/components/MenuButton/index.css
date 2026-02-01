@@ -1,0 +1,57 @@
+.menu-btn {
+    position: relative;
+    display: inline-block;
+}
+
+.menu-btn-dropdown {
+    position: absolute;
+    padding: 4px;
+    color: var(--primary);
+    background: var(--page);
+    border: 0.5px solid var(--secondary);
+    border-radius: 6px;
+    overflow: hidden;
+    z-index: 100;
+}
+
+.menu-btn-dropdown.bottom-left {
+    top: 100%;
+    left: 0;
+    margin-top: 4px;
+}
+
+.menu-btn-dropdown.bottom-right {
+    top: 100%;
+    right: 0;
+    margin-top: 4px;
+}
+
+.menu-btn-dropdown.top-left {
+    bottom: 100%;
+    left: 0;
+    margin-bottom: 4px;
+}
+
+.menu-btn-dropdown.top-right {
+    bottom: 100%;
+    right: 0;
+    margin-bottom: 4px;
+}
+
+.menu-btn-item {
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: background-color 0.15s ease;
+}
+
+.menu-btn-item:hover {
+    background-color: var(--background);
+}
+
+.menu-btn-item:active {
+    background-color: var(--background);
+}

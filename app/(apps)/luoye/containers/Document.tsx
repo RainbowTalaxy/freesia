@@ -8,7 +8,7 @@ import { DocType } from '@/api/luoye';
 import { Button } from '@/components/form';
 import EditingModeGlobalStyle from '../styles/EditingModeGlobalStyle';
 import DocForm from './DocForm';
-import { checkAuth } from '../configs';
+import { checkAuth, copyDocumentContent, downloadDocument } from '../configs';
 import ProjectTitle from './ProjectTitle';
 import Placeholder from '../components/PlaceHolder';
 import Toast from '../components/Notification/Toast';
@@ -16,6 +16,7 @@ import Markdown from '../components/Markdown';
 import { DocContext } from '../doc/[docId]/context';
 import { TextEditor, MarkdownEditor, EditorRef } from '../components/Editor';
 import styles from '../styles/document.module.css';
+import { MenuButton } from '@/components/MenuButton';
 
 const Document = () => {
     const router = useRouter();
@@ -98,6 +99,15 @@ const Document = () => {
         }
     };
 
+    const handleCopyDocument = async () => {
+        const success = await copyDocumentContent(doc);
+        if (success) {
+            Toast.notify('已复制到剪贴板');
+        } else {
+            Toast.notify('复制失败');
+        }
+    };
+
     const Editor = doc.docType === DocType.Text ? TextEditor : MarkdownEditor;
 
     return (
@@ -115,6 +125,17 @@ const Document = () => {
                 {!isDeleted &&
                     (docAuth.editable ? (
                         <>
+                            {!isEditing && (
+                                <MenuButton
+                                    position="bottom-right"
+                                    items={[
+                                        { label: '复制此文档', onClick: handleCopyDocument },
+                                        { label: '下载此文档', onClick: () => downloadDocument(doc) },
+                                    ]}
+                                >
+                                    更 多
+                                </MenuButton>
+                            )}
                             {!isEditing && <Button onClick={() => setDocFormVisible(true)}>设 置</Button>}
                             <Button type="primary" onClick={handleClickEditButton}>
                                 {isEditing ? '保 存' : '编 辑'}
