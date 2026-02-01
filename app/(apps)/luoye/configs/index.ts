@@ -72,3 +72,43 @@ export const checkAuth = (
     }
     return result;
 };
+
+export const getRawContent = (doc: Doc) => {
+    switch (doc.docType) {
+        case DocType.Text:
+            return `# ${doc.name}\n\n${doc.content}`;
+        case DocType.Markdown:
+            return `# ${doc.name}\n\n${doc.content}`;
+        default:
+            return '';
+    }
+};
+
+export const copyDocumentContent = async (doc: Doc): Promise<boolean> => {
+    const content = getRawContent(doc);
+    try {
+        await navigator.clipboard.writeText(content);
+        return true;
+    } catch {
+        return false;
+    }
+};
+
+export const downloadDocument = (doc: Doc): void => {
+    const content = getRawContent(doc);
+    let ext = 'txt';
+    switch (doc.docType) {
+        case DocType.Text:
+        case DocType.Markdown:
+            ext = 'md';
+            break;
+    }
+    const filename = `${doc.name || '未命名'}.${ext}`;
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+};
