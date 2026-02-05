@@ -8,6 +8,7 @@ import { formDate, time } from '@/utils';
 import { Button, Input, Select, Toggle } from '@/components/form';
 import styles from '../styles/form.module.css';
 import Toast from '../components/Notification/Toast';
+import Tag from '../components/Tag';
 import { DOCTYPE_OPTIONS, DOCTYPE_OPTIONS_NAME, workSpaceName } from '../configs';
 
 interface Props {
@@ -24,7 +25,24 @@ const DocForm = ({ userId, workspace, workspaceItems, doc, onClose, onDelete }: 
     const workspaceRef = useRef<HTMLSelectElement>(null);
     const scopeRef = useRef<HTMLInputElement>(null);
     const dateRef = useRef<HTMLInputElement>(null);
+    const tagInputRef = useRef<HTMLInputElement>(null);
     const [docType, setDocType] = useState<DocType>(DocType.Text);
+    const [tags, setTags] = useState<string[]>([]);
+
+    const handleAddTag = () => {
+        const value = tagInputRef.current?.value.trim();
+        if (!value) return;
+        if (tags.includes(value)) {
+            Toast.notify('标签已存在');
+            return;
+        }
+        setTags([...tags, value]);
+        tagInputRef.current!.value = '';
+    };
+
+    const handleRemoveTag = (tag: string) => {
+        setTags(tags.filter((t) => t !== tag));
+    };
 
     const handleSubmit = async () => {
         const props: {
@@ -33,10 +51,12 @@ const DocForm = ({ userId, workspace, workspaceItems, doc, onClose, onDelete }: 
             date: number;
             docType?: DocType;
             workspaces?: string[];
+            tags?: string[];
         } = {
             name: nameRef.current!.value,
             scope: scopeRef.current!.checked ? Scope.Public : Scope.Private,
             date: time(dateRef.current!.value),
+            tags,
         };
         try {
             let newDoc: Doc;
@@ -75,6 +95,7 @@ const DocForm = ({ userId, workspace, workspaceItems, doc, onClose, onDelete }: 
             scopeRef.current!.checked = doc.scope === Scope.Public;
             dateRef.current!.value = formDate(doc.date);
             setDocType(doc.docType);
+            setTags(doc.tags ?? []);
         } else if (workspace) {
             scopeRef.current!.checked = workspace.scope === Scope.Public;
         }
@@ -123,6 +144,24 @@ const DocForm = ({ userId, workspace, workspaceItems, doc, onClose, onDelete }: 
                         </div>
                     </div>
                 )}
+                <div className={styles.formItem}>
+                    <label>标签：</label>
+                    <div className={styles.tagFormItem}>
+                        <div className={styles.tagInputRow}>
+                            <Input raf={tagInputRef} placeholder="输入标签" />
+                            <Button onClick={handleAddTag}>添加</Button>
+                        </div>
+                        {tags.length > 0 && (
+                            <div className={styles.tagList}>
+                                {tags.map((tag) => (
+                                    <Tag key={tag} onRemove={() => handleRemoveTag(tag)}>
+                                        {tag}
+                                    </Tag>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                </div>
                 <div className={styles.formItem}>
                     <label>公开：</label>
                     <Toggle raf={scopeRef} />

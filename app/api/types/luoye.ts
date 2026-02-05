@@ -42,6 +42,7 @@ export interface DocItem {
     creator: string; // 创建者
     scope: Scope; // 可见范围
     docType: DocType; // 文档类型
+    tags?: string[]; // 文档标签
     createdAt: number; // 创建时间
     updatedAt: number; // 更新时间
 }
@@ -57,6 +58,7 @@ export interface Doc {
     workspaces: string[]; // 所属工作区 id
     docType: DocType; // 文档类型
     content: string; // 文档内容
+    tags?: string[]; // 文档标签
     createdAt: number; // 创建时间
     updatedAt: number; // 更新时间
     deletedAt: number | null; // 删除时间
