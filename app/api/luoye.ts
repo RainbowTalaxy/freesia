@@ -38,6 +38,7 @@ const LuoyeAPI = {
     recentDocs: () => Rocket.get<DocItem[]>(`${API_PREFIX}/luoye/recent-docs`),
     deleteRecentDoc: (id: string) =>
         Rocket.delete<ActionResult>(`${API_PREFIX}/luoye/recent-docs/${id}`),
+    tags: () => Rocket.get<string[]>(`${API_PREFIX}/luoye/tags`),
     docs: () => Rocket.get<DocItem[]>(`${API_PREFIX}/luoye/docs`),
     doc: (id: string) => Rocket.get<Doc>(`${API_PREFIX}/luoye/doc/${id}`),
     createDoc: (
@@ -47,6 +48,7 @@ const LuoyeAPI = {
             scope?: Scope;
             date?: number;
             docType?: DocType;
+            tags?: string[];
         },
     ) =>
         Rocket.post<Doc>(`${API_PREFIX}/luoye/doc`, {
@@ -61,6 +63,7 @@ const LuoyeAPI = {
             scope?: Scope;
             date?: number;
             workspaces?: string[];
+            tags?: string[];
         },
     ) => Rocket.put<Doc>(`${API_PREFIX}/luoye/doc/${id}`, props),
     deleteDoc: (id: string) =>

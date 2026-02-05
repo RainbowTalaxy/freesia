@@ -128,6 +128,33 @@
     }
 }
 
+.tagFormItem {
+    flex: 1;
+    min-width: 0;
+}
+
+.tagInputRow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.tagInputRow button {
+    margin: 0;
+}
+
+.tagInputRow input {
+    flex: 1;
+    min-width: 0;
+}
+
+.tagList {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+}
+
 @media (pointer: fine) {
     .option:hover {
         border: 1px solid var(--primary);

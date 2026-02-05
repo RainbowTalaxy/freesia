@@ -1,0 +1,44 @@
+.container {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 4px 2px 8px;
+    border: 1px solid var(--ly-secondary);
+    border-radius: 4px;
+    font-size: 14px;
+    background: var(--ly-background);
+    color: var(--ly-primary);
+    transition: all 0.2s;
+    user-select: none;
+}
+
+.container:hover {
+    border-color: var(--ly-primary);
+}
+
+.remove {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 !important;
+    margin-left: 2px !important;
+    width: 18px;
+    height: 18px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    font-size: 14px;
+    color: var(--ly-secondary);
+    cursor: pointer;
+    opacity: 0.6;
+    transition: all 0.2s;
+}
+
+.remove svg {
+    width: 14px;
+    height: 14px;
+}
+
+.remove:hover {
+    opacity: 1;
+    color: var(--ly-primary);
+}
