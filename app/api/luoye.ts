@@ -1,6 +1,7 @@
 import { Rocket } from './fetch';
 import { API_PREFIX } from './fetch/constants';
 import { ActionResult } from './types';
+import { BASE_PATH } from '../constants';
 import {
     Doc,
     DocBinItem,
@@ -71,6 +72,16 @@ const LuoyeAPI = {
     docBin: () => Rocket.get<DocBinItem[]>(`${API_PREFIX}/luoye/doc-bin`),
     restoreDoc: (id: string) =>
         Rocket.put<ActionResult>(`${API_PREFIX}/luoye/doc/${id}/restore`),
+    ai: {
+        hello: () =>
+            Rocket.post<{ message: string }>(`${BASE_PATH}/luoye/ai/hello`),
+        doc: {
+            tags: (docId: string) =>
+                Rocket.post<{ tags: string[] }>(
+                    `${BASE_PATH}/luoye/ai/doc/${docId}/tags`,
+                ),
+        },
+    },
 };
 
 export default LuoyeAPI;
