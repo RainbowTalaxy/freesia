@@ -9,6 +9,7 @@ import { Button, Input, Select, Toggle } from '@/components/form';
 import styles from '../styles/form.module.css';
 import Toast from '../components/Notification/Toast';
 import Tag from '../components/Tag';
+import AITagButton, { aiStyles } from '../components/AIButton';
 import { DOCTYPE_OPTIONS, DOCTYPE_OPTIONS_NAME, workSpaceName } from '../configs';
 
 interface Props {
@@ -28,11 +29,13 @@ const DocForm = ({ userId, workspace, workspaceItems, doc, onClose, onDelete }: 
     const tagInputRef = useRef<HTMLInputElement>(null);
     const [docType, setDocType] = useState<DocType>(DocType.Text);
     const [tags, setTags] = useState<string[]>([]);
+    const [aiTags, setAiTags] = useState<string[]>([]);
+    const [aiLoading, setAiLoading] = useState(false);
 
     const handleAddTag = () => {
         const value = tagInputRef.current?.value.trim();
         if (!value) return;
-        if (tags.includes(value)) {
+        if (tags.includes(value) || aiTags.includes(value)) {
             Toast.notify('标签已存在');
             return;
         }
@@ -42,6 +45,28 @@ const DocForm = ({ userId, workspace, workspaceItems, doc, onClose, onDelete }: 
 
     const handleRemoveTag = (tag: string) => {
         setTags(tags.filter((t) => t !== tag));
+    };
+
+    const handleRemoveAiTag = (tag: string) => {
+        setAiTags(aiTags.filter((t) => t !== tag));
+    };
+
+    const handleAIGenerate = async () => {
+        if (!doc || aiLoading) return;
+        setAiLoading(true);
+        try {
+            const result = await clientFetch(API.luoye.ai.doc.tags(doc.id));
+            const newTags = (result.tags as string[]).filter((t) => !tags.includes(t) && !aiTags.includes(t));
+            if (newTags.length === 0) {
+                Toast.notify('没有生成新的标签');
+                return;
+            }
+            setAiTags((prev) => [...newTags, ...prev]);
+        } catch (error: any) {
+            Toast.notify(error.message);
+        } finally {
+            setAiLoading(false);
+        }
     };
 
     const handleSubmit = async () => {
@@ -56,7 +81,7 @@ const DocForm = ({ userId, workspace, workspaceItems, doc, onClose, onDelete }: 
             name: nameRef.current!.value,
             scope: scopeRef.current!.checked ? Scope.Public : Scope.Private,
             date: time(dateRef.current!.value),
-            tags,
+            tags: [...aiTags, ...tags],
         };
         try {
             let newDoc: Doc;
@@ -151,8 +176,18 @@ const DocForm = ({ userId, workspace, workspaceItems, doc, onClose, onDelete }: 
                             <Input raf={tagInputRef} placeholder="输入标签" />
                             <Button onClick={handleAddTag}>添加</Button>
                         </div>
-                        {tags.length > 0 && (
+                        {(doc || tags.length > 0 || aiTags.length > 0) && (
                             <div className={styles.tagList}>
+                                {doc && <AITagButton loading={aiLoading} onClick={handleAIGenerate} />}
+                                {aiTags.map((tag) => (
+                                    <Tag
+                                        key={`ai-${tag}`}
+                                        onRemove={() => handleRemoveAiTag(tag)}
+                                        className={aiStyles.aiTag}
+                                    >
+                                        {tag}
+                                    </Tag>
+                                ))}
                                 {tags.map((tag) => (
                                     <Tag key={tag} onRemove={() => handleRemoveTag(tag)}>
                                         {tag}
