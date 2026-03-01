@@ -105,7 +105,7 @@ li.sidebarListItemWrapper {
     margin-left: var(--sidebar-width);
     width: calc(100% - var(--sidebar-width));
     min-height: 100%;
-    background: #fffcf6;
+    background: var(--ly-page-background);
 }
 
 .navbar {
@@ -129,6 +129,21 @@ li.sidebarListItemWrapper {
 
 .active {
     background: var(--ly-active-background);
+}
+
+/* 聊天模式：SideBar 和 Document 平分空间 */
+.chatMode {
+    --sidebar-width: 42%;
+}
+
+.chatMode .sidebar {
+    width: var(--sidebar-width);
+    border-right: 1px solid var(--shadow);
+}
+
+.chatMode .contentView {
+    margin-left: var(--sidebar-width);
+    width: calc(100% - var(--sidebar-width));
 }
 
 @media screen and (max-width: 768px) {

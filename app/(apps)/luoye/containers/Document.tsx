@@ -20,7 +20,7 @@ import { MenuButton } from '@/components/MenuButton';
 
 const Document = () => {
     const router = useRouter();
-    const { userId, doc, workspace, workspaceItems, isLoading, isEditing, setEditing, updateDoc } =
+    const { userId, doc, workspace, workspaceItems, isLoading, isEditing, isChatVisible, setEditing, updateDoc } =
         useContext(DocContext);
 
     const [isDocFormVisible, setDocFormVisible] = useState(false);
@@ -111,7 +111,7 @@ const Document = () => {
     const Editor = doc.docType === DocType.Text ? TextEditor : MarkdownEditor;
 
     return (
-        <div className={styles.docView}>
+        <div className={clsx(styles.docView, isChatVisible && styles.chatModeEnabled)}>
             {isEditing && <EditingModeGlobalStyle />}
             <header className={clsx(styles.docNavBar, styles.hasDoc)}>
                 {isSidebarVisible ? (

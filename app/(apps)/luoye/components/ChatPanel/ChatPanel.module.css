@@ -1,0 +1,77 @@
+.container {
+    --max-content-width: 1000px;
+    --h-padding: 28px;
+
+    position: absolute;
+    top: calc(var(--doc-nav-bar) - 1px);
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    background: linear-gradient(
+        var(--ly-page-background),
+        var(--ly-background)
+    );
+    border-top: 1px solid var(--ly-active-background);
+    z-index: 100;
+}
+
+.closeButton {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+    border: none;
+    border-radius: 6px;
+    color: var(--ly-primary);
+    cursor: pointer;
+    transition: background-color 0.2s;
+    z-index: 10;
+}
+
+.closeButton:hover {
+    background: var(--ly-active-background);
+}
+
+.closeButton svg {
+    width: 24px;
+    height: 24px;
+}
+
+.content {
+    flex: 1;
+    position: relative;
+    margin: 0 auto;
+    width: 100%;
+    max-width: var(--max-content-width);
+    height: 100%;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.inputActions {
+    --margin-bottom: 28px;
+    position: absolute;
+    bottom: 0;
+    padding: 16px var(--h-padding) var(--margin-bottom);
+    width: 100%;
+}
+
+.inputActions .chatBox {
+    display: block;
+    padding: 10px 20px;
+    height: 100px;
+    background-color: var(--ly-page-background);
+    resize: none;
+}
+
+.inputActions .sendButton {
+    position: absolute;
+    right: calc(var(--h-padding) + 12px);
+    bottom: calc(var(--margin-bottom) + 12px);
+}
