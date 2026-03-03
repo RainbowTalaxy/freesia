@@ -95,6 +95,7 @@
     margin-left: 8px;
     width: 36px;
     height: 36px;
+    line-height: 1em;
     border-radius: 50%;
     font-size: 22px;
     background-color: var(--ly-active-background);
@@ -165,7 +166,8 @@
     padding: 10px 20px;
     padding-right: 100px; /* Space for send button */
     height: 100px;
-    background-color: var(--ly-page-background);
+    /* background-color: var(--ly-page-background); */
+    background-color: white;
     box-shadow: 0 28px 10px 10px var(--ly-background);
     resize: none;
     transition: border-color 0.2s;
@@ -230,6 +232,7 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    margin: auto;
     height: 100%;
     text-align: center;
 }
@@ -243,7 +246,7 @@
 
 .welcomeDesc {
     font-size: 16px;
-    max-width: 320px;
+    max-width: 340px;
     line-height: 1.8;
     color: var(--secondary);
 }

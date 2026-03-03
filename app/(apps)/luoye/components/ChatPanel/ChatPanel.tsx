@@ -78,6 +78,22 @@ const ChatPanel = () => {
         scrollToBottom();
     }, [messages, scrollToBottom]);
 
+    // 监听消息列表 DOM 变化（主要是 Typewriter 打字动画驱动的内容增长），
+    // 以便在内容高度变化时也能自动滚到底部。
+    // scrollToBottom 内部有 RAF 节流，不会过度触发。
+    useEffect(() => {
+        const container = messageListRef.current;
+        if (!container) return;
+
+        const observer = new MutationObserver(() => {
+            scrollToBottom();
+        });
+
+        observer.observe(container, { childList: true, subtree: true });
+
+        return () => observer.disconnect();
+    }, [scrollToBottom]);
+
     useEffect(() => {
         return () => {
             if (abortControllerRef.current) {
