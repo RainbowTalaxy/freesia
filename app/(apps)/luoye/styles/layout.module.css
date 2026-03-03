@@ -24,11 +24,11 @@
     overflow: auto;
 }
 
-.sidebar h1 {
+.sidebar > h1 {
     font-size: 24px;
 }
 
-.sidebar h2 {
+.sidebar > h2 {
     display: flex;
     align-items: center;
     margin: 0 0 10px 12px;
@@ -83,9 +83,9 @@ li.sidebarListItemWrapper {
     width: 100%;
 }
 
-.sidebar h1,
-.sidebar h2,
-.sidebar h2 > span:first-of-type,
+.sidebar > h1,
+.sidebar > h2,
+.sidebar > h2 > span:first-of-type,
 .sidebarListItem > span,
 .sidebarList li > span {
     white-space: nowrap;
@@ -133,7 +133,7 @@ li.sidebarListItemWrapper {
 
 /* 聊天模式：SideBar 和 Document 平分空间 */
 .chatMode {
-    --sidebar-width: 42%;
+    --sidebar-width: 44%;
 }
 
 .chatMode .sidebar {

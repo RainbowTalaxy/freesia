@@ -77,6 +77,8 @@ const SideBar = () => {
         }
     };
 
+    if (isChatVisible) return <ChatPanel />;
+
     return (
         <>
             <h2>
@@ -147,7 +149,6 @@ const SideBar = () => {
                 />
             )}
             <ChatButton />
-            {isChatVisible && <ChatPanel />}
         </>
     );
 };

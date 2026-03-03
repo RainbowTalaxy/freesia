@@ -44,14 +44,109 @@
 
 .content {
     flex: 1;
+    display: flex;
+    flex-direction: column;
     position: relative;
     margin: 0 auto;
     width: 100%;
     max-width: var(--max-content-width);
     height: 100%;
     overflow: hidden;
+}
+
+.messageList {
+    flex: 1;
     display: flex;
     flex-direction: column;
+    padding: 20px var(--h-padding);
+    padding-bottom: 160px; /* Space for input area */
+    overflow-y: auto;
+}
+
+.messageList > .message + .message {
+    margin-top: 24px;
+}
+
+.message {
+    display: flex;
+    flex-direction: column;
+    user-select: text;
+}
+
+.userMessage {
+    display: flex;
+    flex-direction: row;
+    align-self: flex-end;
+    align-items: flex-end;
+    max-width: 75%;
+    font-weight: bold;
+    color: var(--ly-primary);
+}
+
+.userMessage .avatar {
+    flex-shrink: 0;
+    align-self: flex-start;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 7px;
+    margin-left: 8px;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    font-size: 22px;
+    background-color: var(--ly-active-background);
+    /* background-color: white; */
+    user-select: none;
+}
+
+.assistantMessage {
+    align-self: flex-start;
+    align-items: flex-start;
+}
+
+.messageContent {
+    border-radius: 12px;
+    font-size: 15px;
+    line-height: 1.6;
+    word-break: break-word;
+}
+
+.userMessage .messageContent {
+    padding: 12px 16px;
+    background-color: var(--ly-background);
+    border-bottom-right-radius: 4px;
+}
+
+.assistantMessage .messageContent {
+    padding: 6px 8px;
+    width: 100%;
+}
+
+.assistantMessage .messageContent h1 {
+    font-size: 1.5rem;
+}
+
+.assistantMessage .messageContent h2 {
+    font-size: 1.3rem;
+}
+
+.assistantMessage .messageContent h3 {
+    font-size: 1.15rem;
+}
+
+/* Markdown styles override within message */
+.assistantMessage .messageContent p {
+    margin-bottom: 0.8em;
+}
+
+.assistantMessage .messageContent p:last-child {
+    margin-bottom: 0;
+}
+
+.assistantMessage .messageContent hr {
+    margin: 1em 0;
+    background: rgb(190, 195, 201, 0.3);
 }
 
 .inputActions {
@@ -65,13 +160,82 @@
 .inputActions .chatBox {
     display: block;
     padding: 10px 20px;
+    padding-right: 100px; /* Space for send button */
     height: 100px;
     background-color: var(--ly-page-background);
     resize: none;
+    transition: border-color 0.2s;
+}
+
+.inputActions .chatBox:focus {
+    border-color: var(--ly-primary);
+    outline: none;
 }
 
 .inputActions .sendButton {
     position: absolute;
     right: calc(var(--h-padding) + 12px);
     bottom: calc(var(--margin-bottom) + 12px);
+}
+
+.loading {
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    font-size: 12px;
+    color: var(--secondary);
+}
+
+.loading > .loadingDot + .loadingDot {
+    margin-left: 6px;
+}
+
+.loadingDot {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background-color: currentColor;
+    animation: bounce 1.4s infinite ease-in-out both;
+}
+
+.loadingDot:nth-child(1) {
+    animation-delay: -0.32s;
+}
+
+.loadingDot:nth-child(2) {
+    animation-delay: -0.16s;
+}
+
+@keyframes bounce {
+    0%,
+    80%,
+    100% {
+        transform: scale(0);
+    }
+    40% {
+        transform: scale(1);
+    }
+}
+
+.welcome {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    text-align: center;
+}
+
+.welcomeTitle {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 8px;
+    color: var(--ly-primary);
+}
+
+.welcomeDesc {
+    font-size: 16px;
+    max-width: 320px;
+    line-height: 1.8;
+    color: var(--secondary);
 }
