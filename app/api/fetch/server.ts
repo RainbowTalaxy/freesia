@@ -9,6 +9,7 @@ export async function rawServerFetch<Data>(
     url: string,
     method: HTTPMethod,
     data?: string,
+    init?: RequestInit,
 ) {
     const res = await fetch(LOCAL_URL + url, {
         method,
@@ -18,6 +19,7 @@ export async function rawServerFetch<Data>(
             Cookie: cookies().toString(),
         },
         body: data,
+        ...init,
     });
     const result = (await res.json()) as Data;
     const ip = headers().get('X-Forwarded-For') || 'unknown';
@@ -38,11 +40,13 @@ async function serverFetch<Data>(
     api: API<Data>,
     ignoreError: boolean,
     useRenderCache?: boolean,
+    init?: RequestInit,
 ): Promise<Data | null>;
 async function serverFetch<Data>(
     api: API<Data>,
     ignoreError?: boolean,
     useRenderCache = true,
+    init?: RequestInit,
 ): Promise<Data | null> {
     let { url, method, data } = api;
     const isBodyEnabled = BODY_ENABLED_METHODS.includes(method);
@@ -53,7 +57,7 @@ async function serverFetch<Data>(
         isBodyEnabled && data !== undefined ? JSON.stringify(data) : undefined;
 
     const fetcher = useRenderCache ? cachedRawServerFetch : rawServerFetch;
-    const { result, isOk } = await fetcher<Data>(url, method, reqData);
+    const { result, isOk } = await fetcher<Data>(url, method, reqData, init);
 
     if (!isOk) {
         if (ignoreError) return null;

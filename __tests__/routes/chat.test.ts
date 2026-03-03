@@ -299,4 +299,34 @@ describe('POST /luoye/ai/chat (发送消息)', () => {
         expect(errorEvents.length).toBe(1);
         expect(errorEvents[0].message).toBe('模型调用失败');
     });
+
+    it('应使用 cache: "no-store" 选项获取文档内容以确保内容最新', async () => {
+        mockServerFetch
+            .mockResolvedValueOnce({ id: 'user-1' }) // user info
+            .mockResolvedValueOnce({
+                id: 'doc-1',
+                name: '文档',
+                content: '内容',
+            }); // doc info
+
+        const session = makeSession();
+        mockChatFile.cleanupSessions.mockResolvedValue(undefined);
+        mockChatFile.createSession.mockResolvedValue(session);
+        mockChatFile.getSession.mockResolvedValue(session);
+        mockChatFile.appendMessage.mockResolvedValue(session);
+        mockStream.mockResolvedValue(fakeChunks(['Hello']));
+
+        await POST(makeRequest({ docId: 'doc-1', message: 'Hello' }));
+
+        // 验证第二次调用 (获取文档) 的参数
+        expect(mockServerFetch).toHaveBeenNthCalledWith(
+            2,
+            expect.objectContaining({
+                url: expect.stringContaining('/doc/doc-1'),
+            }),
+            true,
+            false,
+            { cache: 'no-store' },
+        );
+    });
 });

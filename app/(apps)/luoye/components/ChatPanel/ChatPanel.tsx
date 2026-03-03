@@ -9,6 +9,7 @@ import Toast from '../Notification/Toast';
 import API, { clientFetch } from '@/api';
 import MessageLoading from './MessageLoading';
 import Welcome from './Welcome';
+import Typewriter from './Typewriter';
 
 interface Message {
     id: string;
@@ -20,32 +21,57 @@ interface Message {
 const ChatPanel = () => {
     const { setChatVisible, doc } = useContext(DocContext);
     const panelRef = useRef<HTMLDivElement>(null);
-    const messagesEndRef = useRef<HTMLDivElement>(null);
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [sessionId, setSessionId] = useState<string | null>(null);
     const abortControllerRef = useRef<AbortController | null>(null);
     const isComposingRef = useRef(false);
-    const scrollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const scrollTimerRef = useRef<number | null>(null);
     const messageListRef = useRef<HTMLDivElement>(null);
     const userScrolledRef = useRef(false);
+    const lastScrollTopRef = useRef(0);
 
-    const scrollToBottom = useCallback((force?: boolean) => {
-        if (!force && userScrolledRef.current) return;
+    const scrollToBottom = useCallback((force = false) => {
+        if (force) {
+            userScrolledRef.current = false;
+            if (scrollTimerRef.current) {
+                cancelAnimationFrame(scrollTimerRef.current);
+                scrollTimerRef.current = null;
+            }
+        } else if (userScrolledRef.current) {
+            return;
+        }
+
         if (scrollTimerRef.current) return;
-        scrollTimerRef.current = setTimeout(() => {
-            messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+
+        scrollTimerRef.current = requestAnimationFrame(() => {
             scrollTimerRef.current = null;
-        }, 100);
+            if (!messageListRef.current) return;
+            // Double check: if user scrolled up while waiting for RAF, don't auto scroll unless forced
+            if (!force && userScrolledRef.current) return;
+
+            messageListRef.current.scrollTop = messageListRef.current.scrollHeight;
+        });
     }, []);
 
     const handleScroll = useCallback(() => {
-        const el = messageListRef.current;
-        if (!el) return;
-        // 距离底部 50px 以内认为在底部
-        const isAtBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 50;
-        userScrolledRef.current = !isAtBottom;
+        const container = messageListRef.current;
+        if (!container) return;
+
+        // 我们已经通过滚动方向判断用户意图，所以不再需要宽泛的阈值
+        // 这里仅保留微小的容差以处理高分屏缩放导致的浮点数误差
+        const isAtBottom = Math.abs(container.scrollHeight - container.scrollTop - container.clientHeight) < 10;
+
+        // 如果用户已经在底部，重置滚动标记
+        if (isAtBottom) {
+            userScrolledRef.current = false;
+        } else if (container.scrollTop < lastScrollTopRef.current) {
+            // 只有当用户向上滚动时，才标记为手动滚动
+            userScrolledRef.current = true;
+        }
+
+        lastScrollTopRef.current = container.scrollTop;
     }, []);
 
     useEffect(() => {
@@ -56,6 +82,9 @@ const ChatPanel = () => {
         return () => {
             if (abortControllerRef.current) {
                 abortControllerRef.current.abort();
+            }
+            if (scrollTimerRef.current) {
+                cancelAnimationFrame(scrollTimerRef.current);
             }
         };
     }, []);
@@ -101,7 +130,6 @@ const ChatPanel = () => {
             setMessages((prev) => [...prev, userMessage]);
             setInput('');
             setIsLoading(true);
-            userScrolledRef.current = false;
             scrollToBottom(true);
 
             const currentAssistantMessageId = crypto.randomUUID();
@@ -231,19 +259,16 @@ const ChatPanel = () => {
                                     }`}
                                 >
                                     <div className={styles.messageContent}>
-                                        {msg.role === 'assistant' ? (
-                                            <Markdown title="">{msg.content}</Markdown>
-                                        ) : (
-                                            msg.content
-                                        )}
+                                        {msg.role === 'assistant' ? <Typewriter content={msg.content} /> : msg.content}
                                     </div>
                                     {isUserMessage && <div className={styles.avatar}>🐰</div>}
-                                    {!isUserMessage && idx === messages.length - 1 && isLoading && <MessageLoading />}
+                                    {!isUserMessage && (
+                                        <MessageLoading visible={idx === messages.length - 1 && isLoading} />
+                                    )}
                                 </div>
                             );
                         })
                     )}
-                    <div ref={messagesEndRef} />
                 </div>
                 <div className={styles.inputActions}>
                     <TextArea
