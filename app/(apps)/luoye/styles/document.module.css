@@ -1,6 +1,5 @@
 .docView {
     --h-padding: 24px;
-    --doc-nav-bar: 72px;
     --toc-width: 160px;
     position: relative;
     width: 100%;
@@ -107,9 +106,10 @@
     line-height: inherit;
     white-space: pre-wrap;
     word-break: break-all;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
-        'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue',
-        Helvetica, Arial, sans-serif;
+    font-family:
+        -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC',
+        'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue', Helvetica,
+        Arial, sans-serif;
     tab-size: 4;
 
     margin-bottom: 70%;
@@ -143,6 +143,10 @@
     overflow: auto;
 }
 
+.chatModeEnabled .toc {
+    display: none;
+}
+
 .toc.toc > ul {
     margin: 0;
     margin-top: 6px;
@@ -173,6 +177,12 @@
 @media screen and (min-width: 1201px) {
     .document.hiddenEditor {
         padding-right: calc(var(--toc-width) + var(--h-padding) + 12px);
+    }
+
+    /* 当打开 AI 聊天面板时 */
+    .docView.chatModeEnabled .document.hiddenEditor {
+        padding-right: 42px;
+        padding-left: 42px;
     }
 
     .document.centeredDoc {

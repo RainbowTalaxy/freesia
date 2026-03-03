@@ -81,6 +81,21 @@ const LuoyeAPI = {
                     `${BASE_PATH}/luoye/ai/doc/${docId}/tags`,
                 ),
         },
+        chat: {
+            send: (props: {
+                docId: string;
+                message: string;
+                sessionId?: string;
+            }) => Rocket.post(`${BASE_PATH}/luoye/ai/chat`, props),
+            deleteSession: (sessionId: string) =>
+                Rocket.delete<ActionResult>(
+                    `${BASE_PATH}/luoye/ai/chat/${sessionId}`,
+                ),
+            abort: (sessionId: string) =>
+                Rocket.post<ActionResult>(
+                    `${BASE_PATH}/luoye/ai/chat/${sessionId}/abort`,
+                ),
+        },
     },
 };
 

@@ -12,10 +12,12 @@ export const DocContext = createContext<{
     userId: string | null;
     isLoading: boolean;
     isEditing: boolean;
+    isChatVisible: boolean;
     doc: Doc | null;
     workspace: Workspace | null;
     workspaceItems: WorkspaceItem[] | null;
     setEditing: (editing: boolean) => void;
+    setChatVisible: (visible: boolean) => void;
     setWorkspace: (newWorkspace: Workspace) => void;
     updateDoc: (newDoc: Doc, needUpdateWorkspace?: boolean) => void;
     navigateDoc: (id: string, isEditing?: boolean) => void;
@@ -23,10 +25,12 @@ export const DocContext = createContext<{
     userId: null,
     isLoading: false,
     isEditing: false,
+    isChatVisible: false,
     doc: null,
     workspace: null,
     workspaceItems: null,
     setEditing: () => {},
+    setChatVisible: () => {},
     setWorkspace: () => {},
     updateDoc: () => {},
     navigateDoc: () => {},
@@ -60,6 +64,7 @@ export const DocContextProvider = ({
     const [isLoading, setLoading] = useState(false);
     const editingRequest = useRef(false);
     const [isEditing, setEditing] = useState(doc?.content.length === 0);
+    const [isChatVisible, setChatVisible] = useState(false);
     const abortController = useRef<AbortController | null>(null);
 
     const changeDoc = useCallback(
@@ -106,11 +111,13 @@ export const DocContextProvider = ({
                 userId,
                 isLoading,
                 isEditing,
+                isChatVisible,
                 doc,
                 workspace,
                 workspaceItems,
                 setWorkspace,
                 setEditing,
+                setChatVisible,
                 updateDoc: async (newDoc, needUpdateWorkspace = true) => {
                     setDoc(newDoc);
                     if (!needUpdateWorkspace) return;
