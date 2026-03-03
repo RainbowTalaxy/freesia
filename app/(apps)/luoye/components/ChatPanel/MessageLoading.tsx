@@ -1,8 +1,13 @@
+import clsx from 'clsx';
 import styles from './ChatPanel.module.css';
 
-const MessageLoading = () => {
+interface Props {
+    visible?: boolean;
+}
+
+const MessageLoading = ({ visible = true }: Props) => {
     return (
-        <div className={styles.loading}>
+        <div className={clsx(styles.loading, !visible && styles.hidden)}>
             <div className={styles.loadingDot} />
             <div className={styles.loadingDot} />
             <div className={styles.loadingDot} />

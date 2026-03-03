@@ -9,10 +9,11 @@
     bottom: 0;
     display: flex;
     flex-direction: column;
-    background: linear-gradient(
+    /* background: linear-gradient(
         var(--ly-page-background),
         var(--ly-background)
-    );
+    ); */
+    background-color: var(--ly-page-background);
     border-top: 1px solid var(--ly-active-background);
     z-index: 100;
 }
@@ -60,6 +61,7 @@
     flex-direction: column;
     padding: 20px var(--h-padding);
     padding-bottom: 160px; /* Space for input area */
+    overflow-x: hidden;
     overflow-y: auto;
 }
 
@@ -79,7 +81,7 @@
     align-self: flex-end;
     align-items: flex-end;
     max-width: 75%;
-    font-weight: bold;
+    /* font-weight: bold; */
     color: var(--ly-primary);
 }
 
@@ -103,6 +105,7 @@
 .assistantMessage {
     align-self: flex-start;
     align-items: flex-start;
+    max-width: 100%;
 }
 
 .messageContent {
@@ -163,6 +166,7 @@
     padding-right: 100px; /* Space for send button */
     height: 100px;
     background-color: var(--ly-page-background);
+    box-shadow: 0 28px 10px 10px var(--ly-background);
     resize: none;
     transition: border-color 0.2s;
 }
@@ -184,6 +188,10 @@
     padding: 0 10px;
     font-size: 12px;
     color: var(--secondary);
+}
+
+.loading.hidden {
+    opacity: 0;
 }
 
 .loading > .loadingDot + .loadingDot {

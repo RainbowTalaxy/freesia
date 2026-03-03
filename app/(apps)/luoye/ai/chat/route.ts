@@ -32,7 +32,9 @@ export async function POST(request: NextRequest) {
     }
 
     // 获取文档内容作为上下文
-    const doc = await serverFetch(API.luoye.doc(docId), true);
+    const doc = await serverFetch(API.luoye.doc(docId), true, false, {
+        cache: 'no-store',
+    });
     if (!doc) {
         return NextResponse.json({ message: '文档不存在' }, { status: 404 });
     }
