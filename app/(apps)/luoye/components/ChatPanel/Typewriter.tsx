@@ -8,8 +8,11 @@ interface Props {
 // 基础打字速度（字符/秒），落后越多时会动态加速
 const BASE_SPEED = 40;
 const MAX_SPEED = 400;
+// 剩余字符数低于此值时直接补全，避免末尾收尾迟缓
+const FINISH_THRESHOLD = 2;
 
 const Typewriter = memo(({ content }: Props) => {
+    // 初始值故意设为 content 全文：历史消息重新挂载时直接显示，不重播动画
     const [displayedContent, setDisplayedContent] = useState(content);
 
     // 用 ref 存储动画状态，避免 effect 依赖 displayedContent 导致的链式重渲染
@@ -23,9 +26,15 @@ const Typewriter = memo(({ content }: Props) => {
 
     useEffect(() => {
         const a = animRef.current;
+
+        // 先保存旧的 target 用于比较
+        const prevTarget = a.target;
         a.target = content;
 
-        // 内容缩短（清空/重置）：立即同步，取消动画
+        // 内容未变化，直接返回
+        if (content === prevTarget) return;
+
+        // 内容缩短或清空：立即同步，取消动画
         if (content.length < a.displayed) {
             a.displayed = content.length;
             a.fraction = 0;
@@ -38,8 +47,18 @@ const Typewriter = memo(({ content }: Props) => {
             return;
         }
 
-        // 已追上，无需动画
-        if (content.length === a.displayed) return;
+        // 等长替换但内容不同：重置动画从头开始
+        if (content.length === a.displayed && content !== prevTarget) {
+            a.displayed = 0;
+            a.fraction = 0;
+            setDisplayedContent(''); // 立即清空显示，避免闪烁
+            if (a.rafId !== null) {
+                cancelAnimationFrame(a.rafId);
+                a.rafId = null;
+                a.lastTime = null;
+            }
+            // 启动新动画（下面会处理）
+        }
 
         // 动画循环已在运行，只需更新 target 即可（上面已更新）
         if (a.rafId !== null) return;
@@ -57,6 +76,16 @@ const Typewriter = memo(({ content }: Props) => {
                 a.rafId = null;
                 a.lastTime = null;
                 a.fraction = 0;
+                return;
+            }
+
+            // 剩余极少时直接补全，避免末尾字符因低速而收尾迟缓
+            if (remaining <= FINISH_THRESHOLD) {
+                a.displayed = a.target.length;
+                a.fraction = 0;
+                setDisplayedContent(a.target);
+                a.rafId = null;
+                a.lastTime = null;
                 return;
             }
 
@@ -81,8 +110,11 @@ const Typewriter = memo(({ content }: Props) => {
     // 卸载时清理 RAF
     useEffect(() => {
         return () => {
-            const a = animRef.current;
-            if (a.rafId !== null) cancelAnimationFrame(a.rafId);
+            if (animRef.current.rafId !== null) {
+                cancelAnimationFrame(animRef.current.rafId);
+                // eslint-disable-next-line react-hooks/exhaustive-deps
+                animRef.current.rafId = null;
+            }
         };
     }, []);
 

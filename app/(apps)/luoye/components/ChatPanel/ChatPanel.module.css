@@ -106,7 +106,7 @@
 .assistantMessage {
     align-self: flex-start;
     align-items: flex-start;
-    max-width: 100%;
+    width: 100%;
 }
 
 .messageContent {
@@ -145,6 +145,10 @@
 }
 
 .assistantMessage .messageContent p:last-child {
+    margin-bottom: 0;
+}
+
+.assistantMessage .messageContent li > * {
     margin-bottom: 0;
 }
 
