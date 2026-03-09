@@ -191,7 +191,8 @@
 .loading {
     display: flex;
     align-items: center;
-    padding: 0 10px;
+    margin: 10px 0;
+    padding: 0 12px;
     font-size: 12px;
     color: var(--secondary);
 }
@@ -201,15 +202,16 @@
 }
 
 .loading > .loadingDot + .loadingDot {
-    margin-left: 6px;
+    margin-left: 8px;
 }
 
 .loadingDot {
-    width: 4px;
-    height: 4px;
+    width: 5px;
+    height: 5px;
     border-radius: 50%;
     background-color: currentColor;
     animation: bounce 1.4s infinite ease-in-out both;
+    transform-origin: center;
 }
 
 .loadingDot:nth-child(1) {
