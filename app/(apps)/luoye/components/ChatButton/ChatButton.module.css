@@ -1,8 +1,8 @@
 .chatButton {
-    --h-margin: 16px;
+    --h-margin: 26px;
 
     position: fixed;
-    bottom: 28px;
+    bottom: 26px;
     left: var(--h-margin);
     padding: 10px 16px;
     width: calc(var(--sidebar-width) - 2 * var(--h-margin));
@@ -12,7 +12,7 @@
     font-weight: 600;
     color: var(--primary);
     background: var(--ly-background);
-    box-shadow: 0 28px 10px 10px var(--ly-background);
+    box-shadow: 0 20px 10px 16px var(--ly-background);
     cursor: pointer;
     transition: transform 0.2s;
     user-select: none;
