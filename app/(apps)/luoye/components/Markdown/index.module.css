@@ -43,7 +43,7 @@
 }
 
 .article blockquote {
-    margin: 0 0 1rem;
+    margin: 0 0 1.25rem;
     padding: 0 1rem;
     border-left: 2px solid #dadde1;
     color: #8d949e;
@@ -54,7 +54,7 @@
 }
 
 .article pre {
-    margin: 0 0 1rem;
+    margin: 0 0 1.25rem;
     padding: 1rem;
     border-radius: 0.4rem;
     font-size: 95%;
@@ -107,7 +107,7 @@ html[data-theme='dark'] .article :global(.shiki span) {
 
 .article table {
     width: 100%;
-    margin-bottom: 1rem;
+    margin-bottom: 1.25rem;
     border-collapse: collapse;
     border-spacing: 0;
 }
@@ -131,11 +131,8 @@ html[data-theme='dark'] .article :global(.shiki span) {
     position: relative;
 }
 
-.codeBlock:hover .copyBtn {
-    opacity: 0.4;
-}
-
-.codeBlock:hover .copyBtn:hover {
+.codeBlock:hover .copyBtn,
+.codeBlock:hover .copyBtn:hover > svg {
     opacity: 1;
 }
 
@@ -147,14 +144,18 @@ html[data-theme='dark'] .article :global(.shiki span) {
     padding: 6px;
     border-radius: 4px;
     color: var(--primary);
+    background: var(--page);
+    box-shadow: 0 0 10px 10px var(--page);
 }
 
 .copyBtn > svg {
+    opacity: 0.4;
     width: 20px;
     height: 20px;
 }
 
-.codeBlock .copyBtn.copied {
+.codeBlock .copyBtn.copied,
+.codeBlock .copyBtn.copied > svg {
     opacity: 1;
 }
 
