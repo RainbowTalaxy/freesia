@@ -70,3 +70,13 @@ export interface DocBinItem {
     executor: string; // 执行者
     deletedAt: number; // 删除时间
 }
+
+export interface SearchResultItem {
+    id: string; // 文档 ID
+    name: string; // 文档标题
+    updatedAt: number; // 更新时间
+    matches: {
+        field: 'name' | 'content'; // 匹配来源
+        context: string; // 匹配上下文摘要
+    }[];
+}

@@ -222,6 +222,8 @@ interface Response = {
 
 `/recent-docs`
 
+返回最近的 20 条文档记录。
+
 **响应**
 
 ```ts
@@ -363,3 +365,42 @@ interface Response = {
     success: boolean;
 };
 ```
+
+### `GET` 搜索文档
+
+`/search`
+
+**参数**
+
+```ts
+interface Query {
+    keyword: string; // 搜索关键词（大小写敏感，精确子串匹配）
+    workspaceId?: string; // 限定搜索的工作区 ID
+    limit?: number; // 返回结果数量上限，默认 15
+}
+```
+
+**响应**
+
+```ts
+interface SearchResultItem {
+    id: string; // 文档 ID
+    name: string; // 文档标题
+    updatedAt: number; // 更新时间
+    matches: {
+        field: 'name' | 'content'; // 匹配来源
+        context: string; // 匹配上下文摘要
+    }[];
+}
+
+type Response = SearchResultItem[];
+```
+
+**说明**
+
+- 搜索关键词为大小写敏感的精确子串匹配，不支持模糊搜索
+- 搜索范围为当前用户有权限访问的文档的标题和正文
+- 如果指定 `workspaceId`，则仅在该工作区的文档中搜索，需要 Member 及以上权限
+- 同一文档的多个匹配项归入同一条记录，不单独计入 `limit`
+- 结果按文档更新时间降序排序
+- 已删除的文档不会出现在搜索结果中
