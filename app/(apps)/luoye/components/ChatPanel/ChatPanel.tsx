@@ -273,7 +273,7 @@ const ChatPanel = () => {
                                 _pendingMessages.push({
                                     id: generateMessageId(),
                                     role: 'assistant',
-                                    content: `🔧 错误：${data.message}`,
+                                    content: `错误：${data.message}`,
                                     createdAt: Date.now(),
                                 });
                                 setPendingMessages([]);
