@@ -20,6 +20,11 @@ const Markdown = ({ children, title }: Props) => {
                 components={{
                     img: Img,
                     code: Code,
+                    a: ({ children, href, ...props }) => (
+                        <a href={href} target="_blank" rel="noopener noreferrer" {...props}>
+                            {children}
+                        </a>
+                    ),
                 }}
                 remarkPlugins={[() => remarkToc(title), remarkGfm, remarkRehype]}
                 rehypePlugins={[rehypeSlug, rehypeRaw]}

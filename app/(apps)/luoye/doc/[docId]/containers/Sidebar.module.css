@@ -1,0 +1,9 @@
+.chatPanelContainer {
+    position: absolute;
+    top: calc(var(--doc-nav-bar) - 1px);
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-top: 1px solid var(--ly-active-background);
+    z-index: 100;
+}
