@@ -4,25 +4,20 @@ import SVG from '../SVG';
 import { DocContext } from '../../doc/[docId]/context';
 import styles from './ChatPanel.module.css';
 import { Button, TextArea } from '@/components/form';
-import Markdown from '../Markdown';
 import Toast from '../Notification/Toast';
 import API, { clientFetch } from '@/api';
 import MessageLoading from './MessageLoading';
 import Welcome from './Welcome';
-import Typewriter from './Typewriter';
-
-interface Message {
-    id: string;
-    role: 'user' | 'assistant';
-    content: string;
-    createdAt: number;
-}
+import AssistantContent from './AssistantContent';
+import { AssistantChatMessage, Message, SseEventData, ToolCallMessage } from '../../ai/chat/types';
+import { generateMessageId } from '../../ai/chat/utils';
 
 const ChatPanel = () => {
     const { setChatVisible, doc } = useContext(DocContext);
     const panelRef = useRef<HTMLDivElement>(null);
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState('');
+    const [pendingMessages, setPendingMessages] = useState<Array<AssistantChatMessage | ToolCallMessage>>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [sessionId, setSessionId] = useState<string | null>(null);
     const abortControllerRef = useRef<AbortController | null>(null);
@@ -76,7 +71,7 @@ const ChatPanel = () => {
 
     useEffect(() => {
         scrollToBottom();
-    }, [messages, scrollToBottom]);
+    }, [messages, pendingMessages, scrollToBottom]);
 
     // 监听消息列表 DOM 变化（主要是 Typewriter 打字动画驱动的内容增长），
     // 以便在内容高度变化时也能自动滚到底部。
@@ -105,23 +100,13 @@ const ChatPanel = () => {
         };
     }, []);
 
-    const removeEmptyAssistantMessage = useCallback(() => {
-        setMessages((prev) => {
-            const last = prev[prev.length - 1];
-            if (last && last.role === 'assistant' && !last.content.trim()) {
-                return prev.slice(0, -1);
-            }
-            return prev;
-        });
-    }, []);
-
     const handleAbort = useCallback(async () => {
         if (abortControllerRef.current) {
             abortControllerRef.current.abort();
             abortControllerRef.current = null;
         }
         setIsLoading(false);
-        removeEmptyAssistantMessage();
+        setPendingMessages([]);
 
         if (sessionId) {
             try {
@@ -130,34 +115,25 @@ const ChatPanel = () => {
                 console.error('Failed to abort session on server', error);
             }
         }
-    }, [sessionId, removeEmptyAssistantMessage]);
+    }, [sessionId]);
 
     const handleSend = useCallback(
         async (userInput: string) => {
             if (!userInput.trim() || !doc?.id || abortControllerRef.current) return;
 
             const userMessage: Message = {
-                id: crypto.randomUUID(),
+                id: generateMessageId(),
                 role: 'user',
                 content: userInput,
                 createdAt: Date.now(),
             };
 
+            // 提交用户消息
             setMessages((prev) => [...prev, userMessage]);
             setInput('');
             setIsLoading(true);
+            setPendingMessages([]);
             scrollToBottom(true);
-
-            const currentAssistantMessageId = crypto.randomUUID();
-            setMessages((prev) => [
-                ...prev,
-                {
-                    id: currentAssistantMessageId,
-                    role: 'assistant',
-                    content: '',
-                    createdAt: Date.now(),
-                },
-            ]);
 
             abortControllerRef.current = new AbortController();
 
@@ -183,29 +159,133 @@ const ChatPanel = () => {
                 const decoder = new TextDecoder();
                 let buffer = '';
 
+                const _pendingMessages: Array<AssistantChatMessage | ToolCallMessage> = [];
+                let pendingAssistantChatMessage: AssistantChatMessage | null = null;
+                let pendingToolCallMessages: Map<string, ToolCallMessage> = new Map(); // <run_id, ToolCallMessage>
+
                 const processSSELine = (line: string) => {
                     if (!line.startsWith('data: ')) return;
                     try {
-                        const data = JSON.parse(line.slice(6));
+                        const data = JSON.parse(line.slice(6)) as SseEventData;
                         switch (data.type) {
-                            case 'session':
+                            case 'session': {
                                 setSessionId(data.sessionId);
                                 break;
-                            case 'message':
-                                setMessages((prev) =>
-                                    prev.map((msg) =>
-                                        msg.id === currentAssistantMessageId
-                                            ? { ...msg, content: msg.content + data.content }
-                                            : msg,
-                                    ),
-                                );
+                            }
+                            case 'message': {
+                                if (!pendingAssistantChatMessage) {
+                                    pendingAssistantChatMessage = {
+                                        id: data.messageId,
+                                        role: 'assistant',
+                                        content: data.content,
+                                        createdAt: Date.now(),
+                                    };
+                                } else if (pendingAssistantChatMessage.id === data.messageId) {
+                                    pendingAssistantChatMessage.content += data.content;
+                                } else {
+                                    if (pendingAssistantChatMessage.content.trim()) {
+                                        _pendingMessages.push(pendingAssistantChatMessage);
+                                    }
+                                    pendingAssistantChatMessage = {
+                                        id: data.messageId,
+                                        role: 'assistant',
+                                        content: data.content,
+                                        createdAt: Date.now(),
+                                    };
+                                }
+                                setPendingMessages([..._pendingMessages, { ...pendingAssistantChatMessage }]);
                                 break;
+                            }
+                            case 'tool_start': {
+                                if (pendingAssistantChatMessage) {
+                                    if (pendingAssistantChatMessage.content.trim()) {
+                                        _pendingMessages.push(pendingAssistantChatMessage);
+                                    }
+                                    pendingAssistantChatMessage = null;
+                                }
+                                const toolMessage: ToolCallMessage = {
+                                    run_id: data.run_id,
+                                    role: 'tool',
+                                    name: data.name,
+                                    input: data.input,
+                                };
+                                pendingToolCallMessages.set(data.run_id, toolMessage);
+                                setPendingMessages([
+                                    ..._pendingMessages,
+                                    ...Array.from(pendingToolCallMessages.values()),
+                                ]);
+                                break;
+                            }
+                            case 'tool_end': {
+                                const toolMessage: ToolCallMessage = {
+                                    run_id: data.run_id,
+                                    role: 'tool',
+                                    name: data.name,
+                                    input: data.input,
+                                    content: data.content,
+                                };
+                                pendingToolCallMessages.delete(data.run_id);
+                                _pendingMessages.push(toolMessage);
+                                setPendingMessages([
+                                    ..._pendingMessages,
+                                    ...Array.from(pendingToolCallMessages.values()),
+                                ]);
+                                break;
+                            }
                             case 'done':
+                                if (pendingAssistantChatMessage) {
+                                    if (pendingAssistantChatMessage.content.trim()) {
+                                        _pendingMessages.push(pendingAssistantChatMessage);
+                                    }
+                                    pendingAssistantChatMessage = null;
+                                }
+                                if (pendingToolCallMessages.size > 0) {
+                                    _pendingMessages.push(...Array.from(pendingToolCallMessages.values()));
+                                    pendingToolCallMessages.clear();
+                                }
+                                setPendingMessages([]);
+                                if (_pendingMessages.length > 0) {
+                                    setMessages((prev) => [
+                                        ...prev,
+                                        {
+                                            id: data.messageId,
+                                            role: 'assistant',
+                                            content: _pendingMessages,
+                                            createdAt: Date.now(),
+                                        },
+                                    ]);
+                                }
                                 setIsLoading(false);
                                 abortControllerRef.current = null;
                                 break;
                             case 'error':
-                                Toast.notify(data.message || '生成出错');
+                                if (pendingAssistantChatMessage) {
+                                    if (pendingAssistantChatMessage.content.trim()) {
+                                        _pendingMessages.push(pendingAssistantChatMessage);
+                                    }
+                                    pendingAssistantChatMessage = null;
+                                }
+                                if (pendingToolCallMessages.size > 0) {
+                                    _pendingMessages.push(...Array.from(pendingToolCallMessages.values()));
+                                    pendingToolCallMessages.clear();
+                                }
+                                // 添加到消息列表中显示错误
+                                _pendingMessages.push({
+                                    id: generateMessageId(),
+                                    role: 'assistant',
+                                    content: `🔧 错误：${data.message}`,
+                                    createdAt: Date.now(),
+                                });
+                                setPendingMessages([]);
+                                setMessages((prev) => [
+                                    ...prev,
+                                    {
+                                        id: generateMessageId(),
+                                        role: 'assistant',
+                                        content: _pendingMessages,
+                                        createdAt: Date.now(),
+                                    },
+                                ]);
                                 setIsLoading(false);
                                 abortControllerRef.current = null;
                                 break;
@@ -239,12 +319,12 @@ const ChatPanel = () => {
                 }
                 console.error('Chat error:', error);
                 Toast.notify(error.message || '发送失败');
-                removeEmptyAssistantMessage();
+                setPendingMessages([]);
                 setIsLoading(false);
                 abortControllerRef.current = null;
             }
         },
-        [doc?.id, sessionId, scrollToBottom, removeEmptyAssistantMessage],
+        [doc?.id, sessionId, scrollToBottom],
     );
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -262,28 +342,40 @@ const ChatPanel = () => {
             </button>
             <div className={styles.content}>
                 <div className={styles.messageList} ref={messageListRef} onScroll={handleScroll}>
-                    {messages.length === 0 ? (
+                    {messages.length === 0 && !isLoading ? (
                         <Welcome />
                     ) : (
-                        messages.map((msg, idx) => {
-                            const isUserMessage = msg.role === 'user';
-                            return (
-                                <div
-                                    key={msg.id}
-                                    className={`${styles.message} ${
-                                        isUserMessage ? styles.userMessage : styles.assistantMessage
-                                    }`}
-                                >
-                                    <div className={styles.messageContent}>
-                                        {msg.role === 'assistant' ? <Typewriter content={msg.content} /> : msg.content}
+                        <>
+                            {messages.map((msg) => {
+                                const isUserMessage = msg.role === 'user';
+                                return (
+                                    <div
+                                        key={msg.id}
+                                        className={`${styles.message} ${
+                                            isUserMessage ? styles.userMessage : styles.assistantMessage
+                                        }`}
+                                    >
+                                        <div className={styles.messageContent}>
+                                            {msg.role === 'assistant' ? (
+                                                <AssistantContent content={msg.content} />
+                                            ) : (
+                                                msg.content
+                                            )}
+                                        </div>
+                                        {isUserMessage && <div className={styles.avatar}>🐰</div>}
+                                        {!isUserMessage && <MessageLoading visible={false} />}
                                     </div>
-                                    {isUserMessage && <div className={styles.avatar}>🐰</div>}
-                                    {!isUserMessage && (
-                                        <MessageLoading visible={idx === messages.length - 1 && isLoading} />
-                                    )}
+                                );
+                            })}
+                            {isLoading && (
+                                <div className={`${styles.message} ${styles.assistantMessage}`}>
+                                    <div className={styles.messageContent}>
+                                        <AssistantContent content={pendingMessages} />
+                                    </div>
+                                    <MessageLoading visible />
                                 </div>
-                            );
-                        })
+                            )}
+                        </>
                     )}
                 </div>
                 <div className={styles.inputActions}>

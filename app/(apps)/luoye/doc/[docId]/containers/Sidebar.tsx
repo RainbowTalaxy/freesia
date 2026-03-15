@@ -13,6 +13,7 @@ import WorkspaceForm from '../../../containers/WorkspaceForm';
 import DocForm from '../../../containers/DocForm';
 import ChatPanel from '../../../components/ChatPanel/ChatPanel';
 import ChatButton from '../../../components/ChatButton/ChatButton';
+import styles from './Sidebar.module.css';
 import { DocContext } from '../context';
 
 const SideBar = () => {
@@ -77,7 +78,12 @@ const SideBar = () => {
         }
     };
 
-    if (isChatVisible) return <ChatPanel />;
+    if (isChatVisible)
+        return (
+            <div className={styles.chatPanelContainer}>
+                <ChatPanel />
+            </div>
+        );
 
     return (
         <>

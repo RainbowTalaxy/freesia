@@ -1,5 +1,6 @@
 import path from 'path';
 import FileHandler from '../FileHandler';
+import { AIMessage, HumanMessage, ToolMessage } from 'langchain';
 
 /** 聊天会话数据存储根目录 */
 const CHAT_DIR = path.join(process.cwd(), 'temp/luoye/chat');
@@ -10,18 +11,55 @@ const MAX_SESSIONS = 10;
 /** 会话过期时间（7 天） */
 const SESSION_TTL = 7 * 24 * 60 * 60 * 1000;
 
-export interface ChatMessage {
+interface ChatSessionUserChatMessage {
     messageId: string;
-    role: 'user' | 'assistant';
+    role: 'user';
     content: string;
     createdAt: number;
 }
+
+export interface ChatSessionAssistantChatMessage {
+    messageId: string;
+    role: 'assistant';
+    content: string;
+    toolCalls?: Array<{
+        id: string;
+        name: string;
+        args: Record<string, unknown>;
+    }>;
+    createdAt: number;
+}
+
+export interface ChatSessionToolCallMessage {
+    toolCallId: string;
+    role: 'tool';
+    name: string;
+    args: Record<string, unknown>;
+    input: string;
+    output: string;
+    content: string;
+    createdAt: number;
+}
+
+interface ChatSessionAssistantMessage {
+    messageId: string;
+    role: 'assistant';
+    content: Array<
+        ChatSessionAssistantChatMessage | ChatSessionToolCallMessage
+    >;
+    createdAt: number;
+}
+
+export type ChatSessionChatMessage =
+    | ChatSessionUserChatMessage
+    | ChatSessionAssistantMessage;
 
 export interface ChatSession {
     sessionId: string;
     docId: string;
     userId: string;
-    messages: ChatMessage[];
+    messages: ChatSessionChatMessage[];
+    docUpdatedAt: number;
     createdAt: number;
     updatedAt: number;
 }
@@ -38,19 +76,21 @@ const ChatFile = {
     /** 创建新会话 */
     async createSession(
         userId: string,
-        sessionId: string,
         docId: string,
+        docUpdatedAt: number,
     ): Promise<ChatSession> {
         const now = Date.now();
+        const id = crypto.randomUUID();
         const session: ChatSession = {
-            sessionId,
+            sessionId: id,
             docId,
             userId,
             messages: [],
+            docUpdatedAt,
             createdAt: now,
             updatedAt: now,
         };
-        await FileHandler.writeJSON(sessionFile(userId, sessionId), session);
+        await FileHandler.writeJSON(sessionFile(userId, id), session);
         return session;
     },
 
@@ -73,15 +113,70 @@ const ChatFile = {
         );
     },
 
-    /** 追加消息到会话 */
-    async appendMessage(
+    generateMessageId() {
+        return crypto.randomUUID();
+    },
+
+    newAssistantMessage(): ChatSessionAssistantMessage {
+        return {
+            messageId: this.generateMessageId(),
+            role: 'assistant' as const,
+            content: [],
+            createdAt: Date.now(),
+        };
+    },
+
+    newAssistantChatMessage(): ChatSessionAssistantChatMessage {
+        return {
+            messageId: this.generateMessageId(),
+            role: 'assistant' as const,
+            content: '',
+            createdAt: Date.now(),
+        };
+    },
+
+    newToolCallMessage(): ChatSessionToolCallMessage {
+        return {
+            toolCallId: this.generateMessageId(),
+            role: 'tool' as const,
+            name: '',
+            args: {},
+            input: '',
+            output: '',
+            content: '',
+            createdAt: Date.now(),
+        };
+    },
+
+    /** 追加用户消息到会话 */
+    async appendUserMessage(
         userId: string,
         sessionId: string,
-        message: ChatMessage,
+        content: string,
     ): Promise<ChatSession | null> {
         const session = await this.getSession(userId, sessionId);
         if (!session) return null;
-        session.messages.push(message);
+        session.messages.push({
+            messageId: this.generateMessageId(),
+            role: 'user',
+            content,
+            createdAt: Date.now(),
+        });
+        await this.saveSession(session);
+        return session;
+    },
+
+    /** 追加消息到会话 */
+    async appendAssistantMessage(
+        userId: string,
+        sessionId: string,
+        message: ChatSessionAssistantMessage,
+    ): Promise<ChatSession | null> {
+        const session = await this.getSession(userId, sessionId);
+        if (!session) return null;
+        session.messages.push({
+            ...message,
+        });
         await this.saveSession(session);
         return session;
     },
@@ -123,3 +218,44 @@ const ChatFile = {
 };
 
 export default ChatFile;
+
+export function convertMessages(messages: ChatSessionChatMessage[]) {
+    const result = [];
+    for (const msg of messages) {
+        switch (msg.role) {
+            case 'user': {
+                result.push(new HumanMessage(msg.content));
+                break;
+            }
+            case 'assistant': {
+                const pendingMessages: Array<AIMessage | ToolMessage> = [];
+                for (const item of msg.content) {
+                    switch (item.role) {
+                        case 'assistant': {
+                            pendingMessages.push(
+                                new AIMessage({
+                                    content: item.content,
+                                    tool_calls: item.toolCalls,
+                                }),
+                            );
+                            break;
+                        }
+                        case 'tool': {
+                            pendingMessages.push(
+                                new ToolMessage({
+                                    tool_call_id: item.toolCallId,
+                                    name: item.name,
+                                    content: item.content,
+                                }),
+                            );
+                            break;
+                        }
+                    }
+                }
+                result.push(...pendingMessages);
+                break;
+            }
+        }
+    }
+    return result;
+}

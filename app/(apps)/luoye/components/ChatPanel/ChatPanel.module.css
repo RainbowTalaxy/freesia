@@ -2,20 +2,11 @@
     --max-content-width: 1000px;
     --h-padding: 28px;
 
-    position: absolute;
-    top: calc(var(--doc-nav-bar) - 1px);
-    left: 0;
-    right: 0;
-    bottom: 0;
     display: flex;
     flex-direction: column;
-    /* background: linear-gradient(
-        var(--ly-page-background),
-        var(--ly-background)
-    ); */
+    width: 100%;
+    height: 100%;
     background-color: var(--ly-page-background);
-    border-top: 1px solid var(--ly-active-background);
-    z-index: 100;
 }
 
 .closeButton {
@@ -67,6 +58,25 @@
 
 .messageList > .message + .message {
     margin-top: 24px;
+}
+
+.toolStatus {
+    display: inline-block;
+    margin: 10px 6px 10px 0;
+    padding: 4px 12px;
+    font-size: 12px;
+    line-height: 1.6;
+    color: var(--ly-primary);
+    background-color: var(--ly-background);
+    border-radius: 8px;
+}
+
+.toolStatus + .toolStatus {
+    margin-top: 0;
+}
+
+.toolStatus p {
+    margin: 0;
 }
 
 .message {
