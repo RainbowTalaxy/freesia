@@ -11,6 +11,26 @@ import {
     convertMessages,
 } from '@/files/luoye/chat';
 import { SseEventData, SseEventStreamEvent } from './types';
+import { Doc } from '@/api/types/luoye';
+
+function createFakeReadDocMessage(doc: Doc) {
+    const toolCallId = `call_${crypto.randomUUID().replace(/-/g, '').slice(0, 24)}`;
+    const docContent = `文档标题：${doc.name || '无标题'}\n文档内容：\n${doc.content || '(空)'}`;
+    const assistantMsg = ChatFile.newAssistantMessage();
+
+    const chatMsg = ChatFile.newAssistantChatMessage();
+    chatMsg.toolCalls = [
+        { id: toolCallId, name: 'read_doc', args: { docId: doc.id } },
+    ];
+
+    const toolMsg = ChatFile.newToolCallMessage();
+    toolMsg.toolCallId = toolCallId;
+    toolMsg.name = 'read_doc';
+    toolMsg.content = docContent;
+
+    assistantMsg.content.push(chatMsg, toolMsg);
+    return assistantMsg;
+}
 
 function sseEvent(data: SseEventData) {
     return `data: ${JSON.stringify(data)}\n\n`;
@@ -66,6 +86,13 @@ export async function POST(request: NextRequest) {
         // 清理过期会话
         await ChatFile.cleanupSessions(userId);
         session = await ChatFile.createSession(userId, docId, doc.updatedAt);
+
+        // 伪造一个 Assistant 消息，预先通过 read_doc 注入文档内容
+        await ChatFile.appendAssistantMessage(
+            userId,
+            session.sessionId,
+            createFakeReadDocMessage(doc),
+        );
     } else {
         // 读取会话
         const oldSession = await ChatFile.getSession(userId, existingSessionId);
@@ -89,18 +116,7 @@ export async function POST(request: NextRequest) {
     session = (await ChatFile.getSession(userId, sessionId))!;
 
     //提示词
-    const systemPrompt = `以下是一篇文档的内容（你无需通过 tool 再次获取文档内容）：
-
-------
-文档名称：《${doc.name}》
-文档日期：${new Date(doc.updatedAt).toLocaleString()}
-文档标签：${doc.tags?.join(', ') || '无'}
-文档内容：
-${doc.content}
-------
-
-当前用户正处于这篇文档所在的网页向你发起聊天。
-`;
+    const systemPrompt = `用户正在一个文档页面向你发起提问。文档 ID 为 "${doc.id}"。当前文档内容已在对话开头通过 read_doc 工具读取，请直接使用对话中已有的文档内容回答问题，无需重复调用 read_doc 读取同一文档，除非你被告知文档内容已更新。`;
 
     // 检测文档变更
     let docChanged = false;
@@ -118,9 +134,7 @@ ${doc.content}
 
     if (docChanged) {
         messages.push(
-            new SystemMessage(
-                '当前文档内容自上次对话以来已被修改，已同步修改最初的系统提示中的文档内容信息为最新版本',
-            ),
+            new SystemMessage('当前文档内容自上次对话以来已被修改。'),
         );
     }
 
