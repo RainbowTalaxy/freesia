@@ -12,7 +12,12 @@ import AssistantContent from './AssistantContent';
 import { AssistantChatMessage, Message, SseEventData, ToolCallMessage } from '../../ai/chat/types';
 import { generateMessageId } from '../../ai/chat/utils';
 
-const ChatPanel = () => {
+interface ChatPanelProps {
+    /** 是否显示关闭按钮，默认 true */
+    showCloseButton?: boolean;
+}
+
+const ChatPanel = ({ showCloseButton = true }: ChatPanelProps = {}) => {
     const { setChatVisible, doc } = useContext(DocContext);
     const panelRef = useRef<HTMLDivElement>(null);
     const [messages, setMessages] = useState<Message[]>([]);
@@ -119,7 +124,7 @@ const ChatPanel = () => {
 
     const handleSend = useCallback(
         async (userInput: string) => {
-            if (!userInput.trim() || !doc?.id || abortControllerRef.current) return;
+            if (!userInput.trim() || abortControllerRef.current) return;
 
             const userMessage: Message = {
                 id: generateMessageId(),
@@ -140,7 +145,7 @@ const ChatPanel = () => {
             try {
                 const response = await clientFetch(
                     API.luoye.ai.chat.send({
-                        docId: doc.id,
+                        ...(doc?.id ? { docId: doc.id } : {}),
                         message: userMessage.content,
                         sessionId: sessionId || undefined,
                     }),
@@ -337,15 +342,18 @@ const ChatPanel = () => {
 
     return (
         <div className={styles.container} ref={panelRef}>
-            <button className={styles.closeButton} onClick={() => setChatVisible(false)} aria-label="关闭聊天">
-                <SVG.LeftArrow />
-            </button>
+            {showCloseButton && (
+                <button className={styles.closeButton} onClick={() => setChatVisible(false)} aria-label="关闭聊天">
+                    <SVG.LeftArrow />
+                </button>
+            )}
             <div className={styles.content}>
                 <div className={styles.messageList} ref={messageListRef} onScroll={handleScroll}>
                     {messages.length === 0 && !isLoading ? (
-                        <Welcome />
+                        <Welcome docId={doc?.id} />
                     ) : (
                         <>
+                            {!showCloseButton && <div className={styles.topPlaceholder} />}
                             {messages.map((msg) => {
                                 const isUserMessage = msg.role === 'user';
                                 return (

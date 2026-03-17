@@ -1,5 +1,6 @@
 import API from '@/api';
 import Server, { serverFetch } from '@/api/server';
+import AiChat from '../pages/AiChat';
 import DocBin from '../pages/DocBin';
 import Settings from '../pages/Settings';
 import WorkspaceInfo from '../pages/WorkspaceInfo';
@@ -17,6 +18,9 @@ export default async function Page({ params }: Props) {
     switch (tab) {
         case 'doc-bin':
             return <DocBin />;
+        case 'ai-chat':
+            if (userId) return <AiChat />;
+            return null;
         case 'settings':
             if (userId) return <Settings userId={userId} />;
         case 'workspace':

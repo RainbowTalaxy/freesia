@@ -56,10 +56,10 @@ export type ChatSessionChatMessage =
 
 export interface ChatSession {
     sessionId: string;
-    docId: string;
+    docId?: string;
     userId: string;
     messages: ChatSessionChatMessage[];
-    docUpdatedAt: number;
+    docUpdatedAt?: number;
     createdAt: number;
     updatedAt: number;
 }
@@ -76,17 +76,17 @@ const ChatFile = {
     /** 创建新会话 */
     async createSession(
         userId: string,
-        docId: string,
-        docUpdatedAt: number,
+        docId?: string,
+        docUpdatedAt?: number,
     ): Promise<ChatSession> {
         const now = Date.now();
         const id = crypto.randomUUID();
         const session: ChatSession = {
             sessionId: id,
-            docId,
+            ...(docId ? { docId } : {}),
             userId,
             messages: [],
-            docUpdatedAt,
+            ...(docUpdatedAt !== undefined ? { docUpdatedAt } : {}),
             createdAt: now,
             updatedAt: now,
         };

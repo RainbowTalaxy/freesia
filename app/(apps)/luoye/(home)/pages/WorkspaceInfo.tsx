@@ -23,7 +23,7 @@ const WorkspaceInfo = ({ userId, data }: Props) => {
     const [isWorkspaceFormVisible, setWorkspaceFormVisible] = useState(false);
 
     return (
-        <>
+        <div className={styles.pageView}>
             <div className={styles.titleBar}>
                 <h2 className={styles.pageTitle}>{workSpaceName(data, userId)}</h2>
                 <span className={styles.settings} onClick={() => setWorkspaceFormVisible(true)}>
@@ -76,7 +76,7 @@ const WorkspaceInfo = ({ userId, data }: Props) => {
                     }}
                 />
             )}
-        </>
+        </div>
     );
 };
 

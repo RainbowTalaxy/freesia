@@ -29,19 +29,42 @@ const mockChatFile = {
     cleanupSessions: vi.fn(),
     createSession: vi.fn(),
     getSession: vi.fn(),
-    appendMessage: vi.fn(),
+    appendUserMessage: vi.fn(),
+    appendAssistantMessage: vi.fn(),
     saveSession: vi.fn(),
     deleteSession: vi.fn(),
+    newAssistantMessage: vi.fn(() => ({
+        messageId: 'assistant-msg-1',
+        role: 'assistant',
+        content: [],
+        createdAt: Date.now(),
+    })),
+    newAssistantChatMessage: vi.fn(() => ({
+        messageId: 'chat-msg-1',
+        role: 'assistant',
+        content: '',
+        createdAt: Date.now(),
+    })),
+    newToolCallMessage: vi.fn(() => ({
+        toolCallId: 'tool-call-1',
+        role: 'tool',
+        name: '',
+        args: {},
+        input: '',
+        output: '',
+        content: '',
+        createdAt: Date.now(),
+    })),
 };
 vi.mock('@/files', () => ({
     ChatFile: mockChatFile,
 }));
 
-// 模拟 LLM 的 stream 方法
-const mockStream = vi.fn();
-vi.mock('../../app/(apps)/luoye/ai/model', () => ({
-    getMimoModel: () => ({
-        stream: mockStream,
+// 模拟 Agent 的 streamEvents 方法
+const mockStreamEvents = vi.fn();
+vi.mock('../../app/(apps)/luoye/ai/chat/agent', () => ({
+    createChatAgent: () => ({
+        streamEvents: mockStreamEvents,
     }),
 }));
 
@@ -84,11 +107,19 @@ function makeSession(
     };
 }
 
-// 创建一个模拟的异步可迭代对象（模拟 LLM stream）
-async function* fakeChunks(contents: string[]) {
+// 创建模拟的 agent streamEvents（模拟 ReAct Agent 事件流）
+async function* fakeAgentEvents(contents: string[]) {
+    yield { event: 'on_chat_model_start', data: {} };
     for (const content of contents) {
-        yield { content };
+        yield {
+            event: 'on_chat_model_stream',
+            data: { chunk: { content } },
+        };
     }
+    yield {
+        event: 'on_chat_model_end',
+        data: { output: { tool_calls: [] } },
+    };
 }
 
 // ---- Tests ----
@@ -116,17 +147,17 @@ describe('POST /luoye/ai/chat (发送消息)', () => {
         expect(body.message).toBe('未登录');
     });
 
-    it('缺少 docId 应返回 400', async () => {
-        mockServerFetch.mockResolvedValueOnce({ id: 'user-1' });
-
-        const res = await POST(makeRequest({ message: '你好' }));
-        expect(res.status).toBe(400);
-    });
-
     it('缺少 message 应返回 400', async () => {
         mockServerFetch.mockResolvedValueOnce({ id: 'user-1' });
 
         const res = await POST(makeRequest({ docId: 'doc-1' }));
+        expect(res.status).toBe(400);
+    });
+
+    it('不传 docId 且不传 message 应返回 400', async () => {
+        mockServerFetch.mockResolvedValueOnce({ id: 'user-1' });
+
+        const res = await POST(makeRequest({}));
         expect(res.status).toBe(400);
     });
 
@@ -169,8 +200,8 @@ describe('POST /luoye/ai/chat (发送消息)', () => {
                     },
                 ],
             }); // 构建消息列表
-        mockChatFile.appendMessage.mockResolvedValue(session);
-        mockStream.mockResolvedValue(fakeChunks(['你', '好', '呀']));
+        mockChatFile.appendUserMessage.mockResolvedValue(session);
+        mockStreamEvents.mockReturnValue(fakeAgentEvents(['你', '好', '呀']));
 
         const res = await POST(
             makeRequest({ docId: 'doc-1', message: '你好' }),
@@ -214,8 +245,8 @@ describe('POST /luoye/ai/chat (发送消息)', () => {
                     },
                 ],
             });
-        mockChatFile.appendMessage.mockResolvedValue(session);
-        mockStream.mockResolvedValue(fakeChunks(['好的']));
+        mockChatFile.appendUserMessage.mockResolvedValue(session);
+        mockStreamEvents.mockReturnValue(fakeAgentEvents(['好的']));
 
         const res = await POST(
             makeRequest({
@@ -279,10 +310,10 @@ describe('POST /luoye/ai/chat (发送消息)', () => {
                     },
                 ],
             });
-        mockChatFile.appendMessage.mockResolvedValue(session);
+        mockChatFile.appendUserMessage.mockResolvedValue(session);
 
         // LLM 抛出异常
-        mockStream.mockResolvedValue(
+        mockStreamEvents.mockReturnValue(
             (async function* () {
                 throw new Error('模型调用失败');
             })(),
@@ -313,8 +344,8 @@ describe('POST /luoye/ai/chat (发送消息)', () => {
         mockChatFile.cleanupSessions.mockResolvedValue(undefined);
         mockChatFile.createSession.mockResolvedValue(session);
         mockChatFile.getSession.mockResolvedValue(session);
-        mockChatFile.appendMessage.mockResolvedValue(session);
-        mockStream.mockResolvedValue(fakeChunks(['Hello']));
+        mockChatFile.appendUserMessage.mockResolvedValue(session);
+        mockStreamEvents.mockReturnValue(fakeAgentEvents(['Hello']));
 
         await POST(makeRequest({ docId: 'doc-1', message: 'Hello' }));
 
@@ -328,5 +359,39 @@ describe('POST /luoye/ai/chat (发送消息)', () => {
             false,
             { cache: 'no-store' },
         );
+    });
+
+    it('不传 docId 时应正常创建会话并返回流', async () => {
+        mockServerFetch.mockResolvedValueOnce({ id: 'user-1' }); // user info only
+
+        const session = makeSession({ docId: undefined });
+        mockChatFile.cleanupSessions.mockResolvedValue(undefined);
+        mockChatFile.createSession.mockResolvedValue(session);
+        mockChatFile.getSession
+            .mockResolvedValueOnce(session)
+            .mockResolvedValueOnce({
+                ...session,
+                messages: [
+                    {
+                        messageId: 'msg-1',
+                        role: 'user',
+                        content: '你好',
+                        createdAt: Date.now(),
+                    },
+                ],
+            });
+        mockChatFile.appendUserMessage.mockResolvedValue(session);
+        mockStreamEvents.mockReturnValue(fakeAgentEvents(['你', '好']));
+
+        const res = await POST(makeRequest({ message: '你好' }));
+        expect(res.status).toBe(200);
+
+        const events = await readSSEStream(res);
+        const types = events.map((e) => JSON.parse(e).type);
+        expect(types).toContain('session');
+        expect(types).toContain('done');
+
+        // 应该只调用一次 serverFetch（user.info），不调用 doc
+        expect(mockServerFetch).toHaveBeenCalledTimes(1);
     });
 });

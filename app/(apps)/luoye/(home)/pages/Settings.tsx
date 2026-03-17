@@ -12,7 +12,7 @@ export default function Settings({ userId }: Props) {
     const [isShareAccountFormVisible, setShareAccountFormVisible] = useState(false);
 
     return (
-        <>
+        <div className={styles.pageView}>
             <div className={styles.titleBar}>
                 <h2 className={styles.pageTitle}>设置</h2>
             </div>
@@ -21,6 +21,6 @@ export default function Settings({ userId }: Props) {
             {isShareAccountFormVisible && (
                 <ShareAccountForm userId={userId} onClose={async () => setShareAccountFormVisible(false)} />
             )}
-        </>
+        </div>
     );
 }

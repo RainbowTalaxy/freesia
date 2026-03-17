@@ -55,6 +55,9 @@ const SideBar = () => {
                 <SideBarListItem href="/luoye/settings" active={tab === 'settings'} icon="⚙️">
                     设置
                 </SideBarListItem>
+                <SideBarListItem href="/luoye/ai-chat" active={tab === 'ai-chat'} icon="🤖">
+                    问一问
+                </SideBarListItem>
                 <SideBarListItem
                     icon="🪴"
                     href={`/luoye/workspace`}
