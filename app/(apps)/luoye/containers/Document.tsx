@@ -163,7 +163,11 @@ const Document = () => {
                         <h1 id={doc.name}>{doc.name || <Placeholder>无标题</Placeholder>}</h1>
                         {doc.docType === DocType.Text &&
                             doc.content.split('\n').map((item, index) => <p key={index}>{item}</p>)}
-                        {doc.docType === DocType.Markdown && <Markdown title={doc.name}>{doc.content}</Markdown>}
+                        {doc.docType === DocType.Markdown && (
+                            <Markdown title={doc.name} enableToc>
+                                {doc.content}
+                            </Markdown>
+                        )}
                         <p className={styles.docInfo}>
                             <span>{doc.creator.toUpperCase()}</span>
                             {docAuth.editable ? (
