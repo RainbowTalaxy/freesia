@@ -52,13 +52,13 @@ export async function POST(request: NextRequest) {
         message,
         sessionId: existingSessionId,
     } = body as {
-        docId: string;
+        docId?: string;
         message: string;
         sessionId?: string;
     };
 
     // 参数检查
-    if (!docId?.trim() || !message?.trim()) {
+    if (!message?.trim()) {
         return NextResponse.json({ message: '缺少必填参数' }, { status: 400 });
     }
 
@@ -69,30 +69,39 @@ export async function POST(request: NextRequest) {
         );
     }
 
-    // 获取文档内容
-    const doc = await serverFetch(API.luoye.doc(docId), true, false, {
-        cache: 'no-store',
-    });
-    if (!doc) {
-        return NextResponse.json({ message: '文档不存在' }, { status: 404 });
+    // 获取文档内容（仅在传入 docId 时）
+    let doc: Doc | null = null;
+    if (docId?.trim()) {
+        doc = await serverFetch(API.luoye.doc(docId), true, false, {
+            cache: 'no-store',
+        });
+        if (!doc) {
+            return NextResponse.json(
+                { message: '文档不存在' },
+                { status: 404 },
+            );
+        }
     }
 
     // ## 二、会话管理阶段
 
     const userId = user.id;
     let session: ChatSession;
+    const isNewSession = !existingSessionId;
 
-    if (!existingSessionId) {
+    if (isNewSession) {
         // 清理过期会话
         await ChatFile.cleanupSessions(userId);
-        session = await ChatFile.createSession(userId, docId, doc.updatedAt);
+        session = await ChatFile.createSession(userId, doc?.id, doc?.updatedAt);
 
-        // 伪造一个 Assistant 消息，预先通过 read_doc 注入文档内容
-        await ChatFile.appendAssistantMessage(
-            userId,
-            session.sessionId,
-            createFakeReadDocMessage(doc),
-        );
+        // 有文档时，伪造一个 Assistant 消息，预先通过 read_doc 注入文档内容
+        if (doc) {
+            await ChatFile.appendAssistantMessage(
+                userId,
+                session.sessionId,
+                createFakeReadDocMessage(doc),
+            );
+        }
     } else {
         // 读取会话
         const oldSession = await ChatFile.getSession(userId, existingSessionId);
@@ -113,15 +122,28 @@ export async function POST(request: NextRequest) {
     await ChatFile.appendUserMessage(userId, sessionId, message);
 
     // 构建 LangChain 消息列表
-    session = (await ChatFile.getSession(userId, sessionId))!;
+    const latestSession = await ChatFile.getSession(userId, sessionId);
+    if (!latestSession) {
+        return NextResponse.json({ message: '会话不存在' }, { status: 404 });
+    }
+    session = latestSession;
 
     //提示词
-    const systemPrompt = `用户正在一个文档页面向你发起提问。文档 ID 为 "${doc.id}"。当前文档内容已在对话开头通过 read_doc 工具读取，请直接使用对话中已有的文档内容回答问题，无需重复调用 read_doc 读取同一文档，除非你被告知文档内容已更新。`;
+    let systemPrompt: string;
+    if (doc) {
+        systemPrompt = `用户正在一个文档页面向你发起提问。文档 ID 为 "${doc.id}"。当前文档内容已在对话开头通过 read_doc 工具读取，请直接使用对话中已有的文档内容回答问题，无需重复调用 read_doc 读取同一文档，除非你被告知文档内容已更新。`;
+    } else {
+        systemPrompt = `你是一个智能助手，可以回答用户的各种问题。你可以使用 search_docs 工具搜索用户的文档库，使用 read_doc 工具读取文档内容。`;
+    }
 
-    // 检测文档变更
+    // 检测文档变更（仅在有文档时）
     let docChanged = false;
 
-    if (session.docUpdatedAt !== doc.updatedAt) {
+    if (
+        doc &&
+        session?.docUpdatedAt !== undefined &&
+        session.docUpdatedAt !== doc.updatedAt
+    ) {
         docChanged = true;
         session.docUpdatedAt = doc.updatedAt;
         await ChatFile.saveSession(session);
@@ -152,15 +174,17 @@ export async function POST(request: NextRequest) {
         async start(controller) {
             try {
                 // 新会话时先发送 sessionId
-                controller.enqueue(
-                    encoder.encode(
-                        sseEvent({
-                            type: 'session',
-                            sessionId,
-                            messageId: assistantMessage.messageId,
-                        }),
-                    ),
-                );
+                if (isNewSession) {
+                    controller.enqueue(
+                        encoder.encode(
+                            sseEvent({
+                                type: 'session',
+                                sessionId,
+                                messageId: assistantMessage.messageId,
+                            }),
+                        ),
+                    );
+                }
 
                 const eventStream = agent.streamEvents(
                     { messages },

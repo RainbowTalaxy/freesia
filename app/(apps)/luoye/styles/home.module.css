@@ -88,6 +88,11 @@
     padding: 36px 10vw;
 }
 
+.aiChat {
+    height: 100vh;
+    height: 100dvh;
+}
+
 .titleBar {
     display: flex;
     align-items: center;

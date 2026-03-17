@@ -89,7 +89,7 @@ const LuoyeAPI = {
         },
         chat: {
             send: (props: {
-                docId: string;
+                docId?: string;
                 message: string;
                 sessionId?: string;
             }) => Rocket.post(`${BASE_PATH}/luoye/ai/chat`, props),
