@@ -14,6 +14,7 @@
 }
 
 .topPlaceholder {
+    flex-shrink: 0;
     height: 40px; /* 与 closeButton 同高，保持布局稳定 */
 }
 
