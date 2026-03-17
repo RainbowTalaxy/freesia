@@ -11,9 +11,10 @@ import Code from './components/Code';
 interface Props {
     children: string;
     title: string;
+    enableToc?: boolean;
 }
 
-const Markdown = ({ children, title }: Props) => {
+const Markdown = ({ children, title, enableToc = false }: Props) => {
     return (
         <article className={styles.article}>
             <ReactMarkdown
@@ -26,7 +27,7 @@ const Markdown = ({ children, title }: Props) => {
                         </a>
                     ),
                 }}
-                remarkPlugins={[() => remarkToc(title), remarkGfm, remarkRehype]}
+                remarkPlugins={[...(enableToc ? [() => remarkToc(title)] : []), remarkGfm, remarkRehype]}
                 rehypePlugins={[rehypeSlug, rehypeRaw]}
             >
                 {children}
