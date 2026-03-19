@@ -191,6 +191,7 @@ export async function POST(request: NextRequest) {
                     {
                         version: 'v2',
                         signal: abortController.signal,
+                        recursionLimit: 100,
                     },
                 );
 
