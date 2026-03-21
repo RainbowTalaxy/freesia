@@ -3,6 +3,7 @@ import dayjs from 'dayjs';
 
 export const PROJECT_ICON = '🍂';
 export const PROJECT_NAME = '落页';
+export const IS_DEV = process.env.NODE_ENV === 'development';
 
 export const DEFAULT_WORKSPACE_PLACEHOLDER = {
     name: '个人工作区',
