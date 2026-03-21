@@ -55,7 +55,8 @@ const TextEditor = ({ className, visible, keyId, onSave, defaultValue, textRef }
         return () => {
             if (visible) Toast.close();
         };
-    }, [visible, keyId, defaultValue]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [visible, keyId]);
 
     return (
         <div className={styles.docInputContainer}>
