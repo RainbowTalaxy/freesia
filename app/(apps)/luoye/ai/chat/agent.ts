@@ -42,7 +42,9 @@ const searchDocsTool = tool(
         schema: z.object({
             keyword: z
                 .string()
-                .describe('搜索关键词（大小写敏感，精确子串匹配）'),
+                .describe(
+                    '搜索关键词（大小写敏感，多词 AND 搜索，用空白分隔）',
+                ),
             workspaceId: z.string().optional().describe('限定搜索的工作区 ID'),
             limit: z.number().optional().describe('返回结果数量上限，默认 15'),
         }),
