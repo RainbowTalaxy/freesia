@@ -374,7 +374,7 @@ interface Response = {
 
 ```ts
 interface Query {
-    keyword: string; // 搜索关键词（大小写敏感，精确子串匹配）
+    keyword: string; // 搜索关键词（大小写敏感，多词 AND 搜索，用空白分隔）
     workspaceId?: string; // 限定搜索的工作区 ID
     limit?: number; // 返回结果数量上限，默认 15
 }
@@ -398,6 +398,7 @@ type Response = SearchResultItem[];
 
 **说明**
 
+- 搜索关键词支持多词 AND 搜索，使用空白分隔多个词。例如搜索 "hello world" 仅返回同时包含 "hello" 和 "world" 的文档
 - 搜索关键词为大小写敏感的精确子串匹配，不支持模糊搜索
 - 搜索范围为当前用户有权限访问的文档的标题和正文
 - 如果指定 `workspaceId`，则仅在该工作区的文档中搜索，需要 Member 及以上权限
