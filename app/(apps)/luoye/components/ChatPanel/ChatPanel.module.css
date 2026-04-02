@@ -160,19 +160,26 @@
 
 /* Markdown styles override within message */
 .assistantMessage .messageContent p {
-    margin-bottom: 0.8em;
+    margin-bottom: 1rem;
 }
 
-.assistantMessage .messageContent p:last-child {
-    margin-bottom: 0;
+.assistantMessage .messageContent > ul,
+.assistantMessage .messageContent > ol {
+    margin: 0 0 1rem;
 }
 
-.assistantMessage .messageContent li > * {
-    margin-bottom: 0;
+.assistantMessage .messageContent p + ul,
+.assistantMessage .messageContent p + ol {
+    margin-bottom: 1rem;
+}
+
+.assistantMessage .messageContent details,
+.assistantMessage .messageContent :global(.callout) {
+    margin-bottom: 1rem;
 }
 
 .assistantMessage .messageContent hr {
-    margin: 1em 0;
+    margin: 1rem 0;
     background: rgb(190, 195, 201, 0.3);
 }
 

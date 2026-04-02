@@ -21,11 +21,11 @@ const Markdown = ({ children, title, enableToc = false }: Props) => {
                 components={{
                     img: Img,
                     code: Code,
-                    a: ({ children, href, ...props }) => (
-                        <a href={href} target="_blank" rel="noopener noreferrer" {...props}>
-                            {children}
-                        </a>
-                    ),
+                    // a: ({ children, href, ...props }) => (
+                    //     <a href={href} target="_blank" rel="noopener noreferrer" {...props}>
+                    //         {children}
+                    //     </a>
+                    // ),
                 }}
                 remarkPlugins={[...(enableToc ? [() => remarkToc(title)] : []), remarkGfm, remarkRehype]}
                 rehypePlugins={[rehypeSlug, rehypeRaw]}

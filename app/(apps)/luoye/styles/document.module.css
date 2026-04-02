@@ -1,6 +1,6 @@
 .docView {
     --h-padding: 24px;
-    --toc-width: 160px;
+    --toc-width: 168px;
     position: relative;
     width: 100%;
 }
@@ -147,17 +147,24 @@
     display: none;
 }
 
-.toc.toc > ul {
+.toc.toc p,
+.toc.toc ul,
+.toc.toc ol {
     margin: 0;
-    margin-top: 6px;
+    /* margin-top: 6px; */
     list-style: none;
     list-style-type: none;
     padding: 0;
     line-height: 2;
 }
 
+.toc > header {
+    margin-bottom: 6px;
+}
+
 .toc > header,
-.toc > ul li {
+.toc > ul li,
+.toc > ul li p {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
