@@ -9,7 +9,7 @@
 .article h4,
 .article h5,
 .article h6 {
-    margin: 0 0 1rem;
+    margin: 0 0 1.25rem;
     line-height: 1.25;
     font-weight: 700;
 }
@@ -31,11 +31,20 @@
 }
 
 .article h5 {
-    font-size: 0.875rem;
+    font-size: 1rem;
 }
 
 .article h6 {
-    font-size: 0.75rem;
+    font-size: 1rem;
+}
+
+.article p + h1,
+.article p + h2,
+.article p + h3,
+.article p + h4,
+.article p + h5,
+.article p + h6 {
+    margin-top: 1rem;
 }
 
 .article p {
@@ -54,7 +63,7 @@
 }
 
 .article pre {
-    margin: 0 0 1.25rem;
+    margin: 1.25rem 0;
     padding: 1rem;
     border-radius: 0.4rem;
     font-size: 95%;
@@ -64,8 +73,8 @@
 }
 
 .article :global(.shiki) {
-    margin: -1em;
-    padding: 1em;
+    margin: -1rem;
+    padding: 1rem;
     border-radius: 0.4rem;
     font-size: 95%;
     line-height: 1.45;
@@ -93,7 +102,7 @@ html[data-theme='dark'] .article :global(.shiki span) {
 }
 
 .article hr {
-    margin: 2.5rem 0;
+    margin: 2rem 0;
     height: 1px;
     background: rgb(190, 195, 201, 0.5);
     border: none;
@@ -159,10 +168,20 @@ html[data-theme='dark'] .article :global(.shiki span) {
     opacity: 1;
 }
 
+.article > ul,
+.article > ol {
+    margin: 0 0 1.25rem;
+    padding-left: 2rem;
+}
+
 .article ul,
 .article ol {
-    margin: 0 0 1.35rem;
     padding-left: 2rem;
+}
+
+.article p + ul,
+.article p + ol {
+    margin-bottom: 1.25rem;
 }
 
 .article ul {
@@ -182,21 +201,7 @@ html[data-theme='dark'] .article :global(.shiki span) {
     list-style-type: decimal;
 }
 
-.article ol ol,
-.article ol ul,
-.article ul ol,
-.article ul ul {
-    margin-bottom: 0;
-}
-
-.article li > * {
-    margin-bottom: 0;
-}
-
-.article li > * + * {
-    margin-top: 0.75rem;
-}
-
-.article li > * + *:last-child {
-    margin-bottom: 0.75rem;
+.article details,
+.article :global(.callout) {
+    margin-bottom: 1.25rem;
 }
