@@ -273,6 +273,7 @@ export async function POST(request: NextRequest) {
                             const toolCallMessage =
                                 ChatFile.newToolCallMessage();
                             toolCallMessage.name = event.name;
+                            toolCallMessage.runId = event.run_id;
                             toolCallMessage.input = event.data.input;
                             toolCallMessage.output = output;
                             toolCallMessage.content = output?.content;

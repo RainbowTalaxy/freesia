@@ -17,17 +17,19 @@ interface Props {
     workspace?: WorkspaceItem | Workspace | null;
     workspaceItems?: WorkspaceItem[];
     doc?: Doc;
+    initialName?: string;
+    initialDocType?: DocType;
     onClose: (newDoc?: Doc) => Promise<void>;
     onDelete?: () => void;
 }
 
-const DocForm = ({ userId, workspace, workspaceItems, doc, onClose, onDelete }: Props) => {
+const DocForm = ({ userId, workspace, workspaceItems, doc, initialName, initialDocType, onClose, onDelete }: Props) => {
     const nameRef = useRef<HTMLInputElement>(null);
     const workspaceRef = useRef<HTMLSelectElement>(null);
     const scopeRef = useRef<HTMLInputElement>(null);
     const dateRef = useRef<HTMLInputElement>(null);
     const tagInputRef = useRef<HTMLInputElement>(null);
-    const [docType, setDocType] = useState<DocType>(DocType.Text);
+    const [docType, setDocType] = useState<DocType>(initialDocType ?? DocType.Text);
     const [tags, setTags] = useState<string[]>([]);
     const [aiTags, setAiTags] = useState<string[]>([]);
     const [aiLoading, setAiLoading] = useState(false);
@@ -123,8 +125,9 @@ const DocForm = ({ userId, workspace, workspaceItems, doc, onClose, onDelete }: 
             setTags(doc.tags ?? []);
         } else if (workspace) {
             scopeRef.current!.checked = workspace.scope === Scope.Public;
+            if (initialName) nameRef.current!.value = initialName;
         }
-    }, [doc, workspace]);
+    }, [doc, workspace, initialName]);
 
     return createPortal(
         <div className={styles.container}>

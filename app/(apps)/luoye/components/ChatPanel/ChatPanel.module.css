@@ -163,6 +163,10 @@
     margin-bottom: 1rem;
 }
 
+.assistantMessage .messageContent article > *:last-child {
+    margin-bottom: 0;
+}
+
 .assistantMessage .messageContent > ul,
 .assistantMessage .messageContent > ol {
     margin: 0 0 1rem;

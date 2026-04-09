@@ -365,7 +365,7 @@ const ChatPanel = ({ showCloseButton = true }: ChatPanelProps = {}) => {
                                     >
                                         <div className={styles.messageContent}>
                                             {msg.role === 'assistant' ? (
-                                                <AssistantContent content={msg.content} />
+                                                <AssistantContent content={msg.content} sessionId={sessionId} />
                                             ) : (
                                                 msg.content
                                             )}
@@ -378,7 +378,7 @@ const ChatPanel = ({ showCloseButton = true }: ChatPanelProps = {}) => {
                             {isLoading && (
                                 <div className={`${styles.message} ${styles.assistantMessage}`}>
                                     <div className={styles.messageContent}>
-                                        <AssistantContent content={pendingMessages} />
+                                        <AssistantContent content={pendingMessages} sessionId={sessionId} />
                                     </div>
                                     <MessageLoading visible />
                                 </div>

@@ -101,6 +101,14 @@ const LuoyeAPI = {
                 Rocket.post<ActionResult>(
                     `${BASE_PATH}/luoye/ai/chat/${sessionId}/abort`,
                 ),
+            confirmSave: (
+                sessionId: string,
+                props: { confirmed: boolean; runId: string },
+            ) =>
+                Rocket.post<ActionResult>(
+                    `${BASE_PATH}/luoye/ai/chat/${sessionId}/confirm-save`,
+                    props,
+                ),
         },
     },
 };

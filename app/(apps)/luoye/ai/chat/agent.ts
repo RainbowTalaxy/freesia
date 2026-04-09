@@ -73,10 +73,50 @@ const readDocTool = tool(
     },
 );
 
+const getCurrentTimeTool = tool(
+    async () => {
+        const now = new Date();
+        const cst = new Date(now.getTime() + 8 * 60 * 60 * 1000);
+        return (
+            cst.toISOString().replace('T', ' ').replace('Z', '') + ' (UTC+8)'
+        );
+    },
+    {
+        name: 'get_current_time',
+        description: '获取当前日期和时间。',
+        schema: z.object({}),
+    },
+);
+
+const saveDocRequestTool = tool(
+    async ({ title, content }) => {
+        // 非阻塞请求，返回 pending 状态；前端会显示此 tool 调用信息，由用户决定是否保存
+        return JSON.stringify({ status: 'pending', title, content });
+    },
+    {
+        name: 'save_doc_request',
+        description:
+            '发起文档保存请求。将整理好的标题和 Markdown 内容发送给用户，由用户在页面上确认是否保存为文档。调用此工具后不会立即保存，需等待用户点击确认。',
+        schema: z.object({
+            title: z.string().describe('文档标题'),
+            content: z
+                .string()
+                .describe(
+                    '文档内容，Markdown 格式，不要包含一级标题（# 标题）',
+                ),
+        }),
+    },
+);
+
 export function createChatAgent() {
     const model = getMimoModel();
     return createAgent({
         model,
-        tools: [searchDocsTool, readDocTool],
+        tools: [
+            searchDocsTool,
+            readDocTool,
+            saveDocRequestTool,
+            getCurrentTimeTool,
+        ],
     });
 }

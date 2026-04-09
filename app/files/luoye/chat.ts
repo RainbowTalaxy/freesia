@@ -32,6 +32,7 @@ export interface ChatSessionAssistantChatMessage {
 
 export interface ChatSessionToolCallMessage {
     toolCallId: string;
+    runId: string;
     role: 'tool';
     name: string;
     args: Record<string, unknown>;
@@ -138,6 +139,7 @@ const ChatFile = {
     newToolCallMessage(): ChatSessionToolCallMessage {
         return {
             toolCallId: this.generateMessageId(),
+            runId: '',
             role: 'tool' as const,
             name: '',
             args: {},
@@ -146,6 +148,28 @@ const ChatFile = {
             content: '',
             createdAt: Date.now(),
         };
+    },
+
+    /** 根据 runId 更新对应 tool call 的 content */
+    async updateToolCallContent(
+        userId: string,
+        sessionId: string,
+        runId: string,
+        content: string,
+    ): Promise<boolean> {
+        const session = await this.getSession(userId, sessionId);
+        if (!session) return false;
+        for (const msg of session.messages) {
+            if (msg.role !== 'assistant') continue;
+            for (const item of msg.content) {
+                if (item.role === 'tool' && item.runId === runId) {
+                    item.content = content;
+                    await this.saveSession(session);
+                    return true;
+                }
+            }
+        }
+        return false;
     },
 
     /** 追加用户消息到会话 */
