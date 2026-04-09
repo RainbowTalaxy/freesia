@@ -19,6 +19,7 @@ export const DocContext = createContext<{
     setEditing: (editing: boolean) => void;
     setChatVisible: (visible: boolean) => void;
     setWorkspace: (newWorkspace: Workspace) => void;
+    updateWorkspace: (workspaceId: string) => Promise<void>;
     updateDoc: (newDoc: Doc, needUpdateWorkspace?: boolean) => void;
     navigateDoc: (id: string, isEditing?: boolean) => void;
 }>({
@@ -32,6 +33,7 @@ export const DocContext = createContext<{
     setEditing: () => {},
     setChatVisible: () => {},
     setWorkspace: () => {},
+    updateWorkspace: async () => {},
     updateDoc: () => {},
     navigateDoc: () => {},
 });
@@ -118,6 +120,10 @@ export const DocContextProvider = ({
                 setWorkspace,
                 setEditing,
                 setChatVisible,
+                updateWorkspace: async (workspaceId: string) => {
+                    const newWorkspace = await clientFetch(API.luoye.workspace(workspaceId));
+                    setWorkspace(newWorkspace);
+                },
                 updateDoc: async (newDoc, needUpdateWorkspace = true) => {
                     setDoc(newDoc);
                     if (!needUpdateWorkspace) return;

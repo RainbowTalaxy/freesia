@@ -66,6 +66,21 @@ export interface ToolCallMessage {
     content?: string;
 }
 
+/** `save_doc_request` tool 的输入参数，表示 agent 发起的文档保存请求 */
+export interface SaveDocRequestToolInput {
+    [key: string]: unknown;
+    title: string;
+    content: string; // Markdown 格式
+}
+
+/** agent 发起文档保存请求的 tool call 消息，前端据此渲染确认表单 */
+export interface SaveDocRequestToolCallMessage extends ToolCallMessage {
+    name: 'save_doc_request';
+    input: SaveDocRequestToolInput;
+    /** pending: 待用户确认；confirmed: 用户已确认；cancelled: 用户已取消 */
+    content?: 'pending' | 'confirmed' | 'cancelled';
+}
+
 export interface AssistantMessage {
     id: string;
     role: 'assistant';

@@ -1,0 +1,125 @@
+.saveDocRequest {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: wrap;
+    margin: 10px 0;
+    padding: 6px 14px 6px 16px;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--ly-primary);
+    background-color: var(--ly-background);
+    border: 1px solid var(--ly-active-background);
+    border-radius: 6px;
+}
+
+.saveDocTitle {
+    padding: 0;
+    border: none;
+    background: none;
+    color: var(--ly-primary);
+    font-size: inherit;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.saveDocTitle:hover {
+    color: var(--ly-secondary);
+}
+
+.saveDocAccept,
+.saveDocReject {
+    padding: 3px 10px;
+    border-radius: 6px;
+    background: none;
+    cursor: pointer;
+    transition: background-color 0.15s;
+}
+
+.saveDocAccept {
+    color: var(--ly-primary);
+}
+
+.saveDocAccept:hover {
+    background-color: var(--ly-active-background);
+}
+
+.saveDocReject {
+    color: var(--ly-secondary);
+}
+
+.saveDocReject:hover {
+    background-color: var(--ly-active-background);
+}
+
+/* Preview Modal */
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.previewOverlay {
+    --primary: var(--ly-primary);
+    --secondary: var(--ly-secondary);
+    --border: var(--ly-secondary);
+    --shadow: var(--ly-inactive-background);
+    --background: var(--ly-active-background);
+    --page: var(--ly-background);
+
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 300;
+    animation: fadeIn 0.15s ease-in-out;
+}
+
+.previewCard {
+    position: relative;
+    min-width: min(90vw, 650px);
+    width: 50vw;
+    max-width: 1000px;
+    height: 94vh;
+    background: var(--ly-page-background);
+    border-radius: 8px;
+    overflow-y: hidden;
+}
+
+.previewCardBody {
+    position: relative;
+    background: var(--ly-page-background);
+    border-radius: 8px;
+    padding: 48px 44px;
+    height: 100%;
+    overflow-y: auto;
+}
+
+.previewClose {
+    position: absolute;
+    top: 24px;
+    right: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px;
+    width: 36px;
+    height: 36px;
+    border: none;
+    border-radius: 6px;
+    background: none;
+    color: var(--ly-secondary);
+    cursor: pointer;
+    z-index: 1;
+    transition: background-color 0.15s;
+}
+
+.previewClose:hover {
+    background-color: var(--ly-active-background);
+}

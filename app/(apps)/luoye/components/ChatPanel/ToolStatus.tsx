@@ -1,4 +1,5 @@
-import { ToolCallMessage } from '../../ai/chat/types';
+import { SaveDocRequestToolCallMessage, ToolCallMessage } from '../../ai/chat/types';
+import SaveDocRequest from './SaveDocRequest';
 import styles from './ChatPanel.module.css';
 
 function parseToolArgs(input: Record<string, unknown>): Record<string, unknown> {
@@ -41,7 +42,11 @@ function getReadDocText(tool: ToolCallMessage) {
     return `已阅读《${title}》`;
 }
 
-const ToolStatus = ({ tool }: { tool: ToolCallMessage }) => {
+const ToolStatus = ({ tool, sessionId }: { tool: ToolCallMessage; sessionId: string | null }) => {
+    if (tool.name === 'save_doc_request') {
+        return <SaveDocRequest tool={tool as SaveDocRequestToolCallMessage} sessionId={sessionId} />;
+    }
+
     let text: string;
 
     switch (tool.name) {
@@ -50,6 +55,9 @@ const ToolStatus = ({ tool }: { tool: ToolCallMessage }) => {
             break;
         case 'read_doc':
             text = getReadDocText(tool);
+            break;
+        case 'get_current_time':
+            text = tool.content != null ? `已获取到当前时间` : '正在获取当前时间...';
             break;
         default:
             text = tool.content != null ? `${tool.name} 完成` : `${tool.name}…`;
