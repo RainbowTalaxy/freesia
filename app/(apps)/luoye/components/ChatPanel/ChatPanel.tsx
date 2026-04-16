@@ -154,8 +154,14 @@ const ChatPanel = ({ showCloseButton = true }: ChatPanelProps = {}) => {
                 );
 
                 if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.message || '请求失败');
+                    let errorMessage = '请求失败';
+                    try {
+                        const errorData = await response.json();
+                        errorMessage = errorData.message || errorMessage;
+                    } catch {
+                        /* ignore */
+                    }
+                    throw new Error(errorMessage);
                 }
 
                 if (!response.body) throw new Error('No response body');
@@ -167,6 +173,7 @@ const ChatPanel = ({ showCloseButton = true }: ChatPanelProps = {}) => {
                 const _pendingMessages: Array<AssistantChatMessage | ToolCallMessage> = [];
                 let pendingAssistantChatMessage: AssistantChatMessage | null = null;
                 let pendingToolCallMessages: Map<string, ToolCallMessage> = new Map(); // <run_id, ToolCallMessage>
+                let receivedTerminalEvent = false;
 
                 const processSSELine = (line: string) => {
                     if (!line.startsWith('data: ')) return;
@@ -238,6 +245,7 @@ const ChatPanel = ({ showCloseButton = true }: ChatPanelProps = {}) => {
                                 break;
                             }
                             case 'done':
+                                receivedTerminalEvent = true;
                                 if (pendingAssistantChatMessage) {
                                     if (pendingAssistantChatMessage.content.trim()) {
                                         _pendingMessages.push(pendingAssistantChatMessage);
@@ -264,6 +272,7 @@ const ChatPanel = ({ showCloseButton = true }: ChatPanelProps = {}) => {
                                 abortControllerRef.current = null;
                                 break;
                             case 'error':
+                                receivedTerminalEvent = true;
                                 if (pendingAssistantChatMessage) {
                                     if (pendingAssistantChatMessage.content.trim()) {
                                         _pendingMessages.push(pendingAssistantChatMessage);
@@ -274,7 +283,7 @@ const ChatPanel = ({ showCloseButton = true }: ChatPanelProps = {}) => {
                                     _pendingMessages.push(...Array.from(pendingToolCallMessages.values()));
                                     pendingToolCallMessages.clear();
                                 }
-                                // 添加到消息列表中显示错误
+                                // 将错误作为独立块追加到消息列表末尾
                                 _pendingMessages.push({
                                     id: generateMessageId(),
                                     role: 'assistant',
@@ -317,13 +326,49 @@ const ChatPanel = ({ showCloseButton = true }: ChatPanelProps = {}) => {
                 if (buffer.trim()) {
                     processSSELine(buffer);
                 }
-            } catch (error: any) {
-                if (error.name === 'AbortError') {
+
+                // 防御：流正常结束但未收到 done/error 事件（如服务端提前关闭连接）
+                if (abortControllerRef.current && !receivedTerminalEvent) {
+                    const interruptedMessage: AssistantChatMessage = {
+                        id: generateMessageId(),
+                        role: 'assistant',
+                        content: '连接已中断，以下回答可能不完整，请重试。',
+                        createdAt: Date.now(),
+                    };
+
+                    if (_pendingMessages.length > 0) {
+                        setMessages((prev) => [
+                            ...prev,
+                            {
+                                id: generateMessageId(),
+                                role: 'assistant',
+                                content: [..._pendingMessages, interruptedMessage],
+                                createdAt: Date.now(),
+                            },
+                        ]);
+                    } else {
+                        setMessages((prev) => [
+                            ...prev,
+                            {
+                                id: generateMessageId(),
+                                role: 'assistant',
+                                content: [interruptedMessage],
+                                createdAt: Date.now(),
+                            },
+                        ]);
+                    }
+                    Toast.notify('连接中断，回答可能不完整，请重试');
+                    setPendingMessages([]);
+                    setIsLoading(false);
+                    abortControllerRef.current = null;
+                }
+            } catch (error) {
+                if (error instanceof Error && error.name === 'AbortError') {
                     // Handled in handleAbort
                     return;
                 }
                 console.error('Chat error:', error);
-                Toast.notify(error.message || '发送失败');
+                Toast.notify(error instanceof Error ? error.message : '发送失败');
                 setPendingMessages([]);
                 setIsLoading(false);
                 abortControllerRef.current = null;
