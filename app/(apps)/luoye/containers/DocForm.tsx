@@ -123,8 +123,10 @@ const DocForm = ({ userId, workspace, workspaceItems, doc, initialName, initialD
             dateRef.current!.value = formDate(doc.date);
             setDocType(doc.docType);
             setTags(doc.tags ?? []);
-        } else if (workspace) {
-            scopeRef.current!.checked = workspace.scope === Scope.Public;
+        } else {
+            if (workspace) {
+                scopeRef.current!.checked = workspace.scope === Scope.Public;
+            }
             if (initialName) nameRef.current!.value = initialName;
         }
     }, [doc, workspace, initialName]);
