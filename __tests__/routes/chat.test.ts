@@ -62,10 +62,11 @@ vi.mock('@/files', () => ({
 
 // 模拟 Agent 的 streamEvents 方法
 const mockStreamEvents = vi.fn();
+const mockCreateChatAgent = vi.fn(() => ({
+    streamEvents: mockStreamEvents,
+}));
 vi.mock('../../app/(apps)/luoye/ai/chat/agent', () => ({
-    createChatAgent: () => ({
-        streamEvents: mockStreamEvents,
-    }),
+    createChatAgent: () => mockCreateChatAgent(),
 }));
 
 // ---- Helpers ----
@@ -128,8 +129,33 @@ describe('POST /luoye/ai/chat (发送消息)', () => {
     let POST: typeof import('../../app/(apps)/luoye/ai/chat/route').POST;
 
     beforeEach(async () => {
-        vi.clearAllMocks();
+        vi.resetAllMocks();
         streamControllers.clear();
+        mockCreateChatAgent.mockImplementation(() => ({
+            streamEvents: mockStreamEvents,
+        }));
+        mockChatFile.newAssistantMessage.mockImplementation(() => ({
+            messageId: 'assistant-msg-1',
+            role: 'assistant',
+            content: [],
+            createdAt: Date.now(),
+        }));
+        mockChatFile.newAssistantChatMessage.mockImplementation(() => ({
+            messageId: 'chat-msg-1',
+            role: 'assistant',
+            content: '',
+            createdAt: Date.now(),
+        }));
+        mockChatFile.newToolCallMessage.mockImplementation(() => ({
+            toolCallId: 'tool-call-1',
+            role: 'tool',
+            name: '',
+            args: {},
+            input: '',
+            output: '',
+            content: '',
+            createdAt: Date.now(),
+        }));
         // 动态导入以确保 mock 生效
         const mod = await import('../../app/(apps)/luoye/ai/chat/route');
         POST = mod.POST;
@@ -329,6 +355,59 @@ describe('POST /luoye/ai/chat (发送消息)', () => {
             .filter((e) => e.type === 'error');
         expect(errorEvents.length).toBe(1);
         expect(errorEvents[0].message).toBe('模型调用失败');
+    });
+
+    it('agent 初始化失败时，新会话仍应先发送 session 事件', async () => {
+        mockServerFetch.mockResolvedValueOnce({ id: 'user-1' });
+
+        const session = makeSession({ docId: undefined });
+        mockChatFile.cleanupSessions.mockResolvedValue(undefined);
+        mockChatFile.createSession.mockResolvedValue(session);
+        mockChatFile.appendUserMessage.mockResolvedValue(session);
+        mockCreateChatAgent.mockImplementationOnce(() => {
+            throw new Error('agent 初始化失败');
+        });
+
+        const res = await POST(makeRequest({ message: '你好' }));
+        expect(res.status).toBe(200);
+
+        const events = await readSSEStream(res);
+        const parsed = events.map((e) => JSON.parse(e));
+
+        expect(parsed[0]).toMatchObject({
+            type: 'session',
+            sessionId: session.sessionId,
+        });
+        expect(parsed[1]).toMatchObject({
+            type: 'error',
+            message: 'agent 初始化失败',
+        });
+    });
+
+    it('保存 assistant 消息失败时应发送 error 事件而不是 done', async () => {
+        mockServerFetch.mockResolvedValueOnce({ id: 'user-1' });
+
+        const session = makeSession({ docId: undefined });
+        mockChatFile.cleanupSessions.mockResolvedValue(undefined);
+        mockChatFile.createSession.mockResolvedValue(session);
+        mockChatFile.appendUserMessage.mockResolvedValue(session);
+        mockChatFile.appendAssistantMessage.mockRejectedValueOnce(
+            new Error('保存回复失败'),
+        );
+        mockStreamEvents.mockReturnValue(fakeAgentEvents(['你', '好']));
+
+        const res = await POST(makeRequest({ message: '你好' }));
+        expect(res.status).toBe(200);
+
+        const events = await readSSEStream(res);
+        const parsed = events.map((e) => JSON.parse(e));
+        const types = parsed.map((event) => event.type);
+
+        expect(types).toContain('error');
+        expect(types).not.toContain('done');
+        expect(parsed.find((event) => event.type === 'error')).toMatchObject({
+            message: '保存回复失败',
+        });
     });
 
     it('应使用 cache: "no-store" 选项获取文档内容以确保内容最新', async () => {

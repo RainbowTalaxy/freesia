@@ -46,16 +46,16 @@ export async function POST(request: NextRequest) {
     }
 
     // 获取接口参数
-    const body = await request.json();
-    const {
-        docId,
-        message,
-        sessionId: existingSessionId,
-    } = body as {
-        docId?: string;
-        message: string;
-        sessionId?: string;
-    };
+    let body: { docId?: string; message: string; sessionId?: string };
+    try {
+        body = await request.json();
+    } catch {
+        return NextResponse.json(
+            { message: '请求体格式错误' },
+            { status: 400 },
+        );
+    }
+    const { docId, message, sessionId: existingSessionId } = body;
 
     // 参数检查
     if (!message?.trim()) {
@@ -90,16 +90,32 @@ export async function POST(request: NextRequest) {
     const isNewSession = !existingSessionId;
 
     if (isNewSession) {
-        // 清理过期会话
-        await ChatFile.cleanupSessions(userId);
-        session = await ChatFile.createSession(userId, doc?.id, doc?.updatedAt);
+        // 清理过期会话（失败不阻断主流程）
+        try {
+            await ChatFile.cleanupSessions(userId);
+        } catch (cleanupErr) {
+            console.error('[chat] Failed to cleanup sessions:', cleanupErr);
+        }
 
-        // 有文档时，伪造一个 Assistant 消息，预先通过 read_doc 注入文档内容
-        if (doc) {
-            await ChatFile.appendAssistantMessage(
+        try {
+            session = await ChatFile.createSession(
                 userId,
-                session.sessionId,
-                createFakeReadDocMessage(doc),
+                doc?.id,
+                doc?.updatedAt,
+            );
+
+            // 有文档时，伪造一个 Assistant 消息，预先通过 read_doc 注入文档内容
+            if (doc) {
+                await ChatFile.appendAssistantMessage(
+                    userId,
+                    session.sessionId,
+                    createFakeReadDocMessage(doc),
+                );
+            }
+        } catch {
+            return NextResponse.json(
+                { message: '创建会话失败' },
+                { status: 500 },
             );
         }
     } else {
@@ -119,14 +135,28 @@ export async function POST(request: NextRequest) {
     const sessionId = session.sessionId;
 
     // 保存用户消息
-    await ChatFile.appendUserMessage(userId, sessionId, message);
-
-    // 构建 LangChain 消息列表
-    const latestSession = await ChatFile.getSession(userId, sessionId);
-    if (!latestSession) {
-        return NextResponse.json({ message: '会话不存在' }, { status: 404 });
+    let appendResult: ChatSession | null;
+    try {
+        appendResult = await ChatFile.appendUserMessage(
+            userId,
+            sessionId,
+            message,
+        );
+    } catch {
+        return NextResponse.json(
+            { message: '保存用户消息失败' },
+            { status: 500 },
+        );
     }
-    session = latestSession;
+    if (!appendResult) {
+        return NextResponse.json(
+            { message: '保存用户消息失败' },
+            { status: 500 },
+        );
+    }
+
+    // appendUserMessage 返回值即为包含最新消息的会话，无需再次读取文件
+    session = appendResult;
 
     //提示词
     let systemPrompt: string;
@@ -146,7 +176,14 @@ export async function POST(request: NextRequest) {
     ) {
         docChanged = true;
         session.docUpdatedAt = doc.updatedAt;
-        await ChatFile.saveSession(session);
+        try {
+            await ChatFile.saveSession(session);
+        } catch (saveErr) {
+            console.error(
+                '[chat] Failed to save session on doc change:',
+                saveErr,
+            );
+        }
     }
 
     const messages = [
@@ -160,17 +197,21 @@ export async function POST(request: NextRequest) {
         );
     }
 
-    // 创建 AbortController
+    // 创建 AbortController，同时监听客户端断开事件
     const abortController = new AbortController();
+    request.signal.addEventListener('abort', () => abortController.abort(), {
+        once: true,
+    });
     streamControllers.set(sessionId, abortController);
 
     let assistantMessage = ChatFile.newAssistantMessage();
     const encoder = new TextEncoder();
 
-    // 创建 LangGraph ReAct Agent
-    const agent = createChatAgent();
-
     const stream = new ReadableStream({
+        cancel() {
+            // 客户端断开连接时触发，主动中止 agent 推理
+            abortController.abort();
+        },
         async start(controller) {
             try {
                 // 新会话时先发送 sessionId
@@ -186,6 +227,7 @@ export async function POST(request: NextRequest) {
                     );
                 }
 
+                const agent = createChatAgent();
                 const eventStream = agent.streamEvents(
                     { messages },
                     {
@@ -209,11 +251,20 @@ export async function POST(request: NextRequest) {
                         // 当正在返回 AI 回复时，持续发送消息块给前端展示
                         case SseEventStreamEvent.OnChatModelStream: {
                             const chunk = event.data.chunk;
-                            if (!chunk || typeof chunk.content !== 'string') {
+                            if (!chunk) break;
+                            if (typeof chunk.content !== 'string') {
+                                console.warn(
+                                    '[chat] OnChatModelStream: unexpected non-string chunk content, type:',
+                                    typeof chunk.content,
+                                );
                                 break;
                             }
-                            if (!assistantChatMessage)
-                                throw new Error('Missing assistantChatMessage');
+                            if (!assistantChatMessage) {
+                                console.error(
+                                    '[chat] OnChatModelStream: missing assistantChatMessage, skipping chunk',
+                                );
+                                break;
+                            }
                             assistantChatMessage.content += chunk.content;
                             controller.enqueue(
                                 encoder.encode(
@@ -229,8 +280,13 @@ export async function POST(request: NextRequest) {
                         }
 
                         case SseEventStreamEvent.OnChatModelEnd: {
-                            if (!assistantChatMessage)
-                                throw new Error('Missing assistantChatMessage');
+                            if (!assistantChatMessage) {
+                                console.error(
+                                    '[chat] OnChatModelEnd: missing assistantChatMessage, skipping',
+                                );
+                                assistantChatMessage = null;
+                                break;
+                            }
 
                             assistantMessage.content.push(assistantChatMessage);
 
@@ -313,22 +369,34 @@ export async function POST(request: NextRequest) {
                 );
             } catch (err: unknown) {
                 // 被中断时不写入错误事件（中断接口会处理状态恢复）
+                // Node.js 18+ 中 DOMException extends Error，instanceof Error 已覆盖两者
                 if (err instanceof Error && err.name === 'AbortError') {
                     // 中断 —— 不发送任何内容
                 } else {
                     const errorMessage =
                         err instanceof Error ? err.message : '未知错误';
 
-                    controller.enqueue(
-                        encoder.encode(
-                            sseEvent({ type: 'error', message: errorMessage }),
-                        ),
-                    );
+                    try {
+                        controller.enqueue(
+                            encoder.encode(
+                                sseEvent({
+                                    type: 'error',
+                                    message: errorMessage,
+                                }),
+                            ),
+                        );
+                    } catch {
+                        // stream 已关闭，忽略
+                    }
                 }
                 console.error(err);
             } finally {
                 streamControllers.delete(sessionId);
-                controller.close();
+                try {
+                    controller.close();
+                } catch {
+                    // stream 已关闭，忽略
+                }
             }
         },
     });

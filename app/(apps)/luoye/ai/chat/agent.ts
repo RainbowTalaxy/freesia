@@ -7,33 +7,38 @@ import { createAgent } from 'langchain';
 
 const searchDocsTool = tool(
     async ({ keyword, workspaceId, limit }) => {
-        const query: {
-            keyword: string;
-            workspaceId?: string;
-            limit?: number;
-        } = { keyword };
-        if (workspaceId) query.workspaceId = workspaceId;
-        if (limit !== undefined) query.limit = limit;
+        try {
+            const query: {
+                keyword: string;
+                workspaceId?: string;
+                limit?: number;
+            } = { keyword };
+            if (workspaceId) query.workspaceId = workspaceId;
+            if (limit !== undefined) query.limit = limit;
 
-        const results = await serverFetch(
-            API.luoye.search(query),
-            true,
-            false,
-            { cache: 'no-store' },
-        );
+            const results = await serverFetch(
+                API.luoye.search(query),
+                true,
+                false,
+                { cache: 'no-store' },
+            );
 
-        if (!results || results.length === 0) {
-            return '没有找到相关文档。';
+            if (!results || results.length === 0) {
+                return '没有找到相关文档。';
+            }
+
+            return results
+                .map((r) => {
+                    const matchTexts = r.matches
+                        .map((m) => `[${m.field}] ${m.context}`)
+                        .join('\n');
+                    return `文档「${r.name}」(ID: ${r.id})\n${matchTexts}`;
+                })
+                .join('\n---\n');
+        } catch (error) {
+            console.error('[chat] search_docs failed:', error);
+            return '搜索文档时发生错误，请稍后重试。';
         }
-
-        return results
-            .map((r) => {
-                const matchTexts = r.matches
-                    .map((m) => `[${m.field}] ${m.context}`)
-                    .join('\n');
-                return `文档「${r.name}」(ID: ${r.id})\n${matchTexts}`;
-            })
-            .join('\n---\n');
     },
     {
         name: 'search_docs',
@@ -53,15 +58,20 @@ const searchDocsTool = tool(
 
 const readDocTool = tool(
     async ({ docId }) => {
-        const doc = await serverFetch(API.luoye.doc(docId), true, false, {
-            cache: 'no-store',
-        });
+        try {
+            const doc = await serverFetch(API.luoye.doc(docId), true, false, {
+                cache: 'no-store',
+            });
 
-        if (!doc) {
-            return '文档不存在或无权访问。';
+            if (!doc) {
+                return '文档不存在或无权访问。';
+            }
+
+            return `文档标题：${doc.name || '无标题'}\n文档内容：\n${doc.content || '(空)'}`;
+        } catch (error) {
+            console.error('[chat] read_doc failed:', error);
+            return '读取文档时发生错误，请稍后重试。';
         }
-
-        return `文档标题：${doc.name || '无标题'}\n文档内容：\n${doc.content || '(空)'}`;
     },
     {
         name: 'read_doc',
