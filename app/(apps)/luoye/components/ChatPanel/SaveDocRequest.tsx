@@ -3,6 +3,7 @@ import { useState, useContext } from 'react';
 import { createPortal } from 'react-dom';
 import { SaveDocRequestToolCallMessage } from '../../ai/chat/types';
 import { DocContext } from '../../doc/[docId]/context';
+import { HomeContext } from '../../(home)/context';
 import DocForm from '../../containers/DocForm';
 import Markdown from '../Markdown';
 import SVG from '../SVG';
@@ -19,6 +20,8 @@ interface Props {
 
 const SaveDocRequest = ({ tool, sessionId }: Props) => {
     const { userId, workspace, workspaceItems, updateWorkspace } = useContext(DocContext);
+    const { allWorkspaces } = useContext(HomeContext);
+    const resolvedWorkspaceItems = workspaceItems ?? allWorkspaces ?? undefined;
     const [status, setStatus] = useState<'pending' | 'confirmed' | 'cancelled'>('pending');
     const [docFormOpen, setDocFormOpen] = useState(false);
     const [previewOpen, setPreviewOpen] = useState(false);
@@ -96,7 +99,7 @@ const SaveDocRequest = ({ tool, sessionId }: Props) => {
                 <DocForm
                     userId={userId ?? ''}
                     workspace={workspace}
-                    workspaceItems={workspaceItems ?? undefined}
+                    workspaceItems={resolvedWorkspaceItems}
                     initialName={title}
                     initialDocType={DocType.Markdown}
                     onClose={handleDocFormClose}
