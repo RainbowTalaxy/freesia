@@ -44,7 +44,7 @@ export const splitWorkspace = (
     });
 };
 
-export const workSpaceName = (
+export const workspaceName = (
     workspace: Workspace | WorkspaceItem,
     userId: string | null,
 ) => {
