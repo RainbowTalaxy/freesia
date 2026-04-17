@@ -7,7 +7,7 @@ import { Path } from '@/utils';
 import { SideBarList, SideBarListItem, enableChatMode, disableChatMode } from '../../../components/PageLayout';
 import Placeholder from '../../../components/PlaceHolder';
 import SVG from '../../../components/SVG';
-import { checkAuth, workSpaceName } from '../../../configs';
+import { checkAuth, workspaceName } from '../../../configs';
 import Toast from '../../../components/Notification/Toast';
 import WorkspaceForm from '../../../containers/WorkspaceForm';
 import DocForm from '../../../containers/DocForm';
@@ -88,7 +88,7 @@ const SideBar = () => {
     return (
         <>
             <h2>
-                <span>{workSpaceName(workspace, userId)}</span>
+                <span>{workspaceName(workspace, userId)}</span>
                 {workspace.scope === Scope.Private && <SVG.Lock />}
             </h2>
             {workspaceAuth.configurable && (

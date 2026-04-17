@@ -10,7 +10,7 @@ import styles from '../styles/form.module.css';
 import Toast from '../components/Notification/Toast';
 import Tag from '../components/Tag';
 import AITagButton, { aiStyles } from '../components/AIButton';
-import { DOCTYPE_OPTIONS, DOCTYPE_OPTIONS_NAME, workSpaceName } from '../configs';
+import { DOCTYPE_OPTIONS, DOCTYPE_OPTIONS_NAME, workspaceName } from '../configs';
 
 interface Props {
     userId: string;
@@ -143,7 +143,7 @@ const DocForm = ({ userId, workspace, workspaceItems, doc, initialName, initialD
                         <Select
                             raf={workspaceRef}
                             options={workspaceItems.map((w) => ({
-                                label: workSpaceName(w, userId),
+                                label: workspaceName(w, userId),
                                 value: w.id,
                             }))}
                             defaultValue={workspace?.id ?? workspaceItems[0].id}

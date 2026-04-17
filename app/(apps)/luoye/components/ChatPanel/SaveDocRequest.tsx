@@ -19,8 +19,9 @@ interface Props {
 }
 
 const SaveDocRequest = ({ tool, sessionId }: Props) => {
-    const { userId, workspace, workspaceItems, updateWorkspace } = useContext(DocContext);
-    const { allWorkspaces } = useContext(HomeContext);
+    const { userId: docUserId, workspace, workspaceItems, updateWorkspace } = useContext(DocContext);
+    const { userId: homeUserId, allWorkspaces } = useContext(HomeContext);
+    const userId = docUserId ?? homeUserId;
     const resolvedWorkspaceItems = workspaceItems ?? allWorkspaces ?? undefined;
     const [status, setStatus] = useState<'pending' | 'confirmed' | 'cancelled'>('pending');
     const [docFormOpen, setDocFormOpen] = useState(false);
