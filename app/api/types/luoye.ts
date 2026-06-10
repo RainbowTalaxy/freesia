@@ -80,3 +80,73 @@ export interface SearchResultItem {
         context: string; // 匹配上下文摘要
     }[];
 }
+
+export interface ChatSessionUserMessage {
+    schemaVersion: 1;
+    messageId: string;
+    type: 'user_message';
+    content: string;
+    createdAt: number;
+}
+
+export interface ChatSessionTextPart {
+    schemaVersion: 1;
+    partId: string;
+    type: 'text';
+    content: string;
+    createdAt: number;
+}
+
+export interface ChatSessionToolCallPart {
+    schemaVersion: 1;
+    partId: string;
+    type: 'tool_call';
+    toolName: string;
+    runId: string;
+    toolCallId?: string;
+    input: Record<string, unknown>;
+    output?: unknown;
+    content?: string;
+    status?: string;
+    createdAt: number;
+    updatedAt: number;
+}
+
+export type ChatSessionMessagePart =
+    | ChatSessionTextPart
+    | ChatSessionToolCallPart;
+
+export interface ChatSessionAssistantMessage {
+    schemaVersion: 1;
+    messageId: string;
+    type: 'assistant_message';
+    parts: ChatSessionMessagePart[];
+    createdAt: number;
+}
+
+export type ChatSessionMessage =
+    | ChatSessionUserMessage
+    | ChatSessionAssistantMessage;
+
+export interface ChatSession {
+    schemaVersion: 1;
+    sessionId: string;
+    userId: string;
+    docId?: string;
+    title: string;
+    messages: ChatSessionMessage[];
+    docUpdatedAt?: number;
+    createdAt: number;
+    updatedAt: number;
+}
+
+export interface ChatSessionSummary {
+    schemaVersion: 1;
+    sessionId: string;
+    userId: string;
+    docId?: string;
+    title: string;
+    messageCount: number;
+    createdAt: number;
+    updatedAt: number;
+}

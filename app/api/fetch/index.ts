@@ -1,4 +1,4 @@
-export type HTTPMethod = 'GET' | 'POST' | 'PUT' | 'DELETE';
+export type HTTPMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
 function request<Data>(url: string, method: HTTPMethod, data?: any) {
     return {
@@ -24,6 +24,9 @@ export const Rocket = {
     },
     put<Data>(url: string, data?: any) {
         return request<Data>(url, 'PUT', data);
+    },
+    patch<Data>(url: string, data?: any) {
+        return request<Data>(url, 'PATCH', data);
     },
     delete<Data>(url: string, data?: any) {
         return request<Data>(url, 'DELETE', data);

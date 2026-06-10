@@ -12,6 +12,8 @@ import {
     SearchResultItem,
     Workspace,
     WorkspaceItem,
+    ChatSession,
+    ChatSessionSummary,
 } from './types/luoye';
 
 const LuoyeAPI = {
@@ -93,9 +95,48 @@ const LuoyeAPI = {
                 message: string;
                 sessionId?: string;
             }) => Rocket.post(`${BASE_PATH}/luoye/ai/chat`, props),
+            listSessions: (query?: { docId?: string; limit?: number }) =>
+                Rocket.get<ChatSessionSummary[]>(
+                    `${API_PREFIX}/luoye/chat-sessions`,
+                    query,
+                ),
+            createSession: (props?: { docId?: string; docUpdatedAt?: number }) =>
+                Rocket.post<ChatSession>(
+                    `${API_PREFIX}/luoye/chat-sessions`,
+                    props,
+                ),
+            getSession: (sessionId: string) =>
+                Rocket.get<ChatSession>(
+                    `${API_PREFIX}/luoye/chat-sessions/${sessionId}`,
+                ),
+            updateSession: (
+                sessionId: string,
+                props: { title?: string; docUpdatedAt?: number },
+            ) =>
+                Rocket.patch<ChatSession>(
+                    `${API_PREFIX}/luoye/chat-sessions/${sessionId}`,
+                    props,
+                ),
+            appendMessage: (
+                sessionId: string,
+                props: { message: ChatSession['messages'][number] },
+            ) =>
+                Rocket.post<ChatSession>(
+                    `${API_PREFIX}/luoye/chat-sessions/${sessionId}/messages`,
+                    props,
+                ),
+            updateToolCall: (
+                sessionId: string,
+                runId: string,
+                props: { status?: string; output?: unknown; content?: string },
+            ) =>
+                Rocket.patch<ChatSession>(
+                    `${API_PREFIX}/luoye/chat-sessions/${sessionId}/tool-calls/${runId}`,
+                    props,
+                ),
             deleteSession: (sessionId: string) =>
                 Rocket.delete<ActionResult>(
-                    `${BASE_PATH}/luoye/ai/chat/${sessionId}`,
+                    `${API_PREFIX}/luoye/chat-sessions/${sessionId}`,
                 ),
             abort: (sessionId: string) =>
                 Rocket.post<ActionResult>(

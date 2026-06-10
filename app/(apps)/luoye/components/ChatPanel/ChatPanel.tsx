@@ -6,11 +6,14 @@ import styles from './ChatPanel.module.css';
 import { Button, TextArea } from '@/components/form';
 import Toast from '../Notification/Toast';
 import API, { clientFetch } from '@/api';
+import { ChatSession } from '@/api/types/luoye';
 import MessageLoading from './MessageLoading';
 import Welcome from './Welcome';
 import AssistantContent from './AssistantContent';
 import { AssistantChatMessage, Message, SseEventData, ToolCallMessage } from '../../ai/chat/types';
 import { generateMessageId } from '../../ai/chat/utils';
+import ChatSessionPopover from './ChatSessionPopover';
+import { convertSessionToMessages } from './utils';
 
 interface ChatPanelProps {
     /** 是否显示关闭按钮，默认 true */
@@ -24,13 +27,18 @@ const ChatPanel = ({ showCloseButton = true }: ChatPanelProps = {}) => {
     const [input, setInput] = useState('');
     const [pendingMessages, setPendingMessages] = useState<Array<AssistantChatMessage | ToolCallMessage>>([]);
     const [isLoading, setIsLoading] = useState(false);
+    const [isRestoringSession, setRestoringSession] = useState(false);
     const [sessionId, setSessionId] = useState<string | null>(null);
+    const [isHistoryOpen, setHistoryOpen] = useState(false);
+    const [sessionRefreshKey, setSessionRefreshKey] = useState(0);
     const abortControllerRef = useRef<AbortController | null>(null);
     const isComposingRef = useRef(false);
     const scrollTimerRef = useRef<number | null>(null);
     const messageListRef = useRef<HTMLDivElement>(null);
     const userScrolledRef = useRef(false);
     const lastScrollTopRef = useRef(0);
+
+    const isBusy = isLoading || isRestoringSession;
 
     const scrollToBottom = useCallback((force = false) => {
         if (force) {
@@ -122,9 +130,35 @@ const ChatPanel = ({ showCloseButton = true }: ChatPanelProps = {}) => {
         }
     }, [sessionId]);
 
+    const handleNewSession = useCallback(() => {
+        if (isLoading) {
+            Toast.notify('请先停止当前回复，再新建会话');
+            return;
+        }
+        setMessages([]);
+        setPendingMessages([]);
+        setInput('');
+        setSessionId(null);
+        setHistoryOpen(false);
+        userScrolledRef.current = false;
+        scrollToBottom(true);
+    }, [isLoading, scrollToBottom]);
+
+    const handleSessionSelect = useCallback(
+        (session: ChatSession) => {
+            setSessionId(session.sessionId);
+            setMessages(convertSessionToMessages(session));
+            setPendingMessages([]);
+            setInput('');
+            userScrolledRef.current = false;
+            scrollToBottom(true);
+        },
+        [scrollToBottom],
+    );
+
     const handleSend = useCallback(
         async (userInput: string) => {
-            if (!userInput.trim() || abortControllerRef.current) return;
+            if (!userInput.trim() || abortControllerRef.current || isRestoringSession) return;
 
             const userMessage: Message = {
                 id: generateMessageId(),
@@ -268,6 +302,7 @@ const ChatPanel = ({ showCloseButton = true }: ChatPanelProps = {}) => {
                                         },
                                     ]);
                                 }
+                                setSessionRefreshKey((prev) => prev + 1);
                                 setIsLoading(false);
                                 abortControllerRef.current = null;
                                 break;
@@ -300,6 +335,7 @@ const ChatPanel = ({ showCloseButton = true }: ChatPanelProps = {}) => {
                                         createdAt: Date.now(),
                                     },
                                 ]);
+                                setSessionRefreshKey((prev) => prev + 1);
                                 setIsLoading(false);
                                 abortControllerRef.current = null;
                                 break;
@@ -374,7 +410,7 @@ const ChatPanel = ({ showCloseButton = true }: ChatPanelProps = {}) => {
                 abortControllerRef.current = null;
             }
         },
-        [doc?.id, sessionId, scrollToBottom],
+        [doc?.id, sessionId, scrollToBottom, isRestoringSession],
     );
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -387,18 +423,47 @@ const ChatPanel = ({ showCloseButton = true }: ChatPanelProps = {}) => {
 
     return (
         <div className={styles.container} ref={panelRef}>
-            {showCloseButton && (
-                <button className={styles.closeButton} onClick={() => setChatVisible(false)} aria-label="关闭聊天">
-                    <SVG.LeftArrow />
-                </button>
-            )}
+            <div className={styles.toolbar}>
+                <div className={styles.toolbarLeft}>
+                    {showCloseButton && (
+                        <button
+                            className={styles.closeButton}
+                            onClick={() => setChatVisible(false)}
+                            aria-label="关闭聊天"
+                        >
+                            <SVG.LeftArrow />
+                        </button>
+                    )}
+                </div>
+                <div className={styles.toolbarActions}>
+                    <button
+                        className={styles.closeButton}
+                        type="button"
+                        onClick={handleNewSession}
+                        aria-label="新建会话"
+                    >
+                        <SVG.MessageCirclePlus />
+                    </button>
+                    <ChatSessionPopover
+                        docId={doc?.id}
+                        currentSessionId={sessionId}
+                        isOpen={isHistoryOpen}
+                        isChatLoading={isBusy}
+                        refreshKey={sessionRefreshKey}
+                        onToggle={() => setHistoryOpen((prev) => !prev)}
+                        onClose={() => setHistoryOpen(false)}
+                        onSessionSelect={handleSessionSelect}
+                        onRestoreStart={() => setRestoringSession(true)}
+                        onRestoreEnd={() => setRestoringSession(false)}
+                    />
+                </div>
+            </div>
             <div className={styles.content}>
                 <div className={styles.messageList} ref={messageListRef} onScroll={handleScroll}>
                     {messages.length === 0 && !isLoading ? (
                         <Welcome docId={doc?.id} />
                     ) : (
                         <>
-                            {!showCloseButton && <div className={styles.topPlaceholder} />}
                             {messages.map((msg) => {
                                 const isUserMessage = msg.role === 'user';
                                 return (
@@ -447,7 +512,7 @@ const ChatPanel = ({ showCloseButton = true }: ChatPanelProps = {}) => {
                         type="primary"
                         onClick={isLoading ? handleAbort : () => handleSend(input)}
                     >
-                        {isLoading ? '停 止' : '发 送'}
+                        {isLoading ? '停 止' : isRestoringSession ? '恢复中' : '发 送'}
                     </Button>
                 </div>
             </div>

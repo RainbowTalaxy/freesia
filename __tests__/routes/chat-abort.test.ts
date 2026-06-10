@@ -16,6 +16,16 @@ vi.mock('@/api', () => {
     return {
         default: {
             user: { info: () => Rocket.get('/api/user') },
+            luoye: {
+                ai: {
+                    chat: {
+                        getSession: (sessionId: string) =>
+                            Rocket.get(
+                                `/api/luoye/chat-sessions/${sessionId}`,
+                            ),
+                    },
+                },
+            },
         },
     };
 });
@@ -59,32 +69,35 @@ describe('POST /luoye/ai/chat/:sessionId/abort (中断流式响应)', () => {
     });
 
     it('会话不存在应返回 404', async () => {
-        mockServerFetch.mockResolvedValueOnce({ id: 'user-1' });
-        mockChatFile.getSession.mockResolvedValueOnce(null);
+        mockServerFetch
+            .mockResolvedValueOnce({ id: 'user-1' })
+            .mockResolvedValueOnce(null);
 
         const res = await POST(dummyRequest, makeParams('nonexistent'));
         expect(res.status).toBe(404);
     });
 
     it('非会话拥有者应返回 403', async () => {
-        mockServerFetch.mockResolvedValueOnce({ id: 'user-1' });
-        mockChatFile.getSession.mockResolvedValueOnce({
-            sessionId: 'session-1',
-            userId: 'other-user',
-            messages: [],
-        });
+        mockServerFetch
+            .mockResolvedValueOnce({ id: 'user-1' })
+            .mockResolvedValueOnce({
+                sessionId: 'session-1',
+                userId: 'other-user',
+                messages: [],
+            });
 
         const res = await POST(dummyRequest, makeParams('session-1'));
         expect(res.status).toBe(403);
     });
 
     it('没有进行中的流式响应应返回 404', async () => {
-        mockServerFetch.mockResolvedValueOnce({ id: 'user-1' });
-        mockChatFile.getSession.mockResolvedValueOnce({
-            sessionId: 'session-1',
-            userId: 'user-1',
-            messages: [],
-        });
+        mockServerFetch
+            .mockResolvedValueOnce({ id: 'user-1' })
+            .mockResolvedValueOnce({
+                sessionId: 'session-1',
+                userId: 'user-1',
+                messages: [],
+            });
         // streamControllers 中没有该 sessionId
 
         const res = await POST(dummyRequest, makeParams('session-1'));
@@ -99,7 +112,13 @@ describe('POST /luoye/ai/chat/:sessionId/abort (中断流式响应)', () => {
         const abortSpy = vi.spyOn(abortController, 'abort');
         streamControllers.set('session-1', abortController);
 
-        mockServerFetch.mockResolvedValueOnce({ id: 'user-1' });
+        mockServerFetch
+            .mockResolvedValueOnce({ id: 'user-1' })
+            .mockResolvedValueOnce({
+                sessionId: 'session-1',
+                userId: 'user-1',
+                messages: [],
+            });
         mockChatFile.getSession.mockResolvedValueOnce({
             sessionId: 'session-1',
             userId: 'user-1',
@@ -145,7 +164,13 @@ describe('POST /luoye/ai/chat/:sessionId/abort (中断流式响应)', () => {
             ],
         };
 
-        mockServerFetch.mockResolvedValueOnce({ id: 'user-1' });
+        mockServerFetch
+            .mockResolvedValueOnce({ id: 'user-1' })
+            .mockResolvedValueOnce({
+                sessionId: 'session-2',
+                userId: 'user-1',
+                messages: [],
+            });
         mockChatFile.getSession.mockResolvedValueOnce(session);
         mockChatFile.saveSession.mockResolvedValueOnce(undefined);
 
@@ -162,7 +187,13 @@ describe('POST /luoye/ai/chat/:sessionId/abort (中断流式响应)', () => {
         const abortController = new AbortController();
         streamControllers.set('session-3', abortController);
 
-        mockServerFetch.mockResolvedValueOnce({ id: 'user-1' });
+        mockServerFetch
+            .mockResolvedValueOnce({ id: 'user-1' })
+            .mockResolvedValueOnce({
+                sessionId: 'session-3',
+                userId: 'user-1',
+                messages: [],
+            });
         mockChatFile.getSession.mockResolvedValueOnce({
             sessionId: 'session-3',
             userId: 'user-1',

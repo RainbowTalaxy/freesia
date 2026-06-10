@@ -11,6 +11,10 @@ const MAX_SESSIONS = 10;
 /** 会话过期时间（7 天） */
 const SESSION_TTL = 7 * 24 * 60 * 60 * 1000;
 
+const CHAT_SESSION_SCHEMA_VERSION = 1;
+const DEFAULT_SESSION_TITLE = '新会话';
+const DEFAULT_SESSION_LIMIT = 20;
+
 interface ChatSessionUserChatMessage {
     messageId: string;
     role: 'user';
@@ -56,11 +60,24 @@ export type ChatSessionChatMessage =
     | ChatSessionAssistantMessage;
 
 export interface ChatSession {
+    schemaVersion: 1;
     sessionId: string;
     docId?: string;
     userId: string;
+    title: string;
     messages: ChatSessionChatMessage[];
     docUpdatedAt?: number;
+    createdAt: number;
+    updatedAt: number;
+}
+
+export interface ChatSessionSummary {
+    schemaVersion: 1;
+    sessionId: string;
+    userId: string;
+    docId?: string;
+    title: string;
+    messageCount: number;
     createdAt: number;
     updatedAt: number;
 }
@@ -73,6 +90,77 @@ function sessionFile(userId: string, sessionId: string) {
     return path.join(userDir(userId), `${sessionId}.json`);
 }
 
+function createSessionTitle(content: string) {
+    const title = content.trim().replace(/\s+/g, ' ').slice(0, 20);
+    return title || DEFAULT_SESSION_TITLE;
+}
+
+function getFirstUserMessage(session: Pick<ChatSession, 'messages'>) {
+    return session.messages.find(
+        (message): message is ChatSessionUserChatMessage =>
+            message.role === 'user',
+    );
+}
+
+function normalizeSession(
+    session: Partial<ChatSession> & Pick<ChatSession, 'sessionId' | 'userId'>,
+): ChatSession {
+    const messages = session.messages ?? [];
+    const firstUserMessage = getFirstUserMessage({ messages });
+    return {
+        schemaVersion: CHAT_SESSION_SCHEMA_VERSION,
+        sessionId: session.sessionId,
+        ...(session.docId ? { docId: session.docId } : {}),
+        userId: session.userId,
+        title:
+            session.title ||
+            (firstUserMessage
+                ? createSessionTitle(firstUserMessage.content)
+                : DEFAULT_SESSION_TITLE),
+        messages,
+        ...(session.docUpdatedAt !== undefined
+            ? { docUpdatedAt: session.docUpdatedAt }
+            : {}),
+        createdAt: session.createdAt ?? Date.now(),
+        updatedAt: session.updatedAt ?? Date.now(),
+    };
+}
+
+function isInitialReadDocMessage(
+    message: ChatSessionChatMessage,
+    index: number,
+) {
+    if (index !== 0 || message.role !== 'assistant') return false;
+    const [assistantMessage, toolMessage] = message.content;
+    return (
+        message.content.length === 2 &&
+        assistantMessage?.role === 'assistant' &&
+        assistantMessage.content === '' &&
+        assistantMessage.toolCalls?.some((tool) => tool.name === 'read_doc') &&
+        toolMessage?.role === 'tool' &&
+        toolMessage.name === 'read_doc'
+    );
+}
+
+function countVisibleMessages(messages: ChatSessionChatMessage[]) {
+    return messages.filter(
+        (message, index) => !isInitialReadDocMessage(message, index),
+    ).length;
+}
+
+function toSessionSummary(session: ChatSession): ChatSessionSummary {
+    return {
+        schemaVersion: CHAT_SESSION_SCHEMA_VERSION,
+        sessionId: session.sessionId,
+        userId: session.userId,
+        ...(session.docId ? { docId: session.docId } : {}),
+        title: session.title,
+        messageCount: countVisibleMessages(session.messages),
+        createdAt: session.createdAt,
+        updatedAt: session.updatedAt,
+    };
+}
+
 const ChatFile = {
     /** 创建新会话 */
     async createSession(
@@ -83,9 +171,11 @@ const ChatFile = {
         const now = Date.now();
         const id = crypto.randomUUID();
         const session: ChatSession = {
+            schemaVersion: CHAT_SESSION_SCHEMA_VERSION,
             sessionId: id,
             ...(docId ? { docId } : {}),
             userId,
+            title: DEFAULT_SESSION_TITLE,
             messages: [],
             ...(docUpdatedAt !== undefined ? { docUpdatedAt } : {}),
             createdAt: now,
@@ -100,18 +190,68 @@ const ChatFile = {
         userId: string,
         sessionId: string,
     ): Promise<ChatSession | null> {
-        return FileHandler.readJSON<ChatSession>(
+        const session = await FileHandler.readJSON<ChatSession>(
             sessionFile(userId, sessionId),
         );
+        return session ? normalizeSession(session) : null;
+    },
+
+    /** 获取会话摘要列表 */
+    async listSessions(
+        userId: string,
+        options: { docId?: string; limit?: number } = {},
+    ): Promise<ChatSessionSummary[]> {
+        const dir = userDir(userId);
+        const files = await FileHandler.listFiles(dir);
+        const sessions: ChatSession[] = [];
+
+        for (const file of files) {
+            if (!file.endsWith('.json')) continue;
+            const rawSession = await FileHandler.readJSON<ChatSession>(
+                path.join(dir, file),
+            );
+            if (!rawSession) continue;
+            const session = normalizeSession(rawSession);
+            if (options.docId && session.docId !== options.docId) continue;
+            sessions.push(session);
+        }
+
+        const limit = options.limit ?? DEFAULT_SESSION_LIMIT;
+        return sessions
+            .sort((a, b) => b.updatedAt - a.updatedAt)
+            .slice(0, limit)
+            .map(toSessionSummary);
     },
 
     /** 保存会话 */
     async saveSession(session: ChatSession): Promise<void> {
-        session.updatedAt = Date.now();
+        const nextSession = normalizeSession({
+            ...session,
+            updatedAt: Date.now(),
+        });
+        Object.assign(session, nextSession);
         await FileHandler.writeJSON(
-            sessionFile(session.userId, session.sessionId),
-            session,
+            sessionFile(nextSession.userId, nextSession.sessionId),
+            nextSession,
         );
+    },
+
+    /** 更新会话元信息 */
+    async updateSession(
+        userId: string,
+        sessionId: string,
+        props: { title?: string; docUpdatedAt?: number },
+    ): Promise<ChatSession | null> {
+        const session = await this.getSession(userId, sessionId);
+        if (!session) return null;
+        if (props.title !== undefined) {
+            session.title = props.title.trim() || DEFAULT_SESSION_TITLE;
+        }
+        if (props.docUpdatedAt !== undefined) {
+            session.docUpdatedAt = props.docUpdatedAt;
+        }
+        await this.saveSession(session);
+        return this.getSession(userId, sessionId);
     },
 
     generateMessageId() {
@@ -180,12 +320,18 @@ const ChatFile = {
     ): Promise<ChatSession | null> {
         const session = await this.getSession(userId, sessionId);
         if (!session) return null;
+        const shouldGenerateTitle =
+            !getFirstUserMessage(session) &&
+            (!session.title || session.title === DEFAULT_SESSION_TITLE);
         session.messages.push({
             messageId: this.generateMessageId(),
             role: 'user',
             content,
             createdAt: Date.now(),
         });
+        if (shouldGenerateTitle) {
+            session.title = createSessionTitle(content);
+        }
         await this.saveSession(session);
         return session;
     },

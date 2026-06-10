@@ -13,6 +13,11 @@ vi.mock('@/api', () => {
     const Rocket = {
         get: (url: string) => ({ url, method: 'GET' }),
         post: (url: string, data?: unknown) => ({ url, method: 'POST', data }),
+        patch: (url: string, data?: unknown) => ({
+            url,
+            method: 'PATCH',
+            data,
+        }),
         delete: (url: string) => ({ url, method: 'DELETE' }),
     };
     return {
@@ -20,6 +25,35 @@ vi.mock('@/api', () => {
             user: { info: () => Rocket.get('/api/user') },
             luoye: {
                 doc: (id: string) => Rocket.get(`/api/luoye/doc/${id}`),
+                ai: {
+                    chat: {
+                        createSession: (props?: unknown) =>
+                            Rocket.post('/api/luoye/chat-sessions', props),
+                        getSession: (sessionId: string) =>
+                            Rocket.get(
+                                `/api/luoye/chat-sessions/${sessionId}`,
+                            ),
+                        updateSession: (sessionId: string, props: unknown) =>
+                            Rocket.patch(
+                                `/api/luoye/chat-sessions/${sessionId}`,
+                                props,
+                            ),
+                        appendMessage: (sessionId: string, props: unknown) =>
+                            Rocket.post(
+                                `/api/luoye/chat-sessions/${sessionId}/messages`,
+                                props,
+                            ),
+                        updateToolCall: (
+                            sessionId: string,
+                            runId: string,
+                            props: unknown,
+                        ) =>
+                            Rocket.patch(
+                                `/api/luoye/chat-sessions/${sessionId}/tool-calls/${runId}`,
+                                props,
+                            ),
+                    },
+                },
             },
         },
     };
@@ -98,14 +132,126 @@ function makeSession(
     overrides: Partial<import('@/files/luoye/chat').ChatSession> = {},
 ) {
     return {
+        schemaVersion: 1 as const,
         sessionId: 'session-1',
         docId: 'doc-1',
         userId: 'user-1',
+        title: '新会话',
         messages: [],
         createdAt: Date.now(),
         updatedAt: Date.now(),
         ...overrides,
     };
+}
+
+function withUserMessage(
+    session: ReturnType<typeof makeSession>,
+    content: string,
+) {
+    return {
+        ...session,
+        messages: [
+            ...session.messages,
+            {
+                messageId: 'msg-1',
+                role: 'user' as const,
+                content,
+                createdAt: Date.now(),
+            },
+        ],
+    };
+}
+
+function backendMessageFromLocal(
+    message: import('@/files/luoye/chat').ChatSession['messages'][number],
+) {
+    if (message.role === 'user') {
+        return {
+            schemaVersion: 1,
+            messageId: message.messageId,
+            type: 'user_message',
+            content: message.content,
+            createdAt: message.createdAt,
+        };
+    }
+
+    return {
+        schemaVersion: 1,
+        messageId: message.messageId,
+        type: 'assistant_message',
+        parts: message.content.map((item) => {
+            if (item.role === 'assistant') {
+                return {
+                    schemaVersion: 1,
+                    partId: item.messageId,
+                    type: 'text',
+                    content: item.content,
+                    createdAt: item.createdAt,
+                };
+            }
+            return {
+                schemaVersion: 1,
+                partId: item.toolCallId,
+                type: 'tool_call',
+                toolName: item.name,
+                runId: item.runId,
+                toolCallId: item.toolCallId,
+                input: {},
+                output: item.output,
+                content: item.content,
+                createdAt: item.createdAt,
+                updatedAt: item.createdAt,
+            };
+        }),
+        createdAt: message.createdAt,
+    };
+}
+
+function makeBackendSession(
+    overrides: Partial<import('@/api/types/luoye').ChatSession> = {},
+) {
+    const localSession = makeSession();
+    return {
+        schemaVersion: 1 as const,
+        sessionId: localSession.sessionId,
+        docId: localSession.docId,
+        userId: localSession.userId,
+        title: localSession.title,
+        messages: localSession.messages.map(backendMessageFromLocal),
+        createdAt: localSession.createdAt,
+        updatedAt: localSession.updatedAt,
+        ...overrides,
+    };
+}
+
+function defaultServerFetch(
+    request: { url?: string; method?: string; data?: unknown },
+) {
+    const url = request.url ?? '';
+    if (url === '/api/user') return Promise.resolve({ id: 'user-1' });
+    if (url.includes('/api/luoye/doc/')) {
+        return Promise.resolve({
+            id: url.split('/').pop() || 'doc-1',
+            name: '文档',
+            content: '内容',
+            updatedAt: 1,
+        });
+    }
+    if (url === '/api/luoye/chat-sessions') {
+        return Promise.resolve(
+            makeBackendSession(
+                (request.data ?? {}) as Partial<
+                    import('@/api/types/luoye').ChatSession
+                >,
+            ),
+        );
+    }
+    if (url.includes('/api/luoye/chat-sessions/')) {
+        const [, sessionId = 'session-1'] =
+            url.match(/chat-sessions\/([^/]+)/) ?? [];
+        return Promise.resolve(makeBackendSession({ sessionId }));
+    }
+    return Promise.resolve({});
 }
 
 // 创建模拟的 agent streamEvents（模拟 ReAct Agent 事件流）
@@ -130,6 +276,7 @@ describe('POST /luoye/ai/chat (发送消息)', () => {
 
     beforeEach(async () => {
         vi.resetAllMocks();
+        mockServerFetch.mockImplementation(defaultServerFetch);
         streamControllers.clear();
         mockCreateChatAgent.mockImplementation(() => ({
             streamEvents: mockStreamEvents,
@@ -226,7 +373,9 @@ describe('POST /luoye/ai/chat (发送消息)', () => {
                     },
                 ],
             }); // 构建消息列表
-        mockChatFile.appendUserMessage.mockResolvedValue(session);
+        mockChatFile.appendUserMessage.mockResolvedValue(
+            withUserMessage(session, '你好'),
+        );
         mockStreamEvents.mockReturnValue(fakeAgentEvents(['你', '好', '呀']));
 
         const res = await POST(
@@ -271,7 +420,9 @@ describe('POST /luoye/ai/chat (发送消息)', () => {
                     },
                 ],
             });
-        mockChatFile.appendUserMessage.mockResolvedValue(session);
+        mockChatFile.appendUserMessage.mockResolvedValue(
+            withUserMessage(session, '继续'),
+        );
         mockStreamEvents.mockReturnValue(fakeAgentEvents(['好的']));
 
         const res = await POST(
@@ -297,9 +448,8 @@ describe('POST /luoye/ai/chat (发送消息)', () => {
                 id: 'doc-1',
                 name: '文档',
                 content: '内容',
-            });
-
-        mockChatFile.getSession.mockResolvedValueOnce(null);
+            })
+            .mockResolvedValueOnce(null);
 
         const res = await POST(
             makeRequest({
@@ -336,7 +486,9 @@ describe('POST /luoye/ai/chat (发送消息)', () => {
                     },
                 ],
             });
-        mockChatFile.appendUserMessage.mockResolvedValue(session);
+        mockChatFile.appendUserMessage.mockResolvedValue(
+            withUserMessage(session, '你好'),
+        );
 
         // LLM 抛出异常
         mockStreamEvents.mockReturnValue(
@@ -363,7 +515,9 @@ describe('POST /luoye/ai/chat (发送消息)', () => {
         const session = makeSession({ docId: undefined });
         mockChatFile.cleanupSessions.mockResolvedValue(undefined);
         mockChatFile.createSession.mockResolvedValue(session);
-        mockChatFile.appendUserMessage.mockResolvedValue(session);
+        mockChatFile.appendUserMessage.mockResolvedValue(
+            withUserMessage(session, '你好'),
+        );
         mockCreateChatAgent.mockImplementationOnce(() => {
             throw new Error('agent 初始化失败');
         });
@@ -384,13 +538,35 @@ describe('POST /luoye/ai/chat (发送消息)', () => {
         });
     });
 
+    it('后端保存用户消息失败应返回 500 且不启动 agent', async () => {
+        mockServerFetch
+            .mockResolvedValueOnce({ id: 'user-1' })
+            .mockResolvedValueOnce(makeBackendSession({ docId: undefined }))
+            .mockRejectedValueOnce(new Error('append failed'));
+
+        const session = makeSession({ docId: undefined });
+        mockChatFile.cleanupSessions.mockResolvedValue(undefined);
+        mockChatFile.appendUserMessage.mockResolvedValue(
+            withUserMessage(session, '你好'),
+        );
+
+        const res = await POST(makeRequest({ message: '你好' }));
+        expect(res.status).toBe(500);
+        expect(await res.json()).toMatchObject({
+            message: '保存用户消息失败',
+        });
+        expect(mockCreateChatAgent).not.toHaveBeenCalled();
+    });
+
     it('保存 assistant 消息失败时应发送 error 事件而不是 done', async () => {
         mockServerFetch.mockResolvedValueOnce({ id: 'user-1' });
 
         const session = makeSession({ docId: undefined });
         mockChatFile.cleanupSessions.mockResolvedValue(undefined);
         mockChatFile.createSession.mockResolvedValue(session);
-        mockChatFile.appendUserMessage.mockResolvedValue(session);
+        mockChatFile.appendUserMessage.mockResolvedValue(
+            withUserMessage(session, '你好'),
+        );
         mockChatFile.appendAssistantMessage.mockRejectedValueOnce(
             new Error('保存回复失败'),
         );
@@ -423,7 +599,9 @@ describe('POST /luoye/ai/chat (发送消息)', () => {
         mockChatFile.cleanupSessions.mockResolvedValue(undefined);
         mockChatFile.createSession.mockResolvedValue(session);
         mockChatFile.getSession.mockResolvedValue(session);
-        mockChatFile.appendUserMessage.mockResolvedValue(session);
+        mockChatFile.appendUserMessage.mockResolvedValue(
+            withUserMessage(session, 'Hello'),
+        );
         mockStreamEvents.mockReturnValue(fakeAgentEvents(['Hello']));
 
         await POST(makeRequest({ docId: 'doc-1', message: 'Hello' }));
@@ -459,7 +637,9 @@ describe('POST /luoye/ai/chat (发送消息)', () => {
                     },
                 ],
             });
-        mockChatFile.appendUserMessage.mockResolvedValue(session);
+        mockChatFile.appendUserMessage.mockResolvedValue(
+            withUserMessage(session, '你好'),
+        );
         mockStreamEvents.mockReturnValue(fakeAgentEvents(['你', '好']));
 
         const res = await POST(makeRequest({ message: '你好' }));
@@ -470,7 +650,21 @@ describe('POST /luoye/ai/chat (发送消息)', () => {
         expect(types).toContain('session');
         expect(types).toContain('done');
 
-        // 应该只调用一次 serverFetch（user.info），不调用 doc
-        expect(mockServerFetch).toHaveBeenCalledTimes(1);
+        expect(mockServerFetch).not.toHaveBeenCalledWith(
+            expect.objectContaining({
+                url: expect.stringContaining('/doc/'),
+            }),
+            expect.anything(),
+            expect.anything(),
+            expect.anything(),
+        );
+        expect(mockServerFetch).toHaveBeenCalledWith(
+            expect.objectContaining({
+                url: '/api/luoye/chat-sessions',
+                method: 'POST',
+            }),
+            false,
+            false,
+        );
     });
 });

@@ -1,18 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { SystemMessage } from '@langchain/core/messages';
 import API from '@/api';
+import type { API as FetchRequest } from '@/api/fetch';
 import serverFetch from '@/api/fetch/server';
 import { ChatFile } from '@/files';
 import { createChatAgent } from './agent';
 import { streamControllers } from './state';
 import {
     ChatSessionAssistantChatMessage,
-    ChatSession,
+    ChatSession as LocalChatSession,
+    ChatSessionChatMessage,
+    ChatSessionToolCallMessage,
     convertMessages,
 } from '@/files/luoye/chat';
 import { SseEventData, SseEventStreamEvent } from './types';
-import { Doc } from '@/api/types/luoye';
+import {
+    ChatSession as BackendChatSession,
+    ChatSessionMessage,
+    Doc,
+} from '@/api/types/luoye';
 
+/** 为文档页会话预置一次 read_doc 结果，避免 agent 首轮重复读取同一篇文档。 */
 function createFakeReadDocMessage(doc: Doc) {
     const toolCallId = `call_${crypto.randomUUID().replace(/-/g, '').slice(0, 24)}`;
     const docContent = `文档标题：${doc.name || '无标题'}\n文档内容：\n${doc.content || '(空)'}`;
@@ -32,10 +40,151 @@ function createFakeReadDocMessage(doc: Doc) {
     return assistantMsg;
 }
 
+/** 将事件对象序列化为前端消费的 SSE data 块。 */
 function sseEvent(data: SseEventData) {
     return `data: ${JSON.stringify(data)}\n\n`;
 }
 
+/** 后端 tool_call schema 要求 input 是对象；这里兼容旧本地记录里的字符串输入。 */
+function normalizeToolInput(input: unknown): Record<string, unknown> {
+    if (input && typeof input === 'object') {
+        return input as Record<string, unknown>;
+    }
+    if (typeof input === 'string') {
+        try {
+            const parsed = JSON.parse(input);
+            if (parsed && typeof parsed === 'object') {
+                return parsed as Record<string, unknown>;
+            }
+        } catch {
+            return { input };
+        }
+    }
+    return {};
+}
+
+/** 将本地备份消息结构转换为后端会话接口的 append-only 消息结构。 */
+function toBackendMessage(message: ChatSessionChatMessage): ChatSessionMessage {
+    if (message.role === 'user') {
+        return {
+            schemaVersion: 1,
+            messageId: message.messageId,
+            type: 'user_message',
+            content: message.content,
+            createdAt: message.createdAt,
+        };
+    }
+
+    return {
+        schemaVersion: 1,
+        messageId: message.messageId,
+        type: 'assistant_message',
+        parts: message.content.map((item) => {
+            if (item.role === 'assistant') {
+                return {
+                    schemaVersion: 1,
+                    partId: item.messageId,
+                    type: 'text' as const,
+                    content: item.content,
+                    createdAt: item.createdAt,
+                };
+            }
+            return {
+                schemaVersion: 1,
+                partId: item.toolCallId || ChatFile.generateMessageId(),
+                type: 'tool_call' as const,
+                toolName: item.name,
+                runId: item.runId,
+                ...(item.toolCallId ? { toolCallId: item.toolCallId } : {}),
+                input: normalizeToolInput(item.input),
+                output: item.output,
+                content: item.content,
+                createdAt: item.createdAt,
+                updatedAt: item.createdAt,
+            };
+        }),
+        createdAt: message.createdAt,
+    };
+}
+
+/** 将后端会话消息转换为现有 LangChain 上下文和本地备份可复用的结构。 */
+function toLocalMessage(message: ChatSessionMessage): ChatSessionChatMessage {
+    if (message.type === 'user_message') {
+        return {
+            messageId: message.messageId,
+            role: 'user',
+            content: message.content,
+            createdAt: message.createdAt,
+        };
+    }
+
+    return {
+        messageId: message.messageId,
+        role: 'assistant',
+        content: message.parts.map((part) => {
+            if (part.type === 'text') {
+                return {
+                    messageId: part.partId,
+                    role: 'assistant' as const,
+                    content: part.content,
+                    createdAt: part.createdAt,
+                };
+            }
+            return {
+                toolCallId: part.toolCallId || part.partId,
+                runId: part.runId,
+                role: 'tool' as const,
+                name: part.toolName,
+                args: {},
+                input: part.input as unknown as string,
+                output: part.output as string,
+                content: part.status ?? part.content ?? '',
+                createdAt: part.createdAt,
+            };
+        }),
+        createdAt: message.createdAt,
+    };
+}
+
+/** 将后端会话详情落成本地备份格式，保留现有 convertMessages 链路。 */
+function toLocalSession(session: BackendChatSession): LocalChatSession {
+    return {
+        schemaVersion: 1,
+        sessionId: session.sessionId,
+        ...(session.docId ? { docId: session.docId } : {}),
+        userId: session.userId,
+        title: session.title,
+        messages: session.messages.map(toLocalMessage),
+        ...(session.docUpdatedAt !== undefined
+            ? { docUpdatedAt: session.docUpdatedAt }
+            : {}),
+        createdAt: session.createdAt,
+        updatedAt: session.updatedAt,
+    };
+}
+
+/** 对后端主写接口使用无缓存请求，并把失败显式抛出给调用方处理。 */
+async function requiredServerFetch<Data>(api: FetchRequest<Data>) {
+    const result = await serverFetch(api, false, false);
+    if (!result) {
+        throw new Error('请求失败');
+    }
+    return result;
+}
+
+/** 将单条聊天消息追加到后端会话；失败时不能静默降级为仅本地保存。 */
+async function appendBackendMessage(
+    sessionId: string,
+    message: ChatSessionChatMessage,
+) {
+    await requiredServerFetch(
+        API.luoye.ai.chat.appendMessage(sessionId, {
+            message: toBackendMessage(message),
+        }),
+    );
+}
+
+/** 处理聊天发送请求：恢复/创建会话、同步消息、并以 SSE 流式返回 agent 输出。 */
 export async function POST(request: NextRequest) {
     // 一、校验阶段
 
@@ -86,7 +235,7 @@ export async function POST(request: NextRequest) {
     // ## 二、会话管理阶段
 
     const userId = user.id;
-    let session: ChatSession;
+    let session: LocalChatSession;
     const isNewSession = !existingSessionId;
 
     if (isNewSession) {
@@ -98,19 +247,26 @@ export async function POST(request: NextRequest) {
         }
 
         try {
-            session = await ChatFile.createSession(
-                userId,
-                doc?.id,
-                doc?.updatedAt,
+            const backendSession = await requiredServerFetch(
+                API.luoye.ai.chat.createSession({
+                    ...(doc?.id ? { docId: doc.id } : {}),
+                    ...(doc?.updatedAt !== undefined
+                        ? { docUpdatedAt: doc.updatedAt }
+                        : {}),
+                }),
             );
+            session = toLocalSession(backendSession);
+            await ChatFile.saveSession(session);
 
             // 有文档时，伪造一个 Assistant 消息，预先通过 read_doc 注入文档内容
             if (doc) {
+                const readDocMessage = createFakeReadDocMessage(doc);
                 await ChatFile.appendAssistantMessage(
                     userId,
                     session.sessionId,
-                    createFakeReadDocMessage(doc),
+                    readDocMessage,
                 );
+                await appendBackendMessage(session.sessionId, readDocMessage);
             }
         } catch {
             return NextResponse.json(
@@ -119,23 +275,25 @@ export async function POST(request: NextRequest) {
             );
         }
     } else {
-        // 读取会话
-        const oldSession = await ChatFile.getSession(userId, existingSessionId);
-
-        if (!oldSession) {
+        const backendSession = await serverFetch(
+            API.luoye.ai.chat.getSession(existingSessionId),
+            true,
+            false,
+        );
+        if (!backendSession) {
             return NextResponse.json(
                 { message: '会话不存在' },
                 { status: 404 },
             );
-        } else {
-            session = oldSession;
         }
+        session = toLocalSession(backendSession);
+        await ChatFile.saveSession(session);
     }
 
     const sessionId = session.sessionId;
 
     // 保存用户消息
-    let appendResult: ChatSession | null;
+    let appendResult: LocalChatSession | null;
     try {
         appendResult = await ChatFile.appendUserMessage(
             userId,
@@ -157,6 +315,18 @@ export async function POST(request: NextRequest) {
 
     // appendUserMessage 返回值即为包含最新消息的会话，无需再次读取文件
     session = appendResult;
+    try {
+        await appendBackendMessage(
+            sessionId,
+            session.messages[session.messages.length - 1],
+        );
+    } catch (error) {
+        console.error('[chat] Failed to append user message to backend:', error);
+        return NextResponse.json(
+            { message: '保存用户消息失败' },
+            { status: 500 },
+        );
+    }
 
     //提示词
     let systemPrompt: string;
@@ -178,6 +348,13 @@ export async function POST(request: NextRequest) {
         session.docUpdatedAt = doc.updatedAt;
         try {
             await ChatFile.saveSession(session);
+            await serverFetch(
+                API.luoye.ai.chat.updateSession(session.sessionId, {
+                    docUpdatedAt: doc.updatedAt,
+                }),
+                true,
+                false,
+            );
         } catch (saveErr) {
             console.error(
                 '[chat] Failed to save session on doc change:',
@@ -358,6 +535,7 @@ export async function POST(request: NextRequest) {
                     sessionId,
                     assistantMessage,
                 );
+                await appendBackendMessage(sessionId, assistantMessage);
 
                 controller.enqueue(
                     encoder.encode(
