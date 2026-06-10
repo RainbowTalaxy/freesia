@@ -15,7 +15,11 @@ export async function DELETE(
     const { sessionId } = params;
     const userId = user.id;
 
-    const session = await ChatFile.getSession(userId, sessionId);
+    const session = await serverFetch(
+        API.luoye.ai.chat.getSession(sessionId),
+        true,
+        false,
+    );
     if (!session) {
         return NextResponse.json({ message: '会话不存在' }, { status: 404 });
     }
@@ -27,7 +31,25 @@ export async function DELETE(
         );
     }
 
-    await ChatFile.deleteSession(userId, sessionId);
+    try {
+        await serverFetch(
+            API.luoye.ai.chat.deleteSession(sessionId),
+            false,
+            false,
+        );
+    } catch (error) {
+        console.error('[chat] Failed to delete backend session:', error);
+        return NextResponse.json(
+            { message: '删除会话失败' },
+            { status: 500 },
+        );
+    }
+
+    try {
+        await ChatFile.deleteSession(userId, sessionId);
+    } catch (error) {
+        console.error('[chat] Failed to delete local session backup:', error);
+    }
 
     return NextResponse.json({ success: true });
 }

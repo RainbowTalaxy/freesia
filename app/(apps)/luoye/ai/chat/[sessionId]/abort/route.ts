@@ -16,12 +16,16 @@ export async function POST(
     const { sessionId } = params;
     const userId = user.id;
 
-    const session = await ChatFile.getSession(userId, sessionId);
-    if (!session) {
+    const backendSession = await serverFetch(
+        API.luoye.ai.chat.getSession(sessionId),
+        true,
+        false,
+    );
+    if (!backendSession) {
         return NextResponse.json({ message: '会话不存在' }, { status: 404 });
     }
 
-    if (session.userId !== userId) {
+    if (backendSession.userId !== userId) {
         return NextResponse.json(
             { message: '无权操作该会话' },
             { status: 403 },
@@ -41,6 +45,9 @@ export async function POST(
     streamControllers.delete(sessionId);
 
     // 恢复会话状态：删除最后一条未完成的 assistant 消息
+    const session = await ChatFile.getSession(userId, sessionId);
+    if (!session) return NextResponse.json({ success: true });
+
     const lastMessage = session.messages[session.messages.length - 1];
     if (lastMessage && lastMessage.role === 'user') {
         // 用户消息已写入，但 assistant 还没写入（正在流式中），无需删除

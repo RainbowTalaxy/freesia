@@ -358,6 +358,103 @@ describe('ChatFile', () => {
         });
     });
 
+    describe('listSessions and updateSession', () => {
+        it('应按 updatedAt 倒序返回会话摘要', async () => {
+            const first = await ChatFile.createSession(TEST_USER, 'doc-a');
+            const second = await ChatFile.createSession(TEST_USER, 'doc-a');
+
+            await FileHandler.writeJSON(
+                path.join(TEST_DIR, TEST_USER, `${first.sessionId}.json`),
+                { ...first, updatedAt: 1000 },
+            );
+            await FileHandler.writeJSON(
+                path.join(TEST_DIR, TEST_USER, `${second.sessionId}.json`),
+                { ...second, updatedAt: 2000 },
+            );
+
+            const sessions = await ChatFile.listSessions(TEST_USER);
+            expect(sessions.map((session) => session.sessionId)).toEqual([
+                second.sessionId,
+                first.sessionId,
+            ]);
+        });
+
+        it('应按 docId 过滤会话列表', async () => {
+            const docSession = await ChatFile.createSession(TEST_USER, 'doc-a');
+            await ChatFile.createSession(TEST_USER, 'doc-b');
+
+            const sessions = await ChatFile.listSessions(TEST_USER, {
+                docId: 'doc-a',
+            });
+            expect(sessions).toHaveLength(1);
+            expect(sessions[0].sessionId).toBe(docSession.sessionId);
+        });
+
+        it('应支持 limit 限制返回数量', async () => {
+            await ChatFile.createSession(TEST_USER, 'doc-a');
+            await ChatFile.createSession(TEST_USER, 'doc-a');
+            await ChatFile.createSession(TEST_USER, 'doc-a');
+
+            const sessions = await ChatFile.listSessions(TEST_USER, {
+                limit: 2,
+            });
+            expect(sessions).toHaveLength(2);
+        });
+
+        it('应兼容缺少 title 和 schemaVersion 的旧会话', async () => {
+            await FileHandler.writeJSON(
+                path.join(TEST_DIR, TEST_USER, 'legacy-session.json'),
+                {
+                    sessionId: 'legacy-session',
+                    userId: TEST_USER,
+                    messages: [
+                        {
+                            messageId: 'msg-1',
+                            role: 'user',
+                            content: '这是一条旧会话消息',
+                            createdAt: 1000,
+                        },
+                    ],
+                    createdAt: 1000,
+                    updatedAt: 2000,
+                },
+            );
+
+            const session = await ChatFile.getSession(
+                TEST_USER,
+                'legacy-session',
+            );
+            expect(session!.schemaVersion).toBe(1);
+            expect(session!.title).toBe('这是一条旧会话消息');
+
+            const sessions = await ChatFile.listSessions(TEST_USER);
+            expect(sessions[0].title).toBe('这是一条旧会话消息');
+            expect(sessions[0].messageCount).toBe(1);
+        });
+
+        it('应更新会话标题', async () => {
+            const session = await ChatFile.createSession(TEST_USER, 'doc-a');
+
+            const updated = await ChatFile.updateSession(
+                TEST_USER,
+                session.sessionId,
+                { title: '新的标题' },
+            );
+
+            expect(updated!.title).toBe('新的标题');
+        });
+
+        it('删除会话后列表中不再出现该会话', async () => {
+            const session = await ChatFile.createSession(TEST_USER, 'doc-a');
+            await ChatFile.deleteSession(TEST_USER, session.sessionId);
+
+            const sessions = await ChatFile.listSessions(TEST_USER);
+            expect(
+                sessions.some((item) => item.sessionId === session.sessionId),
+            ).toBe(false);
+        });
+    });
+
     describe('cleanupSessions', () => {
         it('应删除超过 10 个的旧会话', async () => {
             const sessions: ChatSession[] = [];
@@ -481,6 +578,7 @@ describe('ChatFile', () => {
                         },
                         {
                             toolCallId: 'tc-1',
+                            runId: 'run-1',
                             role: 'tool',
                             name: 'search',
                             args: { q: 'test' },
@@ -527,6 +625,7 @@ describe('ChatFile', () => {
                         },
                         {
                             toolCallId: 'tc-1',
+                            runId: 'run-1',
                             role: 'tool',
                             name: 'search',
                             args: { q: '关键词' },

@@ -1,5 +1,5 @@
 'use client';
-import { useState, useContext } from 'react';
+import { useEffect, useState, useContext } from 'react';
 import { createPortal } from 'react-dom';
 import { SaveDocRequestToolCallMessage } from '../../ai/chat/types';
 import { DocContext } from '../../doc/[docId]/context';
@@ -18,14 +18,31 @@ interface Props {
     sessionId: string | null;
 }
 
+function getToolStatus(content: SaveDocRequestToolCallMessage['content']) {
+    if (
+        content === 'confirmed' ||
+        content === 'cancelled' ||
+        content === 'pending'
+    ) {
+        return content;
+    }
+    return 'pending';
+}
+
 const SaveDocRequest = ({ tool, sessionId }: Props) => {
     const { userId: docUserId, workspace, workspaceItems, updateWorkspace } = useContext(DocContext);
     const { userId: homeUserId, allWorkspaces } = useContext(HomeContext);
     const userId = docUserId ?? homeUserId;
     const resolvedWorkspaceItems = workspaceItems ?? allWorkspaces ?? undefined;
-    const [status, setStatus] = useState<'pending' | 'confirmed' | 'cancelled'>('pending');
+    const [status, setStatus] = useState<
+        'pending' | 'confirmed' | 'cancelled'
+    >(() => getToolStatus(tool.content));
     const [docFormOpen, setDocFormOpen] = useState(false);
     const [previewOpen, setPreviewOpen] = useState(false);
+
+    useEffect(() => {
+        setStatus(getToolStatus(tool.content));
+    }, [tool.content]);
 
     const raw =
         typeof tool.input.input === 'string'
