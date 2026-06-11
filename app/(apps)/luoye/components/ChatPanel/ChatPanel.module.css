@@ -94,10 +94,6 @@
     overflow-y: auto;
 }
 
-.messageList > .message + .message {
-    margin-top: 24px;
-}
-
 .toolStatus {
     display: inline-block;
     margin: 0 6px 10px 0;
@@ -254,7 +250,7 @@
 .loading {
     display: flex;
     align-items: center;
-    margin: 10px 0;
+    margin: 10px 0 36px;
     padding: 0 12px;
     font-size: 12px;
     color: var(--secondary);
