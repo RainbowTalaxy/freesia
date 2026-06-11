@@ -19,11 +19,12 @@ import {
     ChatSessionMessage,
     Doc,
 } from '@/api/types/luoye';
+import { formatCurrentTimeForPrompt, formatDocForReadDoc } from './format';
 
 /** 为文档页会话预置一次 read_doc 结果，避免 agent 首轮重复读取同一篇文档。 */
 function createFakeReadDocMessage(doc: Doc) {
     const toolCallId = `call_${crypto.randomUUID().replace(/-/g, '').slice(0, 24)}`;
-    const docContent = `文档标题：${doc.name || '无标题'}\n文档内容：\n${doc.content || '(空)'}`;
+    const docContent = formatDocForReadDoc(doc);
     const assistantMsg = ChatFile.newAssistantMessage();
 
     const chatMsg = ChatFile.newAssistantChatMessage();
@@ -329,11 +330,12 @@ export async function POST(request: NextRequest) {
     }
 
     //提示词
+    const currentTime = formatCurrentTimeForPrompt();
     let systemPrompt: string;
     if (doc) {
-        systemPrompt = `用户正在一个文档页面向你发起提问。文档 ID 为 "${doc.id}"。当前文档内容已在对话开头通过 read_doc 工具读取，请直接使用对话中已有的文档内容回答问题，无需重复调用 read_doc 读取同一文档，除非你被告知文档内容已更新。`;
+        systemPrompt = `当前时间：${currentTime}。用户正在一个文档页面向你发起提问。文档 ID 为 "${doc.id}"。当前文档内容已在对话开头通过 read_doc 工具读取，请直接使用对话中已有的文档内容回答问题，无需重复调用 read_doc 读取同一文档，除非你被告知文档内容已更新。`;
     } else {
-        systemPrompt = `你是一个智能助手，可以回答用户的各种问题。你可以使用 search_docs 工具搜索用户的文档库，使用 read_doc 工具读取文档内容。`;
+        systemPrompt = `当前时间：${currentTime}。你是一个智能助手，可以回答用户的各种问题。你可以使用 search_docs 工具搜索用户的文档库，使用 read_doc 工具读取文档内容。`;
     }
 
     // 检测文档变更（仅在有文档时）

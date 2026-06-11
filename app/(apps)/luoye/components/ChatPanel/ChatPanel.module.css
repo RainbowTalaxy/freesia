@@ -100,7 +100,7 @@
 
 .toolStatus {
     display: inline-block;
-    margin: 10px 6px 10px 0;
+    margin: 0 6px 10px 0;
     padding: 4px 12px;
     font-size: 12px;
     line-height: 1.6;
@@ -192,8 +192,12 @@
     margin-bottom: 1rem;
 }
 
-.assistantMessage .messageContent article > *:last-child {
+.assistantMessage .messageContent > article:last-child {
     margin-bottom: 0;
+}
+
+.assistantMessage .messageContent > article:empty {
+    display: none;
 }
 
 .assistantMessage .messageContent > ul,

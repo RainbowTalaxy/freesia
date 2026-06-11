@@ -4,6 +4,7 @@ import { getMimoModel } from '../model';
 import API from '@/api';
 import serverFetch from '@/api/fetch/server';
 import { createAgent } from 'langchain';
+import { formatDocForReadDoc } from './format';
 
 const searchDocsTool = tool(
     async ({ keyword, workspaceId, limit }) => {
@@ -67,7 +68,7 @@ const readDocTool = tool(
                 return '文档不存在或无权访问。';
             }
 
-            return `文档标题：${doc.name || '无标题'}\n文档内容：\n${doc.content || '(空)'}`;
+            return formatDocForReadDoc(doc);
         } catch (error) {
             console.error('[chat] read_doc failed:', error);
             return '读取文档时发生错误，请稍后重试。';

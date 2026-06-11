@@ -355,6 +355,7 @@ describe('POST /luoye/ai/chat (发送消息)', () => {
                 id: 'doc-1',
                 name: '测试文档',
                 content: '内容',
+                date: Date.UTC(2026, 5, 10, 4),
             });
 
         const session = makeSession();
@@ -395,6 +396,15 @@ describe('POST /luoye/ai/chat (发送消息)', () => {
         // 最后一个事件应该是 done
         const lastEvent = JSON.parse(events[events.length - 1]);
         expect(lastEvent.type).toBe('done');
+
+        const readDocMessage = mockChatFile.appendAssistantMessage.mock
+            .calls[0][2];
+        expect(readDocMessage.content[1].content).toContain('文档日期：');
+        expect(readDocMessage.content[1].content).not.toContain('文档日期：未知');
+
+        const agentMessages = mockStreamEvents.mock.calls[0][0].messages;
+        expect(agentMessages[0].content).toContain('当前时间：');
+        expect(agentMessages[0].content).toContain('(UTC+8)');
     });
 
     it('已有会话应不返回 session 事件', async () => {
