@@ -167,6 +167,30 @@
     border-bottom-right-radius: 4px;
 }
 
+.messageAttachments {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.messageAttachment {
+    display: inline-flex;
+    max-width: 100%;
+    height: 120px;
+    border: 0.5px solid var(--ly-secondary);
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.messageAttachment img {
+    display: block;
+    height: 100%;
+    width: auto;
+    max-width: 100%;
+    object-fit: contain;
+}
+
 .assistantMessage .messageContent {
     padding: 6px 8px;
     width: 100%;
@@ -225,27 +249,165 @@
     width: 100%;
 }
 
+.inputPanel {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    min-height: 110px;
+    background-color: white;
+    border: 1px solid var(--ly-secondary);
+    border-radius: 6px;
+    box-shadow: 0 28px 10px 10px var(--ly-background);
+}
+
+.inputActionsDragging .inputPanel {
+    background-color: var(--ly-background);
+    border-color: var(--ly-primary);
+}
+
+.attachmentInput {
+    display: none;
+}
+
+.attachmentPreviewList {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 8px;
+    padding: 8px;
+    width: 100%;
+}
+
+.attachmentPreview {
+    position: relative;
+    width: 64px;
+    height: 64px;
+}
+
+.attachmentPreview img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border: 1px solid var(--ly-secondary);
+    border-radius: 6px;
+}
+
+.attachmentPreview[data-status='uploading'] img {
+    opacity: 0.55;
+}
+
+.attachmentPreviewStatus {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    color: var(--ly-primary);
+    /* background: rgb(0, 0, 0, 0.48); */
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.attachmentPreviewStatus svg {
+    width: 24px;
+    height: 24px;
+    stroke-width: 1.5px;
+    animation: attachmentLoaderSpin 0.8s linear infinite;
+}
+
+@keyframes attachmentLoaderSpin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.attachmentPreview button {
+    position: absolute;
+    top: -7px;
+    right: -7px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    width: 20px;
+    height: 20px;
+    color: var(--ly-primary);
+    background: var(--ly-page-background);
+    border: 1px solid var(--ly-secondary);
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.attachmentPreview button svg {
+    width: 14px;
+    height: 14px;
+    stroke-width: 1.75px;
+}
+
+.attachmentButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: -4px;
+    padding: 6px;
+    width: 34px;
+    height: 34px;
+    color: var(--ly-primary);
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.attachmentButton:hover {
+    background: var(--ly-active-background);
+}
+
+.attachmentButton:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.attachmentButton:disabled:hover {
+    background: transparent;
+}
+
+.attachmentButton svg {
+    stroke-width: 1.75;
+    width: 22px;
+    height: 22px;
+}
+
 .inputActions .chatBox {
     display: block;
-    padding: 10px 20px;
-    padding-right: 100px; /* Space for send button */
-    height: 100px;
-    /* background-color: var(--ly-page-background); */
-    background-color: white;
-    box-shadow: 0 28px 10px 10px var(--ly-background);
+    flex: 1;
+    padding: 14px 20px 2px;
+    min-height: 62px;
+    height: 62px;
+    background-color: transparent;
+    border: none !important;
+    box-shadow: none;
     resize: none;
     transition: border-color 0.2s;
 }
 
 .inputActions .chatBox:focus {
-    border-color: var(--ly-primary);
     outline: none;
 }
 
+.inputActionBar {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    padding: 0 10px 8px 12px;
+}
+
 .inputActions .sendButton {
-    position: absolute;
-    right: calc(var(--h-padding) + 12px);
-    bottom: calc(var(--margin-bottom) + 12px);
+    flex-shrink: 0;
 }
 
 .loading {

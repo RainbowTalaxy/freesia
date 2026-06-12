@@ -1,44 +1,134 @@
 'use client';
 import { useContext, useState, useRef, useCallback, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import SVG from '../SVG';
 import { DocContext } from '../../doc/[docId]/context';
 import styles from './ChatPanel.module.css';
-import { Button, TextArea } from '@/components/form';
 import Toast from '../Notification/Toast';
 import API, { clientFetch } from '@/api';
 import { ChatSession } from '@/api/types/luoye';
-import MessageLoading from './MessageLoading';
-import Welcome from './Welcome';
-import AssistantContent from './AssistantContent';
-import { AssistantChatMessage, Message, SseEventData, ToolCallMessage } from '../../ai/chat/types';
+import { BASE_PATH } from '@/constants';
+import { AssistantChatMessage, ChatImageAttachment, Message, SseEventData, ToolCallMessage } from '../../ai/chat/types';
 import { generateMessageId } from '../../ai/chat/utils';
 import ChatSessionPopover from './ChatSessionPopover';
+import ChatInput from './ChatInput';
+import ChatMessageList from './ChatMessageList';
+import { useChatAttachments } from './useChatAttachments';
 import { convertSessionToMessages } from './utils';
+
+function toSerializableAttachments(attachments: ChatImageAttachment[]) {
+    return attachments.map(({ id, url, name, mimeType, size }) => ({
+        id,
+        url,
+        name,
+        mimeType,
+        size,
+    }));
+}
 
 interface ChatPanelProps {
     /** 是否显示关闭按钮，默认 true */
     showCloseButton?: boolean;
+    /** 是否把当前会话同步到 `/luoye/ai-chat/:id` 路径 */
+    syncSessionPath?: boolean;
 }
 
-const ChatPanel = ({ showCloseButton = true }: ChatPanelProps = {}) => {
+const AI_CHAT_PATH = '/luoye/ai-chat';
+
+function normalizePathname(pathname: string) {
+    if (BASE_PATH && pathname.startsWith(BASE_PATH)) {
+        return pathname.slice(BASE_PATH.length) || '/';
+    }
+    return pathname;
+}
+
+function getAiChatSessionIdFromPathname(pathname: string) {
+    const normalizedPathname = normalizePathname(pathname);
+    const match = normalizedPathname.match(/^\/luoye\/ai-chat\/([^/]+)$/);
+    if (!match) return null;
+
+    try {
+        return decodeURIComponent(match[1]);
+    } catch {
+        return match[1];
+    }
+}
+
+const ChatPanel = ({
+    showCloseButton = true,
+    syncSessionPath = false,
+}: ChatPanelProps = {}) => {
     const { setChatVisible, doc } = useContext(DocContext);
+    const pathname = usePathname();
     const panelRef = useRef<HTMLDivElement>(null);
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState('');
     const [pendingMessages, setPendingMessages] = useState<Array<AssistantChatMessage | ToolCallMessage>>([]);
+    const {
+        attachments,
+        clearAttachments,
+        fileInputRef,
+        handleAttachmentChange,
+        handleAttachmentDragEnter,
+        handleAttachmentDragLeave,
+        handleAttachmentDragOver,
+        handleAttachmentDrop,
+        isDraggingAttachment,
+        isUploadingAttachment,
+        removeAttachment,
+        setAttachments,
+    } = useChatAttachments();
     const [isLoading, setIsLoading] = useState(false);
     const [isRestoringSession, setRestoringSession] = useState(false);
     const [sessionId, setSessionId] = useState<string | null>(null);
     const [isHistoryOpen, setHistoryOpen] = useState(false);
     const [sessionRefreshKey, setSessionRefreshKey] = useState(0);
     const abortControllerRef = useRef<AbortController | null>(null);
-    const isComposingRef = useRef(false);
+    const pendingSelectedSessionRef = useRef<ChatSession | null>(null);
     const scrollTimerRef = useRef<number | null>(null);
     const messageListRef = useRef<HTMLDivElement>(null);
     const userScrolledRef = useRef(false);
     const lastScrollTopRef = useRef(0);
+    const [pathSessionId, setPathSessionId] = useState(() => getAiChatSessionIdFromPathname(pathname));
+    const previousPathSessionIdRef = useRef(pathSessionId);
 
-    const isBusy = isLoading || isRestoringSession;
+    const boundSessionId = syncSessionPath ? pathSessionId : null;
+    const isSessionBindingPending =
+        !!boundSessionId && !doc?.id && sessionId !== boundSessionId;
+    const isSessionRestoring = isRestoringSession || isSessionBindingPending;
+    const isBusy = isLoading || isSessionRestoring;
+
+    const replaceSessionPath = useCallback(
+        (nextSessionId: string | null) => {
+            if (!syncSessionPath) return;
+            setPathSessionId(nextSessionId);
+            if (typeof window === 'undefined') return;
+            window.history.replaceState(
+                window.history.state,
+                '',
+                nextSessionId
+                    ? `${BASE_PATH}${AI_CHAT_PATH}/${encodeURIComponent(nextSessionId)}`
+                    : `${BASE_PATH}${AI_CHAT_PATH}`,
+            );
+        },
+        [syncSessionPath],
+    );
+
+    useEffect(() => {
+        if (!syncSessionPath) return;
+        setPathSessionId(getAiChatSessionIdFromPathname(pathname));
+    }, [pathname, syncSessionPath]);
+
+    useEffect(() => {
+        if (!syncSessionPath || typeof window === 'undefined') return;
+
+        const handlePopState = () => {
+            setPathSessionId(getAiChatSessionIdFromPathname(window.location.pathname));
+        };
+
+        window.addEventListener('popstate', handlePopState);
+        return () => window.removeEventListener('popstate', handlePopState);
+    }, [syncSessionPath]);
 
     const scrollToBottom = useCallback((force = false) => {
         if (force) {
@@ -62,6 +152,30 @@ const ChatPanel = ({ showCloseButton = true }: ChatPanelProps = {}) => {
             messageListRef.current.scrollTop = messageListRef.current.scrollHeight;
         });
     }, []);
+
+    useEffect(() => {
+        const previousPathSessionId = previousPathSessionIdRef.current;
+        previousPathSessionIdRef.current = pathSessionId;
+
+        if (!syncSessionPath || doc?.id || boundSessionId) return;
+        if (!previousPathSessionId) return;
+
+        setMessages([]);
+        setPendingMessages([]);
+        setInput('');
+        pendingSelectedSessionRef.current = null;
+        clearAttachments({ revokeAll: true });
+        setSessionId(null);
+        userScrolledRef.current = false;
+        scrollToBottom(true);
+    }, [
+        boundSessionId,
+        clearAttachments,
+        doc?.id,
+        pathSessionId,
+        scrollToBottom,
+        syncSessionPath,
+    ]);
 
     const handleScroll = useCallback(() => {
         const container = messageListRef.current;
@@ -138,38 +252,112 @@ const ChatPanel = ({ showCloseButton = true }: ChatPanelProps = {}) => {
         setMessages([]);
         setPendingMessages([]);
         setInput('');
+        pendingSelectedSessionRef.current = null;
+        clearAttachments({ revokeAll: true });
         setSessionId(null);
+        replaceSessionPath(null);
         setHistoryOpen(false);
         userScrolledRef.current = false;
         scrollToBottom(true);
-    }, [isLoading, scrollToBottom]);
+    }, [clearAttachments, isLoading, replaceSessionPath, scrollToBottom]);
 
-    const handleSessionSelect = useCallback(
+    const applySession = useCallback(
         (session: ChatSession) => {
             setSessionId(session.sessionId);
             setMessages(convertSessionToMessages(session));
             setPendingMessages([]);
             setInput('');
+            clearAttachments({ revokeAll: true });
             userScrolledRef.current = false;
             scrollToBottom(true);
         },
-        [scrollToBottom],
+        [clearAttachments, scrollToBottom],
     );
+
+    const handleSessionSelect = useCallback(
+        (session: ChatSession) => {
+            if (
+                syncSessionPath &&
+                boundSessionId &&
+                session.sessionId !== boundSessionId
+            ) {
+                pendingSelectedSessionRef.current = session;
+                replaceSessionPath(session.sessionId);
+                return;
+            }
+            replaceSessionPath(session.sessionId);
+            applySession(session);
+        },
+        [applySession, boundSessionId, replaceSessionPath, syncSessionPath],
+    );
+
+    useEffect(() => {
+        if (!boundSessionId || doc?.id) return;
+        if (sessionId === boundSessionId) return;
+        if (abortControllerRef.current) return;
+
+        const pendingSelectedSession = pendingSelectedSessionRef.current;
+        if (pendingSelectedSession?.sessionId === boundSessionId) {
+            pendingSelectedSessionRef.current = null;
+            applySession(pendingSelectedSession);
+            return;
+        }
+
+        let cancelled = false;
+        setRestoringSession(true);
+        clientFetch(API.luoye.ai.chat.getSession(boundSessionId))
+            .then((session) => {
+                if (cancelled) return;
+                applySession(session);
+            })
+            .catch((error) => {
+                if (cancelled) return;
+                Toast.notify(
+                    error instanceof Error
+                        ? error.message
+                        : '恢复历史会话失败',
+                );
+                replaceSessionPath(null);
+            })
+            .finally(() => {
+                if (!cancelled) setRestoringSession(false);
+            });
+
+        return () => {
+            cancelled = true;
+        };
+    }, [
+        boundSessionId,
+        doc?.id,
+        applySession,
+        replaceSessionPath,
+        sessionId,
+    ]);
 
     const handleSend = useCallback(
         async (userInput: string) => {
-            if (!userInput.trim() || abortControllerRef.current || isRestoringSession) return;
+            if (isUploadingAttachment) {
+                Toast.notify('图片还在上传中，请稍后发送');
+                return;
+            }
+            if ((!userInput.trim() && attachments.length === 0) || abortControllerRef.current || isSessionRestoring)
+                return;
+
+            const displayAttachments = attachments;
+            const selectedAttachments = toSerializableAttachments(attachments);
 
             const userMessage: Message = {
                 id: generateMessageId(),
                 role: 'user',
                 content: userInput,
+                ...(displayAttachments.length ? { attachments: displayAttachments } : {}),
                 createdAt: Date.now(),
             };
 
             // 提交用户消息
             setMessages((prev) => [...prev, userMessage]);
             setInput('');
+            clearAttachments({ preservePreviews: true });
             setIsLoading(true);
             setPendingMessages([]);
             scrollToBottom(true);
@@ -181,6 +369,7 @@ const ChatPanel = ({ showCloseButton = true }: ChatPanelProps = {}) => {
                     API.luoye.ai.chat.send({
                         ...(doc?.id ? { docId: doc.id } : {}),
                         message: userMessage.content,
+                        ...(selectedAttachments.length ? { attachments: selectedAttachments } : {}),
                         sessionId: sessionId || undefined,
                     }),
                     abortControllerRef.current,
@@ -216,6 +405,7 @@ const ChatPanel = ({ showCloseButton = true }: ChatPanelProps = {}) => {
                         switch (data.type) {
                             case 'session': {
                                 setSessionId(data.sessionId);
+                                replaceSessionPath(data.sessionId);
                                 break;
                             }
                             case 'message': {
@@ -405,21 +595,16 @@ const ChatPanel = ({ showCloseButton = true }: ChatPanelProps = {}) => {
                 }
                 console.error('Chat error:', error);
                 Toast.notify(error instanceof Error ? error.message : '发送失败');
+                setMessages((prev) => prev.filter((item) => item.id !== userMessage.id));
+                setInput(userInput);
+                setAttachments(displayAttachments);
                 setPendingMessages([]);
                 setIsLoading(false);
                 abortControllerRef.current = null;
             }
         },
-        [doc?.id, sessionId, scrollToBottom, isRestoringSession],
+        [attachments, clearAttachments, doc?.id, isSessionRestoring, isUploadingAttachment, replaceSessionPath, sessionId, scrollToBottom, setAttachments],
     );
-
-    const handleKeyDown = (e: React.KeyboardEvent) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            if (isComposingRef.current || e.nativeEvent.isComposing) return;
-            e.preventDefault();
-            handleSend(input);
-        }
-    };
 
     return (
         <div className={styles.container} ref={panelRef}>
@@ -459,62 +644,33 @@ const ChatPanel = ({ showCloseButton = true }: ChatPanelProps = {}) => {
                 </div>
             </div>
             <div className={styles.content}>
-                <div className={styles.messageList} ref={messageListRef} onScroll={handleScroll}>
-                    {messages.length === 0 && !isLoading ? (
-                        <Welcome docId={doc?.id} />
-                    ) : (
-                        <>
-                            {messages.map((msg) => {
-                                const isUserMessage = msg.role === 'user';
-                                return (
-                                    <div
-                                        key={msg.id}
-                                        className={`${styles.message} ${
-                                            isUserMessage ? styles.userMessage : styles.assistantMessage
-                                        }`}
-                                    >
-                                        <div className={styles.messageContent}>
-                                            {msg.role === 'assistant' ? (
-                                                <AssistantContent content={msg.content} sessionId={sessionId} />
-                                            ) : (
-                                                msg.content
-                                            )}
-                                        </div>
-                                        {isUserMessage && <div className={styles.avatar}>🐰</div>}
-                                        {!isUserMessage && <MessageLoading visible={false} />}
-                                    </div>
-                                );
-                            })}
-                            {isLoading && (
-                                <div className={`${styles.message} ${styles.assistantMessage}`}>
-                                    <div className={styles.messageContent}>
-                                        <AssistantContent content={pendingMessages} sessionId={sessionId} />
-                                    </div>
-                                    <MessageLoading visible />
-                                </div>
-                            )}
-                        </>
-                    )}
-                </div>
-                <div className={styles.inputActions}>
-                    <TextArea
-                        name="chat-box"
-                        className={styles.chatBox}
-                        placeholder="请输入你想问的问题（Shift+Enter 换行）"
-                        value={input}
-                        onChange={(e) => setInput(e.target.value)}
-                        onCompositionStart={() => (isComposingRef.current = true)}
-                        onCompositionEnd={() => (isComposingRef.current = false)}
-                        onKeyDown={handleKeyDown}
-                    />
-                    <Button
-                        className={styles.sendButton}
-                        type="primary"
-                        onClick={isLoading ? handleAbort : () => handleSend(input)}
-                    >
-                        {isLoading ? '停 止' : isRestoringSession ? '恢复中' : '发 送'}
-                    </Button>
-                </div>
+                <ChatMessageList
+                    docId={doc?.id}
+                    isLoading={isLoading || isSessionBindingPending}
+                    messages={isSessionBindingPending ? [] : messages}
+                    messageListRef={messageListRef}
+                    onScroll={handleScroll}
+                    pendingMessages={isSessionBindingPending ? [] : pendingMessages}
+                    sessionId={sessionId}
+                />
+                <ChatInput
+                    attachments={attachments}
+                    fileInputRef={fileInputRef}
+                    input={input}
+                    isDraggingAttachment={isDraggingAttachment}
+                    isLoading={isLoading}
+                    isRestoringSession={isSessionRestoring}
+                    isUploadingAttachment={isUploadingAttachment}
+                    onAbort={handleAbort}
+                    onAttachmentChange={handleAttachmentChange}
+                    onAttachmentDragEnter={handleAttachmentDragEnter}
+                    onAttachmentDragLeave={handleAttachmentDragLeave}
+                    onAttachmentDragOver={handleAttachmentDragOver}
+                    onAttachmentDrop={handleAttachmentDrop}
+                    onInputChange={setInput}
+                    onRemoveAttachment={removeAttachment}
+                    onSend={handleSend}
+                />
             </div>
         </div>
     );

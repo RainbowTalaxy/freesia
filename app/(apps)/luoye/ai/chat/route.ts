@@ -10,16 +10,30 @@ import {
     ChatSessionAssistantChatMessage,
     ChatSession as LocalChatSession,
     ChatSessionChatMessage,
-    ChatSessionToolCallMessage,
     convertMessages,
 } from '@/files/luoye/chat';
 import { SseEventData, SseEventStreamEvent } from './types';
 import {
+    ChatImageAttachment,
     ChatSession as BackendChatSession,
     ChatSessionMessage,
     Doc,
 } from '@/api/types/luoye';
 import { formatCurrentTimeForPrompt, formatDocForReadDoc } from './format';
+
+const TRUSTED_ATTACHMENT_PATH_PREFIX = '/statics/temp/luoye/';
+const MAX_ATTACHMENT_SIZE = 50 * 1024 * 1024;
+const TRUSTED_ATTACHMENT_HOSTS = new Set([
+    'blog.talaxy.cn',
+    'localhost',
+    '127.0.0.1',
+]);
+const SUPPORTED_ATTACHMENT_MIME_TYPES = new Set([
+    'image/png',
+    'image/jpeg',
+    'image/webp',
+    'image/gif',
+]);
 
 /** 为文档页会话预置一次 read_doc 结果，避免 agent 首轮重复读取同一篇文档。 */
 function createFakeReadDocMessage(doc: Doc) {
@@ -64,6 +78,48 @@ function normalizeToolInput(input: unknown): Record<string, unknown> {
     return {};
 }
 
+function normalizeAttachments(
+    input: unknown,
+    _requestUrl: string,
+): ChatImageAttachment[] {
+    if (!Array.isArray(input)) return [];
+    return input
+        .filter((item): item is ChatImageAttachment => {
+            if (!item || typeof item !== 'object') return false;
+            const attachment = item as Partial<ChatImageAttachment>;
+            if (
+                typeof attachment.url !== 'string' ||
+                typeof attachment.mimeType !== 'string'
+            ) {
+                return false;
+            }
+            let url: URL;
+            try {
+                url = new URL(attachment.url);
+            } catch {
+                return false;
+            }
+            return (
+                typeof attachment.id === 'string' &&
+                typeof attachment.name === 'string' &&
+                SUPPORTED_ATTACHMENT_MIME_TYPES.has(attachment.mimeType) &&
+                typeof attachment.size === 'number' &&
+                attachment.size > 0 &&
+                attachment.size <= MAX_ATTACHMENT_SIZE &&
+                ['http:', 'https:'].includes(url.protocol) &&
+                TRUSTED_ATTACHMENT_HOSTS.has(url.hostname) &&
+                url.pathname.startsWith(TRUSTED_ATTACHMENT_PATH_PREFIX)
+            );
+        })
+        .slice(0, 3);
+}
+
+function hasImageAttachments(messages: ChatSessionChatMessage[]) {
+    return messages.some(
+        (message) => message.role === 'user' && !!message.attachments?.length,
+    );
+}
+
 /** 将本地备份消息结构转换为后端会话接口的 append-only 消息结构。 */
 function toBackendMessage(message: ChatSessionChatMessage): ChatSessionMessage {
     if (message.role === 'user') {
@@ -72,6 +128,9 @@ function toBackendMessage(message: ChatSessionChatMessage): ChatSessionMessage {
             messageId: message.messageId,
             type: 'user_message',
             content: message.content,
+            ...(message.attachments?.length
+                ? { attachments: message.attachments }
+                : {}),
             createdAt: message.createdAt,
         };
     }
@@ -115,6 +174,9 @@ function toLocalMessage(message: ChatSessionMessage): ChatSessionChatMessage {
             messageId: message.messageId,
             role: 'user',
             content: message.content,
+            ...(message.attachments?.length
+                ? { attachments: message.attachments }
+                : {}),
             createdAt: message.createdAt,
         };
     }
@@ -196,7 +258,12 @@ export async function POST(request: NextRequest) {
     }
 
     // 获取接口参数
-    let body: { docId?: string; message: string; sessionId?: string };
+    let body: {
+        docId?: string;
+        message: string;
+        attachments?: ChatImageAttachment[];
+        sessionId?: string;
+    };
     try {
         body = await request.json();
     } catch {
@@ -205,10 +272,24 @@ export async function POST(request: NextRequest) {
             { status: 400 },
         );
     }
-    const { docId, message, sessionId: existingSessionId } = body;
+    const {
+        docId,
+        message: rawMessage,
+        attachments: rawAttachments,
+        sessionId: existingSessionId,
+    } = body;
+    const message = typeof rawMessage === 'string' ? rawMessage : '';
+    const attachments = normalizeAttachments(rawAttachments, request.url);
 
     // 参数检查
-    if (!message?.trim()) {
+    if (
+        Array.isArray(rawAttachments) &&
+        rawAttachments.length !== attachments.length
+    ) {
+        return NextResponse.json({ message: '图片附件无效' }, { status: 400 });
+    }
+
+    if (!message?.trim() && attachments.length === 0) {
         return NextResponse.json({ message: '缺少必填参数' }, { status: 400 });
     }
 
@@ -300,6 +381,7 @@ export async function POST(request: NextRequest) {
             userId,
             sessionId,
             message,
+            attachments,
         );
     } catch {
         return NextResponse.json(
@@ -322,7 +404,10 @@ export async function POST(request: NextRequest) {
             session.messages[session.messages.length - 1],
         );
     } catch (error) {
-        console.error('[chat] Failed to append user message to backend:', error);
+        console.error(
+            '[chat] Failed to append user message to backend:',
+            error,
+        );
         return NextResponse.json(
             { message: '保存用户消息失败' },
             { status: 500 },
@@ -406,7 +491,9 @@ export async function POST(request: NextRequest) {
                     );
                 }
 
-                const agent = createChatAgent();
+                const agent = createChatAgent({
+                    multimodal: hasImageAttachments(session.messages),
+                });
                 const eventStream = agent.streamEvents(
                     { messages },
                     {

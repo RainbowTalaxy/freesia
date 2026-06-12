@@ -22,6 +22,9 @@ export function convertSessionToMessages(session: ChatSession): Message[] {
                     id: message.messageId,
                     role: 'user' as const,
                     content: message.content,
+                    ...(message.attachments?.length
+                        ? { attachments: message.attachments }
+                        : {}),
                     createdAt: message.createdAt,
                 };
             }

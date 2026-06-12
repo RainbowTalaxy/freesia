@@ -1,6 +1,7 @@
 import path from 'path';
 import FileHandler from '../FileHandler';
 import { AIMessage, HumanMessage, ToolMessage } from 'langchain';
+import type { ChatImageAttachment } from '@/api/types/luoye';
 
 /** 聊天会话数据存储根目录 */
 const CHAT_DIR = path.join(process.cwd(), 'temp/luoye/chat');
@@ -19,6 +20,7 @@ interface ChatSessionUserChatMessage {
     messageId: string;
     role: 'user';
     content: string;
+    attachments?: ChatImageAttachment[];
     createdAt: number;
 }
 
@@ -90,9 +92,20 @@ function sessionFile(userId: string, sessionId: string) {
     return path.join(userDir(userId), `${sessionId}.json`);
 }
 
-function createSessionTitle(content: string) {
+function createSessionTitle(
+    content: string,
+    attachments?: ChatImageAttachment[],
+) {
     const title = content.trim().replace(/\s+/g, ' ').slice(0, 20);
-    return title || DEFAULT_SESSION_TITLE;
+    if (title) return title;
+    if (attachments?.length) {
+        const attachmentName = attachments[0].name.trim().replace(/\s+/g, ' ');
+        return (attachmentName ? `图片：${attachmentName}` : '图片对话').slice(
+            0,
+            20,
+        );
+    }
+    return DEFAULT_SESSION_TITLE;
 }
 
 function getFirstUserMessage(session: Pick<ChatSession, 'messages'>) {
@@ -115,7 +128,10 @@ function normalizeSession(
         title:
             session.title ||
             (firstUserMessage
-                ? createSessionTitle(firstUserMessage.content)
+                ? createSessionTitle(
+                      firstUserMessage.content,
+                      firstUserMessage.attachments,
+                  )
                 : DEFAULT_SESSION_TITLE),
         messages,
         ...(session.docUpdatedAt !== undefined
@@ -317,6 +333,7 @@ const ChatFile = {
         userId: string,
         sessionId: string,
         content: string,
+        attachments?: ChatImageAttachment[],
     ): Promise<ChatSession | null> {
         const session = await this.getSession(userId, sessionId);
         if (!session) return null;
@@ -327,10 +344,11 @@ const ChatFile = {
             messageId: this.generateMessageId(),
             role: 'user',
             content,
+            ...(attachments?.length ? { attachments } : {}),
             createdAt: Date.now(),
         });
         if (shouldGenerateTitle) {
-            session.title = createSessionTitle(content);
+            session.title = createSessionTitle(content, attachments);
         }
         await this.saveSession(session);
         return session;
@@ -394,7 +412,24 @@ export function convertMessages(messages: ChatSessionChatMessage[]) {
     for (const msg of messages) {
         switch (msg.role) {
             case 'user': {
-                result.push(new HumanMessage(msg.content));
+                if (msg.attachments?.length) {
+                    result.push(
+                        new HumanMessage({
+                            content: [
+                                {
+                                    type: 'text',
+                                    text: msg.content || '请看图片。',
+                                },
+                                ...msg.attachments.map((attachment) => ({
+                                    type: 'image_url',
+                                    image_url: { url: attachment.url },
+                                })),
+                            ],
+                        }),
+                    );
+                } else {
+                    result.push(new HumanMessage(msg.content));
+                }
                 break;
             }
             case 'assistant': {

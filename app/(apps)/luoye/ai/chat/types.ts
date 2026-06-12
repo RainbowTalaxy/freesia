@@ -41,10 +41,21 @@ export enum SseEventStreamEvent {
     OnDone = 'on_done',
 }
 
+export interface ChatImageAttachment {
+    id: string;
+    url: string;
+    name: string;
+    mimeType: string;
+    size: number;
+    previewUrl?: string;
+    uploadStatus?: 'uploading' | 'ready';
+}
+
 export interface UserMessage {
     id: string;
     role: 'user';
     content: string;
+    attachments?: ChatImageAttachment[];
     createdAt: number;
 }
 

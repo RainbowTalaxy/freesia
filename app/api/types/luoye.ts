@@ -81,11 +81,32 @@ export interface SearchResultItem {
     }[];
 }
 
+export interface ChatImageAttachment {
+    id: string;
+    url: string;
+    name: string;
+    mimeType: string;
+    size: number;
+}
+
+export interface ImageUploadResponse {
+    message: string;
+    file: {
+        filename: string;
+        originalname: string;
+        mimetype: 'image/png' | 'image/jpeg' | 'image/webp' | 'image/gif';
+        size: number;
+        path: string;
+        url: string;
+    };
+}
+
 export interface ChatSessionUserMessage {
     schemaVersion: 1;
     messageId: string;
     type: 'user_message';
     content: string;
+    attachments?: ChatImageAttachment[];
     createdAt: number;
 }
 
