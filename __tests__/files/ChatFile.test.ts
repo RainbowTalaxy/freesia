@@ -163,6 +163,39 @@ describe('ChatFile', () => {
             expect(result!.title).toBe('图片：cat.png');
         });
 
+        it('带图片消息应在发送时固定 modelContent', async () => {
+            const created = await ChatFile.createSession(
+                TEST_USER,
+                'doc-4d',
+                Date.now(),
+            );
+
+            const result = await ChatFile.appendUserMessage(
+                TEST_USER,
+                created.sessionId,
+                '描述一下',
+                [
+                    {
+                        id: 'image-1',
+                        url: 'https://blog.talaxy.cn/statics/temp/luoye/cat.png',
+                        name: 'cat.png',
+                        mimeType: 'image/png',
+                        size: 123,
+                    },
+                ],
+            );
+
+            const message = result!.messages[0];
+            expect(message.role).toBe('user');
+            if (message.role === 'user') {
+                expect(message.content).toBe('描述一下');
+                expect(message.modelContent).toContain('图片附件信息：');
+                expect(message.modelContent).toContain(
+                    '地址：https://blog.talaxy.cn/statics/temp/luoye/cat.png',
+                );
+            }
+        });
+
         it('向不存在的会话追加消息应返回 null', async () => {
             const result = await ChatFile.appendUserMessage(
                 TEST_USER,
@@ -621,6 +654,42 @@ describe('ChatFile', () => {
             expect(result[0]).toBeInstanceOf(AIMessage);
             expect(result[1]).toBeInstanceOf(ToolMessage);
             expect(result[1].content).toBe('结果');
+        });
+
+        it('带图片用户消息应优先使用发送时固定的 modelContent', () => {
+            const result = convertMessages([
+                {
+                    messageId: 'msg-image',
+                    role: 'user',
+                    content: 'UI 只展示这句话',
+                    modelContent: '固定给模型看的文本\n图片地址：https://blog.talaxy.cn/statics/temp/luoye/cat.png',
+                    attachments: [
+                        {
+                            id: 'image-1',
+                            url: 'https://blog.talaxy.cn/statics/temp/luoye/cat.png',
+                            name: 'cat.png',
+                            mimeType: 'image/png',
+                            size: 123,
+                        },
+                    ],
+                    createdAt: Date.now(),
+                },
+            ]);
+
+            expect(result).toHaveLength(1);
+            expect(result[0]).toBeInstanceOf(HumanMessage);
+            expect(result[0].content).toEqual([
+                {
+                    type: 'text',
+                    text: '固定给模型看的文本\n图片地址：https://blog.talaxy.cn/statics/temp/luoye/cat.png',
+                },
+                {
+                    type: 'image_url',
+                    image_url: {
+                        url: 'https://blog.talaxy.cn/statics/temp/luoye/cat.png',
+                    },
+                },
+            ]);
         });
 
         it('应正确转换完整的多轮对话', () => {

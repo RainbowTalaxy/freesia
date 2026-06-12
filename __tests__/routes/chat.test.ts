@@ -149,6 +149,18 @@ function withUserMessage(
     content: string,
     attachments?: import('@/api/types/luoye').ChatImageAttachment[],
 ) {
+    const modelContent = attachments?.length
+        ? [
+              content || '请看图片。',
+              '图片附件信息：',
+              attachments
+                  .map(
+                      (attachment, index) =>
+                          `图片 ${index + 1}；文件名：${attachment.name}；地址：${attachment.url}`,
+                  )
+                  .join('\n'),
+          ].join('\n')
+        : undefined;
     return {
         ...session,
         messages: [
@@ -157,6 +169,7 @@ function withUserMessage(
                 messageId: 'msg-1',
                 role: 'user' as const,
                 content,
+                ...(modelContent ? { modelContent } : {}),
                 ...(attachments?.length ? { attachments } : {}),
                 createdAt: Date.now(),
             },
@@ -166,13 +179,16 @@ function withUserMessage(
 
 function backendMessageFromLocal(
     message: import('@/files/luoye/chat').ChatSession['messages'][number],
-) {
+): import('@/api/types/luoye').ChatSessionMessage {
     if (message.role === 'user') {
         return {
-            schemaVersion: 1,
+            schemaVersion: 1 as const,
             messageId: message.messageId,
-            type: 'user_message',
+            type: 'user_message' as const,
             content: message.content,
+            ...(message.modelContent
+                ? { modelContent: message.modelContent }
+                : {}),
             ...(message.attachments?.length
                 ? { attachments: message.attachments }
                 : {}),
@@ -181,23 +197,23 @@ function backendMessageFromLocal(
     }
 
     return {
-        schemaVersion: 1,
+        schemaVersion: 1 as const,
         messageId: message.messageId,
-        type: 'assistant_message',
+        type: 'assistant_message' as const,
         parts: message.content.map((item) => {
             if (item.role === 'assistant') {
                 return {
-                    schemaVersion: 1,
+                    schemaVersion: 1 as const,
                     partId: item.messageId,
-                    type: 'text',
+                    type: 'text' as const,
                     content: item.content,
                     createdAt: item.createdAt,
                 };
             }
             return {
-                schemaVersion: 1,
+                schemaVersion: 1 as const,
                 partId: item.toolCallId,
-                type: 'tool_call',
+                type: 'tool_call' as const,
                 toolName: item.name,
                 runId: item.runId,
                 toolCallId: item.toolCallId,
@@ -463,12 +479,84 @@ describe('POST /luoye/ai/chat (发送消息)', () => {
 
         const agentMessages = mockStreamEvents.mock.calls[0][0].messages;
         expect(agentMessages[1].content).toEqual([
-            { type: 'text', text: '请看图片。' },
+            {
+                type: 'text',
+                text: [
+                    '请看图片。',
+                    '图片附件信息：',
+                    `图片 1；文件名：${attachment.name}；地址：${attachment.url}`,
+                ].join('\n'),
+            },
             {
                 type: 'image_url',
                 image_url: { url: attachment.url },
             },
         ]);
+    });
+
+    it('已有会话历史消息带图片时，后续纯文本追问也应使用多模态模型', async () => {
+        const attachment = {
+            id: 'attachment-1',
+            url: 'https://blog.talaxy.cn/statics/temp/luoye/a.png',
+            name: 'a.png',
+            mimeType: 'image/png',
+            size: 123,
+        };
+        const session = makeSession({
+            sessionId: 'existing-session',
+            docId: undefined,
+        });
+        const sessionWithImage = withUserMessage(session, '请看图', [
+            attachment,
+        ]);
+        const appendedSession = withUserMessage(sessionWithImage, '继续解释');
+
+        mockServerFetch.mockImplementation(
+            (request: { url?: string; method?: string }) => {
+                const url = request.url ?? '';
+                if (url === '/api/user') return Promise.resolve({ id: 'user-1' });
+                if (url === '/api/luoye/chat-sessions/existing-session') {
+                    return Promise.resolve(
+                        makeBackendSession({
+                            sessionId: 'existing-session',
+                            docId: undefined,
+                            messages: sessionWithImage.messages.map(
+                                backendMessageFromLocal,
+                            ),
+                        }),
+                    );
+                }
+                if (
+                    url ===
+                    '/api/luoye/chat-sessions/existing-session/messages'
+                ) {
+                    return Promise.resolve({});
+                }
+                return Promise.resolve({});
+            },
+        );
+        mockChatFile.appendUserMessage.mockResolvedValue(appendedSession);
+        mockStreamEvents.mockReturnValue(fakeAgentEvents(['好的']));
+
+        const res = await POST(
+            makeRequest({
+                message: '继续解释',
+                sessionId: 'existing-session',
+            }),
+        );
+        expect(res.status).toBe(200);
+
+        await readSSEStream(res);
+
+        expect(mockCreateChatAgent).toHaveBeenCalledWith({
+            multimodal: true,
+        });
+
+        const agentMessages = mockStreamEvents.mock.calls[0][0].messages;
+        expect(agentMessages[1].content[0]).toMatchObject({
+            type: 'text',
+            text: expect.stringContaining(`地址：${attachment.url}`),
+        });
     });
 
     it('本地静态资源图片附件应被视为合法附件', async () => {

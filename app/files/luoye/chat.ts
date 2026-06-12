@@ -20,6 +20,7 @@ interface ChatSessionUserChatMessage {
     messageId: string;
     role: 'user';
     content: string;
+    modelContent?: string;
     attachments?: ChatImageAttachment[];
     createdAt: number;
 }
@@ -344,6 +345,9 @@ const ChatFile = {
             messageId: this.generateMessageId(),
             role: 'user',
             content,
+            ...(attachments?.length
+                ? { modelContent: createUserModelContent(content, attachments) }
+                : {}),
             ...(attachments?.length ? { attachments } : {}),
             createdAt: Date.now(),
         });
@@ -407,6 +411,31 @@ const ChatFile = {
 
 export default ChatFile;
 
+function formatAttachmentText(attachments: ChatImageAttachment[]) {
+    return attachments
+        .map((attachment, index) => {
+            const fields = [
+                `图片 ${index + 1}`,
+                `文件名：${attachment.name}`,
+                `地址：${attachment.url}`,
+            ];
+            return fields.join('；');
+        })
+        .join('\n');
+}
+
+function createUserModelContent(
+    content: string,
+    attachments?: ChatImageAttachment[],
+) {
+    if (!attachments?.length) return content;
+    return [
+        content || '请看图片。',
+        '图片附件信息：',
+        formatAttachmentText(attachments),
+    ].join('\n');
+}
+
 export function convertMessages(messages: ChatSessionChatMessage[]) {
     const result = [];
     for (const msg of messages) {
@@ -418,7 +447,12 @@ export function convertMessages(messages: ChatSessionChatMessage[]) {
                             content: [
                                 {
                                     type: 'text',
-                                    text: msg.content || '请看图片。',
+                                    text:
+                                        msg.modelContent ??
+                                        createUserModelContent(
+                                            msg.content,
+                                            msg.attachments,
+                                        ),
                                 },
                                 ...msg.attachments.map((attachment) => ({
                                     type: 'image_url',

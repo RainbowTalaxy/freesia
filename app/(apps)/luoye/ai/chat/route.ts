@@ -128,6 +128,9 @@ function toBackendMessage(message: ChatSessionChatMessage): ChatSessionMessage {
             messageId: message.messageId,
             type: 'user_message',
             content: message.content,
+            ...(message.modelContent
+                ? { modelContent: message.modelContent }
+                : {}),
             ...(message.attachments?.length
                 ? { attachments: message.attachments }
                 : {}),
@@ -174,6 +177,9 @@ function toLocalMessage(message: ChatSessionMessage): ChatSessionChatMessage {
             messageId: message.messageId,
             role: 'user',
             content: message.content,
+            ...(message.modelContent
+                ? { modelContent: message.modelContent }
+                : {}),
             ...(message.attachments?.length
                 ? { attachments: message.attachments }
                 : {}),
@@ -207,6 +213,35 @@ function toLocalMessage(message: ChatSessionMessage): ChatSessionChatMessage {
         }),
         createdAt: message.createdAt,
     };
+}
+
+/** 后端如果暂未保存 modelContent，则从本地备份按 messageId 合并回来。 */
+function mergeLocalModelContent(
+    session: LocalChatSession,
+    localSession: LocalChatSession | null,
+) {
+    if (!localSession) return session;
+
+    const localUserMessages = new Map(
+        localSession.messages
+            .filter(
+                (
+                    message,
+                ): message is Extract<
+                    ChatSessionChatMessage,
+                    { role: 'user' }
+                > => message.role === 'user',
+            )
+            .map((message) => [message.messageId, message.modelContent]),
+    );
+
+    session.messages = session.messages.map((message) => {
+        if (message.role !== 'user' || message.modelContent) return message;
+        const modelContent = localUserMessages.get(message.messageId);
+        return modelContent ? { ...message, modelContent } : message;
+    });
+
+    return session;
 }
 
 /** 将后端会话详情落成本地备份格式，保留现有 convertMessages 链路。 */
@@ -368,7 +403,14 @@ export async function POST(request: NextRequest) {
                 { status: 404 },
             );
         }
-        session = toLocalSession(backendSession);
+        const localSession = await ChatFile.getSession(
+            userId,
+            backendSession.sessionId,
+        );
+        session = mergeLocalModelContent(
+            toLocalSession(backendSession),
+            localSession,
+        );
         await ChatFile.saveSession(session);
     }
 
