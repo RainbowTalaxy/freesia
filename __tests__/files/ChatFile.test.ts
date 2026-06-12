@@ -138,6 +138,31 @@ describe('ChatFile', () => {
             }
         });
 
+        it('纯图片首条消息应使用图片名生成标题', async () => {
+            const created = await ChatFile.createSession(
+                TEST_USER,
+                'doc-4c',
+                Date.now(),
+            );
+
+            const result = await ChatFile.appendUserMessage(
+                TEST_USER,
+                created.sessionId,
+                '',
+                [
+                    {
+                        id: 'image-1',
+                        url: 'https://blog.talaxy.cn/statics/temp/luoye/cat.png',
+                        name: 'cat.png',
+                        mimeType: 'image/png',
+                        size: 123,
+                    },
+                ],
+            );
+
+            expect(result!.title).toBe('图片：cat.png');
+        });
+
         it('向不存在的会话追加消息应返回 null', async () => {
             const result = await ChatFile.appendUserMessage(
                 TEST_USER,

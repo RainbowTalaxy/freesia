@@ -5,7 +5,10 @@ import styles from '../../styles/home.module.css';
 const AiChat = () => {
     return (
         <div className={styles.aiChat}>
-            <ChatPanel showCloseButton={false} />
+            <ChatPanel
+                showCloseButton={false}
+                syncSessionPath
+            />
         </div>
     );
 };

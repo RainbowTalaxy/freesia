@@ -14,6 +14,8 @@ import {
     WorkspaceItem,
     ChatSession,
     ChatSessionSummary,
+    ChatImageAttachment,
+    ImageUploadResponse,
 } from './types/luoye';
 
 const LuoyeAPI = {
@@ -93,8 +95,13 @@ const LuoyeAPI = {
             send: (props: {
                 docId?: string;
                 message: string;
+                attachments?: ChatImageAttachment[];
                 sessionId?: string;
             }) => Rocket.post(`${BASE_PATH}/luoye/ai/chat`, props),
+            uploadAttachment: () =>
+                Rocket.post<ImageUploadResponse>(
+                    `${API_PREFIX}/luoye/attachments/images`,
+                ),
             listSessions: (query?: { docId?: string; limit?: number }) =>
                 Rocket.get<ChatSessionSummary[]>(
                     `${API_PREFIX}/luoye/chat-sessions`,

@@ -119,8 +119,8 @@ const saveDocRequestTool = tool(
     },
 );
 
-export function createChatAgent() {
-    const model = getMimoModel();
+export function createChatAgent(options?: { multimodal?: boolean }) {
+    const model = getMimoModel(options);
     return createAgent({
         model,
         tools: [

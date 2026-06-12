@@ -96,11 +96,11 @@ vi.mock('@/files', () => ({
 
 // 模拟 Agent 的 streamEvents 方法
 const mockStreamEvents = vi.fn();
-const mockCreateChatAgent = vi.fn(() => ({
+const mockCreateChatAgent = vi.fn((..._args: unknown[]) => ({
     streamEvents: mockStreamEvents,
 }));
 vi.mock('../../app/(apps)/luoye/ai/chat/agent', () => ({
-    createChatAgent: () => mockCreateChatAgent(),
+    createChatAgent: (...args: unknown[]) => mockCreateChatAgent(...args),
 }));
 
 // ---- Helpers ----
@@ -147,6 +147,7 @@ function makeSession(
 function withUserMessage(
     session: ReturnType<typeof makeSession>,
     content: string,
+    attachments?: import('@/api/types/luoye').ChatImageAttachment[],
 ) {
     return {
         ...session,
@@ -156,6 +157,7 @@ function withUserMessage(
                 messageId: 'msg-1',
                 role: 'user' as const,
                 content,
+                ...(attachments?.length ? { attachments } : {}),
                 createdAt: Date.now(),
             },
         ],
@@ -171,6 +173,9 @@ function backendMessageFromLocal(
             messageId: message.messageId,
             type: 'user_message',
             content: message.content,
+            ...(message.attachments?.length
+                ? { attachments: message.attachments }
+                : {}),
             createdAt: message.createdAt,
         };
     }
@@ -405,6 +410,143 @@ describe('POST /luoye/ai/chat (发送消息)', () => {
         const agentMessages = mockStreamEvents.mock.calls[0][0].messages;
         expect(agentMessages[0].content).toContain('当前时间：');
         expect(agentMessages[0].content).toContain('(UTC+8)');
+        expect(mockCreateChatAgent).toHaveBeenCalledWith({
+            multimodal: false,
+        });
+    });
+
+    it('带图片附件发送时应保存附件并使用多模态模型', async () => {
+        const attachment = {
+            id: 'attachment-1',
+            url: 'https://blog.talaxy.cn/statics/temp/luoye/a.png',
+            name: 'a.png',
+            mimeType: 'image/png',
+            size: 123,
+        };
+        mockServerFetch.mockResolvedValueOnce({ id: 'user-1' });
+
+        const session = makeSession({ docId: undefined });
+        const appendedSession = withUserMessage(session, '', [attachment]);
+        mockChatFile.cleanupSessions.mockResolvedValue(undefined);
+        mockChatFile.appendUserMessage.mockResolvedValue(appendedSession);
+        mockStreamEvents.mockReturnValue(fakeAgentEvents(['收到']));
+
+        const res = await POST(
+            makeRequest({ message: '', attachments: [attachment] }),
+        );
+        expect(res.status).toBe(200);
+
+        await readSSEStream(res);
+
+        expect(mockChatFile.appendUserMessage).toHaveBeenCalledWith(
+            'user-1',
+            session.sessionId,
+            '',
+            [attachment],
+        );
+        expect(mockServerFetch).toHaveBeenCalledWith(
+            expect.objectContaining({
+                url: '/api/luoye/chat-sessions/session-1/messages',
+                data: {
+                    message: expect.objectContaining({
+                        type: 'user_message',
+                        attachments: [attachment],
+                    }),
+                },
+            }),
+            false,
+            false,
+        );
+        expect(mockCreateChatAgent).toHaveBeenCalledWith({
+            multimodal: true,
+        });
+
+        const agentMessages = mockStreamEvents.mock.calls[0][0].messages;
+        expect(agentMessages[1].content).toEqual([
+            { type: 'text', text: '请看图片。' },
+            {
+                type: 'image_url',
+                image_url: { url: attachment.url },
+            },
+        ]);
+    });
+
+    it('本地静态资源图片附件应被视为合法附件', async () => {
+        const attachment = {
+            id: 'attachment-local',
+            url: 'http://localhost:4000/statics/temp/luoye/a.png',
+            name: 'a.png',
+            mimeType: 'image/png',
+            size: 50 * 1024 * 1024,
+        };
+        mockServerFetch.mockResolvedValueOnce({ id: 'user-1' });
+
+        const session = makeSession({ docId: undefined });
+        const appendedSession = withUserMessage(session, '请看这张图', [
+            attachment,
+        ]);
+        mockChatFile.cleanupSessions.mockResolvedValue(undefined);
+        mockChatFile.appendUserMessage.mockResolvedValue(appendedSession);
+        mockStreamEvents.mockReturnValue(fakeAgentEvents(['收到']));
+
+        const res = await POST(
+            makeRequest({ message: '请看这张图', attachments: [attachment] }),
+        );
+        expect(res.status).toBe(200);
+
+        await readSSEStream(res);
+
+        expect(mockChatFile.appendUserMessage).toHaveBeenCalledWith(
+            'user-1',
+            session.sessionId,
+            '请看这张图',
+            [attachment],
+        );
+    });
+
+    it('图片附件 URL 不在静态资源目录时应拒绝纯图片消息', async () => {
+        mockServerFetch.mockResolvedValueOnce({ id: 'user-1' });
+
+        const res = await POST(
+            makeRequest({
+                message: '',
+                attachments: [
+                    {
+                        id: 'attachment-1',
+                        url: 'https://example.com/a.png',
+                        name: 'a.png',
+                        mimeType: 'image/png',
+                        size: 123,
+                    },
+                ],
+            }),
+        );
+
+        expect(res.status).toBe(400);
+        expect(mockChatFile.appendUserMessage).not.toHaveBeenCalled();
+    });
+
+    it('文字消息包含无效图片附件时也应返回 400', async () => {
+        mockServerFetch.mockResolvedValueOnce({ id: 'user-1' });
+
+        const res = await POST(
+            makeRequest({
+                message: '请看这张图',
+                attachments: [
+                    {
+                        id: 'attachment-1',
+                        url: 'https://example.com/a.png',
+                        name: 'a.png',
+                        mimeType: 'image/png',
+                        size: 123,
+                    },
+                ],
+            }),
+        );
+
+        expect(res.status).toBe(400);
+        expect(await res.json()).toMatchObject({ message: '图片附件无效' });
+        expect(mockChatFile.appendUserMessage).not.toHaveBeenCalled();
     });
 
     it('已有会话应不返回 session 事件', async () => {
