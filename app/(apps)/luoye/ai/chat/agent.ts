@@ -6,56 +6,79 @@ import serverFetch from '@/api/fetch/server';
 import { createAgent } from 'langchain';
 import { formatDocForReadDoc } from './format';
 
-const searchDocsTool = tool(
-    async ({ keyword, workspaceId, limit }) => {
-        try {
-            const query: {
-                keyword: string;
-                workspaceId?: string;
-                limit?: number;
-            } = { keyword };
-            if (workspaceId) query.workspaceId = workspaceId;
-            if (limit !== undefined) query.limit = limit;
+const EMPTY_SEARCH_WARNING_THRESHOLD = 3;
 
-            const results = await serverFetch(
-                API.luoye.search(query),
-                true,
-                false,
-                { cache: 'no-store' },
-            );
+function formatEmptySearchResult(consecutiveEmptySearchCount: number) {
+    if (consecutiveEmptySearchCount < EMPTY_SEARCH_WARNING_THRESHOLD) {
+        return '没有找到相关文档。';
+    }
 
-            if (!results || results.length === 0) {
-                return '没有找到相关文档。';
+    return [
+        '没有找到相关文档。',
+        '',
+        `提示：你已经连续 ${consecutiveEmptySearchCount} 次搜索没有结果。`,
+        '请确认继续搜索是否有新的明确线索。',
+        '如果只是在为同一个开放猜测更换近义词，请停止搜索，直接说明不确定，并给出已有依据。',
+    ].join('\n');
+}
+
+function createSearchDocsTool() {
+    let consecutiveEmptySearchCount = 0;
+
+    return tool(
+        async ({ keyword, workspaceId, limit }) => {
+            try {
+                const query: {
+                    keyword: string;
+                    workspaceId?: string;
+                    limit?: number;
+                } = { keyword };
+                if (workspaceId) query.workspaceId = workspaceId;
+                if (limit !== undefined) query.limit = limit;
+
+                const results = await serverFetch(
+                    API.luoye.search(query),
+                    true,
+                    false,
+                    { cache: 'no-store' },
+                );
+
+                if (!results || results.length === 0) {
+                    consecutiveEmptySearchCount += 1;
+                    return formatEmptySearchResult(consecutiveEmptySearchCount);
+                }
+
+                consecutiveEmptySearchCount = 0;
+                return results
+                    .map((r) => {
+                        const matchTexts = r.matches
+                            .map((m) => `[${m.field}] ${m.context}`)
+                            .join('\n');
+                        return `文档「${r.name}」(ID: ${r.id})\n${matchTexts}`;
+                    })
+                    .join('\n---\n');
+            } catch (error) {
+                console.error('[chat] search_docs failed:', error);
+                consecutiveEmptySearchCount = 0;
+                return '搜索文档时发生错误，请稍后重试。';
             }
-
-            return results
-                .map((r) => {
-                    const matchTexts = r.matches
-                        .map((m) => `[${m.field}] ${m.context}`)
-                        .join('\n');
-                    return `文档「${r.name}」(ID: ${r.id})\n${matchTexts}`;
-                })
-                .join('\n---\n');
-        } catch (error) {
-            console.error('[chat] search_docs failed:', error);
-            return '搜索文档时发生错误，请稍后重试。';
-        }
-    },
-    {
-        name: 'search_docs',
-        description:
-            '搜索用户的文档库，根据关键词在文档标题和正文中查找匹配内容。当用户提问涉及其他文档、需要跨文档查找信息或引用时使用此工具。',
-        schema: z.object({
-            keyword: z
-                .string()
-                .describe(
-                    '搜索关键词（大小写敏感，多词 AND 搜索，用空白分隔）',
-                ),
-            workspaceId: z.string().optional().describe('限定搜索的工作区 ID'),
-            limit: z.number().optional().describe('返回结果数量上限，默认 15'),
-        }),
-    },
-);
+        },
+        {
+            name: 'search_docs',
+            description:
+                '搜索用户的文档库，根据关键词在文档标题和正文中查找匹配内容。当用户提问涉及其他文档、需要跨文档查找信息或引用时使用此工具。',
+            schema: z.object({
+                keyword: z
+                    .string()
+                    .describe(
+                        '搜索关键词（大小写敏感，多词 AND 搜索，用空白分隔）',
+                    ),
+                workspaceId: z.string().optional().describe('限定搜索的工作区 ID'),
+                limit: z.number().optional().describe('返回结果数量上限，默认 15'),
+            }),
+        },
+    );
+}
 
 const readDocTool = tool(
     async ({ docId }) => {
@@ -124,7 +147,7 @@ export function createChatAgent(options?: { multimodal?: boolean }) {
     return createAgent({
         model,
         tools: [
-            searchDocsTool,
+            createSearchDocsTool(),
             readDocTool,
             saveDocRequestTool,
             getCurrentTimeTool,
