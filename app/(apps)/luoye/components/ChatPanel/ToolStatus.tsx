@@ -1,4 +1,5 @@
 import { SaveDocRequestToolCallMessage, ToolCallMessage } from '../../ai/chat/types';
+import { isSearchDocsEmptyResult } from '../../ai/chat/searchResult';
 import SaveDocRequest from './SaveDocRequest';
 import styles from './ChatPanel.module.css';
 
@@ -21,11 +22,11 @@ function getSearchDocsText(tool: ToolCallMessage) {
         return `正在搜索 “${keyword}” ...`;
     }
 
-    if (tool.content === '没有找到相关文档。') {
+    if (isSearchDocsEmptyResult(tool.content)) {
         return `搜索 “${keyword}” 搜到 0 个结果`;
     }
 
-    const count = tool.content.split('\n---\n').length;
+    const count = tool.content.match(/^文档「/gm)?.length ?? 0;
     return `搜索 “${keyword}” 搜到 ${count} 个结果`;
 }
 
