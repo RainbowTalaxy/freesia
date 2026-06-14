@@ -12,6 +12,8 @@ export interface DocDir {
     docId: string; // 文档 id
     name: string; // 文档名称
     scope: Scope; // 可见范围
+    createdAt: number; // 创建时间
+    date: number; // 所属日期
     updatedAt: number; // 更新时间
 }
 
@@ -43,6 +45,7 @@ export interface DocItem {
     scope: Scope; // 可见范围
     docType: DocType; // 文档类型
     tags?: string[]; // 文档标签
+    date: number; // 所属日期
     createdAt: number; // 创建时间
     updatedAt: number; // 更新时间
 }
@@ -79,6 +82,22 @@ export interface SearchResultItem {
         field: 'name' | 'content'; // 匹配来源
         context: string; // 匹配上下文摘要
     }[];
+}
+
+export interface SearchDocsResponse {
+    total: number; // 搜索结果总数
+    items: SearchResultItem[]; // 搜索结果明细，最多 30 条
+}
+
+export type SearchTimeField = 'updatedAt' | 'createdAt' | 'date';
+
+export interface SearchDocsQuery {
+    keyword?: string;
+    workspaceId?: string;
+    limit?: number;
+    timeField?: SearchTimeField;
+    startDate?: string;
+    endDate?: string;
 }
 
 export interface ChatImageAttachment {

@@ -61,7 +61,7 @@ describe('chat agent search_docs', () => {
     });
 
     it('连续三次空搜索后应在结果中提醒停止无依据枚举', async () => {
-        mocks.serverFetch.mockResolvedValue([]);
+        mocks.serverFetch.mockResolvedValue({ total: 0, items: [] });
         const searchDocsTool = await createSearchDocsTool();
 
         await expect(searchDocsTool.invoke({ keyword: '乡村' })).resolves.toBe(
@@ -77,16 +77,19 @@ describe('chat agent search_docs', () => {
 
     it('搜索命中结果后应重置连续空搜索计数', async () => {
         mocks.serverFetch
-            .mockResolvedValueOnce([])
-            .mockResolvedValueOnce([])
-            .mockResolvedValueOnce([
-                {
-                    id: 'doc-1',
-                    name: '黄山黟县之旅',
-                    matches: [{ field: 'name', context: '黄山 黟县' }],
-                },
-            ])
-            .mockResolvedValueOnce([]);
+            .mockResolvedValueOnce({ total: 0, items: [] })
+            .mockResolvedValueOnce({ total: 0, items: [] })
+            .mockResolvedValueOnce({
+                total: 1,
+                items: [
+                    {
+                        id: 'doc-1',
+                        name: '黄山黟县之旅',
+                        matches: [{ field: 'name', context: '黄山 黟县' }],
+                    },
+                ],
+            })
+            .mockResolvedValueOnce({ total: 0, items: [] });
         const searchDocsTool = await createSearchDocsTool();
 
         await searchDocsTool.invoke({ keyword: '乡村' });
@@ -97,5 +100,27 @@ describe('chat agent search_docs', () => {
         await expect(searchDocsTool.invoke({ keyword: '田野' })).resolves.toBe(
             '没有找到相关文档。',
         );
+    });
+
+    it('搜索响应包含总数时应提示仅展示前几条', async () => {
+        mocks.serverFetch.mockResolvedValueOnce({
+            total: 35,
+            items: [
+                {
+                    id: 'doc-1',
+                    name: '近期笔记',
+                    matches: [],
+                },
+            ],
+        });
+        const searchDocsTool = await createSearchDocsTool();
+
+        await expect(
+            searchDocsTool.invoke({
+                startDate: '2026-01-01',
+                endDate: '2026-06-14',
+                timeField: 'updatedAt',
+            }),
+        ).resolves.toContain('共找到 35 个文档，展示前 1 个');
     });
 });
