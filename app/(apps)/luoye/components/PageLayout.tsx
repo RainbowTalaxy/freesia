@@ -96,6 +96,16 @@ export const hideSidebar = () => {
     sidebar?.classList.remove(REVEAL_CLASS);
 };
 
+export const enableChatMode = () => {
+    const sidebar = document.querySelector<HTMLDivElement>(`#${SIDE_BAR_ID}`);
+    sidebar?.classList.add(styles.chatMode);
+};
+
+export const disableChatMode = () => {
+    const sidebar = document.querySelector<HTMLDivElement>(`#${SIDE_BAR_ID}`);
+    sidebar?.classList.remove(styles.chatMode);
+};
+
 const PageLayout = ({ className, sidebar, navbar, children, sidebarVisible = true }: SideBarProps) => {
     return (
         <div id={SIDE_BAR_ID} className={clsx(styles.pageView, !sidebarVisible && styles.noSidebar, className)}>

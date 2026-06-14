@@ -9,7 +9,7 @@
 .article h4,
 .article h5,
 .article h6 {
-    margin: 0 0 1rem;
+    margin: 0 0 1.25rem;
     line-height: 1.25;
     font-weight: 700;
 }
@@ -31,21 +31,157 @@
 }
 
 .article h5 {
-    font-size: 0.875rem;
+    font-size: 1rem;
 }
 
 .article h6 {
-    font-size: 0.75rem;
+    font-size: 1rem;
+}
+
+.article p + h1,
+.article p + h2,
+.article p + h3,
+.article p + h4,
+.article p + h5,
+.article p + h6 {
+    margin-top: 1rem;
 }
 
 .article p {
     margin-bottom: 1.25rem;
 }
 
+.article blockquote {
+    margin: 0 0 1.25rem;
+    padding: 0 1rem;
+    border-left: 2px solid #dadde1;
+    color: #8d949e;
+}
+
+.article blockquote > :last-child {
+    margin-bottom: 0;
+}
+
+.article pre {
+    margin: 1.25rem 0;
+    padding: 1rem;
+    border-radius: 0.4rem;
+    font-size: 95%;
+    line-height: 1.45;
+    background: var(--page);
+    overflow: auto;
+}
+
+.article :global(.shiki) {
+    margin: -1rem;
+    padding: 1rem;
+    border-radius: 0.4rem;
+    font-size: 95%;
+    line-height: 1.45;
+    background: none;
+    overflow: auto;
+}
+
+.article :global(.shiki code) {
+    padding: 0;
+    font-size: inherit;
+    color: inherit;
+}
+
+/* 
+html[data-theme='dark'] .article :global(.shiki),
+html[data-theme='dark'] .article :global(.shiki span) {
+    color: var(--shiki-dark) !important;
+    background-color: var(--shiki-dark-bg) !important;
+}
+*/
+
+.article code {
+    padding: 0.1rem;
+    font-size: 90%;
+}
+
+.article hr {
+    margin: 2rem 0;
+    height: 1px;
+    background: rgb(190, 195, 201, 0.5);
+    border: none;
+}
+
+.article a,
+.article code,
+.article a:hover {
+    color: var(--primary);
+}
+
+.article table {
+    width: 100%;
+    margin-bottom: 1.25rem;
+    border-collapse: collapse;
+    border-spacing: 0;
+}
+
+.article th,
+.article td {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #dadde1;
+}
+
+.article th {
+    font-weight: 600;
+    background: var(--page);
+}
+
+.article tbody tr:hover {
+    background: var(--page);
+}
+
+.codeBlock {
+    position: relative;
+}
+
+.codeBlock:hover .copyBtn,
+.codeBlock:hover .copyBtn:hover > svg {
+    opacity: 1;
+}
+
+.copyBtn {
+    opacity: 0;
+    position: absolute;
+    top: 9px;
+    right: -5px;
+    padding: 6px;
+    border-radius: 4px;
+    color: var(--primary);
+    background: var(--page);
+    box-shadow: 0 0 10px 10px var(--page);
+}
+
+.copyBtn > svg {
+    opacity: 0.4;
+    width: 20px;
+    height: 20px;
+}
+
+.codeBlock .copyBtn.copied,
+.codeBlock .copyBtn.copied > svg {
+    opacity: 1;
+}
+
+.article > ul,
+.article > ol {
+    margin: 0 0 1.25rem;
+    padding-left: 2rem;
+}
+
 .article ul,
 .article ol {
-    margin: 0 0 1rem;
     padding-left: 2rem;
+}
+
+.article p + ul,
+.article p + ol {
+    margin-bottom: 1.25rem;
 }
 
 .article ul {
@@ -65,52 +201,7 @@
     list-style-type: decimal;
 }
 
-.article ol ol,
-.article ol ul,
-.article ul ol,
-.article ul ul {
-    margin-bottom: 0;
-}
-
-.article li > * {
-    margin-bottom: 0;
-}
-
-.article blockquote {
-    margin: 0 0 1rem;
-    padding: 0 1rem;
-    border-left: 2px solid #dadde1;
-    color: #8d949e;
-}
-
-.article blockquote > :last-child {
-    margin-bottom: 0;
-}
-
-.article pre {
-    margin: 0 0 1rem;
-    padding: 1rem;
-    border-radius: 0.4rem;
-    font-size: 95%;
-    line-height: 1.45;
-    background: var(--page);
-    overflow: auto;
-}
-
-.article code {
-    padding: 0.1rem;
-    font-size: 90%;
-}
-
-.article hr {
-    margin: 1.5rem 0;
-    height: 1px;
-    background: #bec3c9;
-    border: none;
-}
-
-.article a,
-.article code,
-.article a:hover {
-    color: var(--primary);
+.article details,
+.article :global(.callout) {
+    margin-bottom: 1.25rem;
 }

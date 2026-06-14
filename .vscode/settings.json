@@ -1,4 +1,12 @@
 {
-    "cSpell.words": ["luoye", "mdast", "pangea", "rehype"],
+    "cSpell.words": [
+        "langchain",
+        "luoye",
+        "mdast",
+        "Mimo",
+        "pangea",
+        "rehype",
+        "shiki"
+    ],
     "typescript.tsdk": "node_modules/typescript/lib"
 }

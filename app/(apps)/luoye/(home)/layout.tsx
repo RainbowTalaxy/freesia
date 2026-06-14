@@ -27,7 +27,7 @@ export default async function Layout({ children }: Props) {
                         </>
                     }
                 >
-                    <div className={styles.pageView}>{children}</div>
+                    {children}
                 </PageLayout>
             </div>
         </HomeContextProvider>

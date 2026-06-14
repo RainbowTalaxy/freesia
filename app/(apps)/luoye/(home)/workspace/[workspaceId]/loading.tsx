@@ -1,3 +1,5 @@
+import styles from '../../../styles/home.module.css';
+
 export default function Loading() {
-    return '加载中...';
+    return <div className={styles.pageView}>加载中...</div>;
 }

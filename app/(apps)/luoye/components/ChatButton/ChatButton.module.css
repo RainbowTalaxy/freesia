@@ -1,0 +1,31 @@
+.chatButton {
+    --h-margin: 26px;
+
+    position: fixed;
+    bottom: 26px;
+    left: var(--h-margin);
+    padding: 10px 16px;
+    width: calc(var(--sidebar-width) - 2 * var(--h-margin));
+    border: 1px solid var(--primary);
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--primary);
+    background: var(--ly-background);
+    box-shadow: 0 20px 10px 16px var(--ly-background);
+    cursor: pointer;
+    transition: transform 0.2s;
+    user-select: none;
+}
+
+.chatButton:hover {
+    background: var(--background);
+}
+
+.chatButton:active {
+    transform: scale(0.98);
+}
+
+.placeholder {
+    height: 60px;
+}

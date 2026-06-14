@@ -1,23 +1,35 @@
 'use client';
 import { useContext, useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, usePathname } from 'next/navigation';
 import { DragDropContext, Draggable, Droppable, OnDragEndResponder } from '@hello-pangea/dnd';
 import API, { clientFetch } from '@/api';
 import { Logger } from '@/utils';
 import { Scope } from '@/api/luoye';
+import { BASE_PATH } from '@/constants';
 import { SideBarList, SideBarListItem } from '../../components/PageLayout';
 import Placeholder from '../../components/PlaceHolder';
 import SVG from '../../components/SVG';
 import { HomeContext } from '../context';
 import Toast from '../../components/Notification/Toast';
 
+function normalizePathname(pathname: string) {
+    if (BASE_PATH && pathname.startsWith(BASE_PATH)) {
+        return pathname.slice(BASE_PATH.length) || '/';
+    }
+    return pathname;
+}
+
 const SideBar = () => {
     const { tab, workspaceId } = useParams<{
         tab?: string;
         workspaceId?: string;
     }>();
+    const pathname = usePathname();
     const { userId, workspaces: _workspaces, userWorkspace, setAllWorkspaces } = useContext(HomeContext);
     const [workspaces, setWorkspaces] = useState(_workspaces!);
+    const normalizedPathname = normalizePathname(pathname);
+    const isHomeActive = normalizedPathname === '/luoye';
+    const isAiChatActive = normalizedPathname === '/luoye/ai-chat' || normalizedPathname.startsWith('/luoye/ai-chat/');
 
     useEffect(() => {
         if (_workspaces) setWorkspaces(_workspaces);
@@ -49,11 +61,14 @@ const SideBar = () => {
     return (
         <>
             <SideBarList>
-                <SideBarListItem href="/luoye" active={!workspaceId && !tab} icon="🍄">
+                <SideBarListItem href="/luoye" active={isHomeActive} icon="🍄">
                     开始
                 </SideBarListItem>
                 <SideBarListItem href="/luoye/settings" active={tab === 'settings'} icon="⚙️">
                     设置
+                </SideBarListItem>
+                <SideBarListItem href="/luoye/ai-chat" active={tab === 'ai-chat' || isAiChatActive} icon="🤖">
+                    问一问
                 </SideBarListItem>
                 <SideBarListItem
                     icon="🪴"

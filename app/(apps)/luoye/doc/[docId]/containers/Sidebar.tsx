@@ -4,13 +4,16 @@ import { DragDropContext, Draggable, Droppable, OnDragEndResponder } from '@hell
 import API, { clientFetch } from '@/api';
 import { Scope } from '@/api/luoye';
 import { Path } from '@/utils';
-import { SideBarList, SideBarListItem } from '../../../components/PageLayout';
+import { SideBarList, SideBarListItem, enableChatMode, disableChatMode } from '../../../components/PageLayout';
 import Placeholder from '../../../components/PlaceHolder';
 import SVG from '../../../components/SVG';
-import { checkAuth, workSpaceName } from '../../../configs';
+import { checkAuth, workspaceName } from '../../../configs';
 import Toast from '../../../components/Notification/Toast';
 import WorkspaceForm from '../../../containers/WorkspaceForm';
 import DocForm from '../../../containers/DocForm';
+import ChatPanel from '../../../components/ChatPanel/ChatPanel';
+import ChatButton from '../../../components/ChatButton/ChatButton';
+import styles from './Sidebar.module.css';
 import { DocContext } from '../context';
 
 const SideBar = () => {
@@ -18,6 +21,8 @@ const SideBar = () => {
         userId,
         doc,
         workspace: _workspace,
+        isChatVisible,
+        setChatVisible,
         setWorkspace: setContextWorkspace,
         navigateDoc,
         setEditing,
@@ -34,6 +39,14 @@ const SideBar = () => {
     useEffect(() => {
         setSelectedDocId(doc?.id ?? null);
     }, [doc]);
+
+    useEffect(() => {
+        if (isChatVisible) {
+            enableChatMode();
+        } else {
+            disableChatMode();
+        }
+    }, [isChatVisible]);
 
     if (!workspace) return null;
 
@@ -65,10 +78,17 @@ const SideBar = () => {
         }
     };
 
+    if (isChatVisible)
+        return (
+            <div className={styles.chatPanelContainer}>
+                <ChatPanel />
+            </div>
+        );
+
     return (
         <>
             <h2>
-                <span>{workSpaceName(workspace, userId)}</span>
+                <span>{workspaceName(workspace, userId)}</span>
                 {workspace.scope === Scope.Private && <SVG.Lock />}
             </h2>
             {workspaceAuth.configurable && (
@@ -134,6 +154,7 @@ const SideBar = () => {
                     }}
                 />
             )}
+            <ChatButton />
         </>
     );
 };

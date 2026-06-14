@@ -53,7 +53,7 @@ const Welcome = ({ userId, recentDocs }: Props) => {
     };
 
     return (
-        <>
+        <div className={styles.pageView}>
             <div className={styles.titleBar}>
                 <h2 className={styles.pageTitle}>开始</h2>
             </div>
@@ -135,7 +135,7 @@ const Welcome = ({ userId, recentDocs }: Props) => {
                     }}
                 />
             )}
-        </>
+        </div>
     );
 };
 

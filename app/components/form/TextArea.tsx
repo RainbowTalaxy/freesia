@@ -1,13 +1,15 @@
-import { RefObject } from 'react';
+import { RefObject, TextareaHTMLAttributes } from 'react';
 import clsx from 'clsx';
 
-interface Props {
+interface Props extends TextareaHTMLAttributes<HTMLTextAreaElement> {
     className?: string;
     raf?: RefObject<HTMLTextAreaElement>;
 }
 
-const TextArea = ({ raf, className }: Props) => {
-    return <textarea className={clsx('textarea', className)} ref={raf} />;
+const TextArea = ({ raf, className, ...rest }: Props) => {
+    return (
+        <textarea {...rest} className={clsx('textarea', className)} ref={raf} />
+    );
 };
 
 export default TextArea;

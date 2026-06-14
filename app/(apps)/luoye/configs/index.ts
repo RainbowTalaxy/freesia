@@ -3,6 +3,7 @@ import dayjs from 'dayjs';
 
 export const PROJECT_ICON = '🍂';
 export const PROJECT_NAME = '落页';
+export const IS_DEV = process.env.NODE_ENV === 'development';
 
 export const DEFAULT_WORKSPACE_PLACEHOLDER = {
     name: '个人工作区',
@@ -43,7 +44,7 @@ export const splitWorkspace = (
     });
 };
 
-export const workSpaceName = (
+export const workspaceName = (
     workspace: Workspace | WorkspaceItem,
     userId: string | null,
 ) => {
@@ -71,4 +72,44 @@ export const checkAuth = (
         result.editable = true;
     }
     return result;
+};
+
+export const getRawContent = (doc: Doc) => {
+    switch (doc.docType) {
+        case DocType.Text:
+            return `# ${doc.name}\n\n${doc.content}`;
+        case DocType.Markdown:
+            return `# ${doc.name}\n\n${doc.content}`;
+        default:
+            return '';
+    }
+};
+
+export const copyDocumentContent = async (doc: Doc): Promise<boolean> => {
+    const content = getRawContent(doc);
+    try {
+        await navigator.clipboard.writeText(content);
+        return true;
+    } catch {
+        return false;
+    }
+};
+
+export const downloadDocument = (doc: Doc): void => {
+    const content = getRawContent(doc);
+    let ext = 'txt';
+    switch (doc.docType) {
+        case DocType.Text:
+        case DocType.Markdown:
+            ext = 'md';
+            break;
+    }
+    const filename = `${doc.name || '未命名'}.${ext}`;
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
 };

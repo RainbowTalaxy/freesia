@@ -16,7 +16,7 @@ export default async function DocBin() {
     }
 
     return (
-        <>
+        <div className={styles.pageView}>
             <div className={styles.titleBar}>
                 <h2 className={styles.pageTitle}>文档回收站</h2>
             </div>
@@ -42,6 +42,6 @@ export default async function DocBin() {
                     ))}
                 </div>
             )}
-        </>
+        </div>
     );
 }
