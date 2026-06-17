@@ -9,13 +9,14 @@ import {
     DocItem,
     DocType,
     Scope,
-    SearchResultItem,
+    SearchDocsResponse,
     Workspace,
     WorkspaceItem,
     ChatSession,
     ChatSessionSummary,
     ChatImageAttachment,
     ImageUploadResponse,
+    SearchDocsQuery,
 } from './types/luoye';
 
 const LuoyeAPI = {
@@ -77,11 +78,8 @@ const LuoyeAPI = {
     docBin: () => Rocket.get<DocBinItem[]>(`${API_PREFIX}/luoye/doc-bin`),
     restoreDoc: (id: string) =>
         Rocket.put<ActionResult>(`${API_PREFIX}/luoye/doc/${id}/restore`),
-    search: (query: {
-        keyword: string;
-        workspaceId?: string;
-        limit?: number;
-    }) => Rocket.get<SearchResultItem[]>(`${API_PREFIX}/luoye/search`, query),
+    search: (query: SearchDocsQuery) =>
+        Rocket.get<SearchDocsResponse>(`${API_PREFIX}/luoye/search`, query),
     ai: {
         hello: () =>
             Rocket.post<{ message: string }>(`${BASE_PATH}/luoye/ai/hello`),

@@ -14,20 +14,63 @@ function parseToolArgs(input: Record<string, unknown>): Record<string, unknown> 
     return input;
 }
 
+const SEARCH_TIME_FIELD_LABELS: Record<string, string> = {
+    updatedAt: '更新时间',
+    createdAt: '创建时间',
+    date: '文档日期',
+};
+
+function getStringArg(args: Record<string, unknown>, key: string) {
+    const value = args[key];
+    return typeof value === 'string' ? value.trim() : '';
+}
+
+function getSearchTargetText(args: Record<string, unknown>) {
+    const keyword = getStringArg(args, 'keyword');
+    return keyword ? `搜索 “${keyword}”` : '筛选文档';
+}
+
+function getSearchTimeText(args: Record<string, unknown>) {
+    const rawTimeField = getStringArg(args, 'timeField') || 'updatedAt';
+    const timeLabel =
+        SEARCH_TIME_FIELD_LABELS[rawTimeField] ??
+        SEARCH_TIME_FIELD_LABELS.updatedAt;
+    const startDate = getStringArg(args, 'startDate');
+    const endDate = getStringArg(args, 'endDate');
+
+    if (startDate && endDate) return `${timeLabel} ${startDate} 至 ${endDate}`;
+    if (startDate) return `${timeLabel} ${startDate} 起`;
+    if (endDate) return `${timeLabel} ${endDate} 前`;
+    if (rawTimeField !== 'updatedAt') return `按${timeLabel}筛选`;
+    return '';
+}
+
+function getSearchSummaryPrefix(args: Record<string, unknown>) {
+    const target = getSearchTargetText(args);
+    const timeText = getSearchTimeText(args);
+    return timeText ? `${target}（${timeText}）` : target;
+}
+
+function getSearchResultCount(content: string) {
+    const totalMatch = content.match(/^共找到\s+(\d+)\s+个文档，展示前\s+(\d+)\s+个。/);
+    if (totalMatch) return Number(totalMatch[1]);
+    return content.match(/^文档「/gm)?.length ?? 0;
+}
+
 function getSearchDocsText(tool: ToolCallMessage) {
     const args = parseToolArgs(tool.input);
-    const keyword = (args.keyword as string) || '...';
+    const summaryPrefix = getSearchSummaryPrefix(args);
 
     if (tool.content == null) {
-        return `正在搜索 “${keyword}” ...`;
+        return `正在${summaryPrefix} ...`;
     }
 
     if (isSearchDocsEmptyResult(tool.content)) {
-        return `搜索 “${keyword}” 搜到 0 个结果`;
+        return `${summaryPrefix}搜到 0 个结果`;
     }
 
-    const count = tool.content.match(/^文档「/gm)?.length ?? 0;
-    return `搜索 “${keyword}” 搜到 ${count} 个结果`;
+    const count = getSearchResultCount(tool.content);
+    return `${summaryPrefix}搜到 ${count} 个结果`;
 }
 
 function getReadDocText(tool: ToolCallMessage) {
