@@ -3,12 +3,72 @@ import { z } from 'zod';
 import { getMimoModel } from '../model';
 import API from '@/api';
 import serverFetch from '@/api/fetch/server';
-import type { SearchDocsQuery } from '@/api/luoye';
+import type {
+    SearchDocsQuery,
+    SearchDocsResponse,
+    SearchResultItem,
+} from '@/api/luoye';
 import { createAgent } from 'langchain';
 import { formatDocForReadDoc } from './format';
 import { formatEmptySearchResult } from './searchResult';
 
 const SEARCH_TIME_FIELDS = ['updatedAt', 'createdAt', 'date'] as const;
+
+function getRecord(value: unknown): Record<string, unknown> | null {
+    if (!value || typeof value !== 'object' || Array.isArray(value)) {
+        return null;
+    }
+    return value as Record<string, unknown>;
+}
+
+function normalizeSearchMatches(
+    value: unknown,
+): SearchResultItem['matches'] {
+    if (!Array.isArray(value)) return [];
+
+    return value.flatMap((item) => {
+        const record = getRecord(item);
+        if (!record) return [];
+        const { field, context } = record;
+        if (
+            (field !== 'name' && field !== 'content') ||
+            typeof context !== 'string'
+        ) {
+            return [];
+        }
+        return [{ field, context }];
+    });
+}
+
+function normalizeSearchItem(value: unknown): SearchResultItem | null {
+    const record = getRecord(value);
+    if (!record || typeof record.id !== 'string') return null;
+
+    return {
+        id: record.id,
+        name: typeof record.name === 'string' ? record.name : '未命名文档',
+        updatedAt:
+            typeof record.updatedAt === 'number' ? record.updatedAt : 0,
+        matches: normalizeSearchMatches(record.matches),
+    };
+}
+
+function normalizeSearchResponse(value: unknown): SearchDocsResponse | null {
+    const record = getRecord(value);
+    const rawItems = Array.isArray(value) ? value : record?.items;
+    if (!Array.isArray(rawItems)) return null;
+
+    const items = rawItems.flatMap((item) => {
+        const normalized = normalizeSearchItem(item);
+        return normalized ? [normalized] : [];
+    });
+    const total =
+        !Array.isArray(value) && typeof record?.total === 'number'
+            ? record.total
+            : items.length;
+
+    return { total, items };
+}
 
 function createSearchDocsTool() {
     let consecutiveEmptySearchCount = 0;
@@ -31,11 +91,13 @@ function createSearchDocsTool() {
                 if (startDate) query.startDate = startDate;
                 if (endDate) query.endDate = endDate;
 
-                const results = await serverFetch(
-                    API.luoye.search(query),
-                    true,
-                    false,
-                    { cache: 'no-store' },
+                const results = normalizeSearchResponse(
+                    await serverFetch(
+                        API.luoye.search(query),
+                        true,
+                        false,
+                        { cache: 'no-store' },
+                    ),
                 );
 
                 if (!results || results.items.length === 0) {

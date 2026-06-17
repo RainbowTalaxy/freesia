@@ -123,4 +123,37 @@ describe('chat agent search_docs', () => {
             }),
         ).resolves.toContain('共找到 35 个文档，展示前 1 个');
     });
+
+    it('应兼容旧版数组搜索响应', async () => {
+        mocks.serverFetch.mockResolvedValueOnce([
+            {
+                id: 'doc-1',
+                name: '旧版响应文档',
+                matches: [{ field: 'content', context: '2026 年记录' }],
+            },
+        ]);
+        const searchDocsTool = await createSearchDocsTool();
+
+        await expect(searchDocsTool.invoke({ keyword: '2026' })).resolves.toBe(
+            '文档「旧版响应文档」(ID: doc-1)\n[content] 2026 年记录',
+        );
+    });
+
+    it('matches 不是数组时不应导致 search_docs 异常', async () => {
+        mocks.serverFetch.mockResolvedValueOnce({
+            total: 1,
+            items: [
+                {
+                    id: 'doc-1',
+                    name: '异常 matches 文档',
+                    matches: { field: 'content', context: '2026 年记录' },
+                },
+            ],
+        });
+        const searchDocsTool = await createSearchDocsTool();
+
+        await expect(searchDocsTool.invoke({ keyword: '2026' })).resolves.toBe(
+            '文档「异常 matches 文档」(ID: doc-1)',
+        );
+    });
 });
