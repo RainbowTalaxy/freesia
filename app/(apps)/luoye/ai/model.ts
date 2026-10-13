@@ -1,17 +1,9 @@
 import { ChatOpenAI } from '@langchain/openai';
 import { IS_DEV } from '../configs';
 
-type MimoModelOptions = string | { multimodal?: boolean };
-
-function resolveMimoModel(options?: MimoModelOptions) {
-    if (typeof options === 'string') return options;
-    if (options?.multimodal) return 'mimo-v2.5';
-    return IS_DEV ? 'mimo-v2.5' : 'mimo-v2.5-pro';
-}
-
-export const getMimoModel = (options?: MimoModelOptions) =>
+export const getMimoModel = () =>
     new ChatOpenAI({
-        model: resolveMimoModel(options),
+        model: IS_DEV ? 'mimo-v2.6-flash' : 'mimo-v2.6-pro',
         temperature: 0.5,
         configuration: {
             baseURL: 'https://api.xiaomimimo.com/v1',
