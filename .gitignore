@@ -20,6 +20,9 @@
 .DS_Store
 *.pem
 
+# trae
+.trae/
+
 # debug
 npm-debug.log*
 yarn-debug.log*
