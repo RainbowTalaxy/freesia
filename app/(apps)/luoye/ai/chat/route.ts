@@ -114,12 +114,6 @@ function normalizeAttachments(
         .slice(0, 3);
 }
 
-function hasImageAttachments(messages: ChatSessionChatMessage[]) {
-    return messages.some(
-        (message) => message.role === 'user' && !!message.attachments?.length,
-    );
-}
-
 /** 将本地备份消息结构转换为后端会话接口的 append-only 消息结构。 */
 function toBackendMessage(message: ChatSessionChatMessage): ChatSessionMessage {
     if (message.role === 'user') {
@@ -533,9 +527,7 @@ export async function POST(request: NextRequest) {
                     );
                 }
 
-                const agent = createChatAgent({
-                    multimodal: hasImageAttachments(session.messages),
-                });
+                const agent = createChatAgent();
                 const eventStream = agent.streamEvents(
                     { messages },
                     {

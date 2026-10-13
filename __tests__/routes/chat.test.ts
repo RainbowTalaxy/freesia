@@ -426,12 +426,10 @@ describe('POST /luoye/ai/chat (发送消息)', () => {
         const agentMessages = mockStreamEvents.mock.calls[0][0].messages;
         expect(agentMessages[0].content).toContain('当前时间：');
         expect(agentMessages[0].content).toContain('(UTC+8)');
-        expect(mockCreateChatAgent).toHaveBeenCalledWith({
-            multimodal: false,
-        });
+        expect(mockCreateChatAgent).toHaveBeenCalledWith();
     });
 
-    it('带图片附件发送时应保存附件并使用多模态模型', async () => {
+    it('带图片附件发送时应保存附件并以图片消息发送给模型', async () => {
         const attachment = {
             id: 'attachment-1',
             url: 'https://blog.talaxy.cn/statics/temp/luoye/a.png',
@@ -473,9 +471,7 @@ describe('POST /luoye/ai/chat (发送消息)', () => {
             false,
             false,
         );
-        expect(mockCreateChatAgent).toHaveBeenCalledWith({
-            multimodal: true,
-        });
+        expect(mockCreateChatAgent).toHaveBeenCalledWith();
 
         const agentMessages = mockStreamEvents.mock.calls[0][0].messages;
         expect(agentMessages[1].content).toEqual([
@@ -494,7 +490,7 @@ describe('POST /luoye/ai/chat (发送消息)', () => {
         ]);
     });
 
-    it('已有会话历史消息带图片时，后续纯文本追问也应使用多模态模型', async () => {
+    it('已有会话历史消息带图片时，后续纯文本追问的消息仍应包含图片内容', async () => {
         const attachment = {
             id: 'attachment-1',
             url: 'https://blog.talaxy.cn/statics/temp/luoye/a.png',
@@ -548,9 +544,7 @@ describe('POST /luoye/ai/chat (发送消息)', () => {
 
         await readSSEStream(res);
 
-        expect(mockCreateChatAgent).toHaveBeenCalledWith({
-            multimodal: true,
-        });
+        expect(mockCreateChatAgent).toHaveBeenCalledWith();
 
         const agentMessages = mockStreamEvents.mock.calls[0][0].messages;
         expect(agentMessages[1].content[0]).toMatchObject({
