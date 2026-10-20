@@ -1,22 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { SystemMessage } from '@langchain/core/messages';
 import API from '@/api';
-import type { API as FetchRequest } from '@/api/fetch';
 import serverFetch from '@/api/fetch/server';
 import { ChatFile } from '@/files';
 import { createChatAgent } from './agent';
 import { streamControllers } from './state';
 import {
-    ChatSessionAssistantChatMessage,
     ChatSession as LocalChatSession,
-    ChatSessionChatMessage,
     convertMessages,
 } from '@/files/luoye/chat';
-import { SseEventData, SseEventStreamEvent } from './types';
+import { SseEventData } from './types';
+import { appendBackendMessage, mergeLocalModelContent, requiredServerFetch, toLocalSession } from './session-service';
+import { ChatStreamTranslator } from './stream-translator';
 import {
     ChatImageAttachment,
-    ChatSession as BackendChatSession,
-    ChatSessionMessage,
     Doc,
 } from '@/api/types/luoye';
 import { formatCurrentTimeForPrompt, formatDocForReadDoc } from './format';
@@ -60,24 +57,6 @@ function sseEvent(data: SseEventData) {
     return `data: ${JSON.stringify(data)}\n\n`;
 }
 
-/** 后端 tool_call schema 要求 input 是对象；这里兼容旧本地记录里的字符串输入。 */
-function normalizeToolInput(input: unknown): Record<string, unknown> {
-    if (input && typeof input === 'object') {
-        return input as Record<string, unknown>;
-    }
-    if (typeof input === 'string') {
-        try {
-            const parsed = JSON.parse(input);
-            if (parsed && typeof parsed === 'object') {
-                return parsed as Record<string, unknown>;
-            }
-        } catch {
-            return { input };
-        }
-    }
-    return {};
-}
-
 function normalizeAttachments(
     input: unknown,
     _requestUrl: string,
@@ -112,168 +91,6 @@ function normalizeAttachments(
             );
         })
         .slice(0, 3);
-}
-
-/** 将本地备份消息结构转换为后端会话接口的 append-only 消息结构。 */
-function toBackendMessage(message: ChatSessionChatMessage): ChatSessionMessage {
-    if (message.role === 'user') {
-        return {
-            schemaVersion: 1,
-            messageId: message.messageId,
-            type: 'user_message',
-            content: message.content,
-            ...(message.modelContent
-                ? { modelContent: message.modelContent }
-                : {}),
-            ...(message.attachments?.length
-                ? { attachments: message.attachments }
-                : {}),
-            createdAt: message.createdAt,
-        };
-    }
-
-    return {
-        schemaVersion: 1,
-        messageId: message.messageId,
-        type: 'assistant_message',
-        parts: message.content.map((item) => {
-            if (item.role === 'assistant') {
-                return {
-                    schemaVersion: 1,
-                    partId: item.messageId,
-                    type: 'text' as const,
-                    content: item.content,
-                    createdAt: item.createdAt,
-                };
-            }
-            return {
-                schemaVersion: 1,
-                partId: item.toolCallId || ChatFile.generateMessageId(),
-                type: 'tool_call' as const,
-                toolName: item.name,
-                runId: item.runId,
-                ...(item.toolCallId ? { toolCallId: item.toolCallId } : {}),
-                input: normalizeToolInput(item.input),
-                output: item.output,
-                content: item.content,
-                createdAt: item.createdAt,
-                updatedAt: item.createdAt,
-            };
-        }),
-        createdAt: message.createdAt,
-    };
-}
-
-/** 将后端会话消息转换为现有 LangChain 上下文和本地备份可复用的结构。 */
-function toLocalMessage(message: ChatSessionMessage): ChatSessionChatMessage {
-    if (message.type === 'user_message') {
-        return {
-            messageId: message.messageId,
-            role: 'user',
-            content: message.content,
-            ...(message.modelContent
-                ? { modelContent: message.modelContent }
-                : {}),
-            ...(message.attachments?.length
-                ? { attachments: message.attachments }
-                : {}),
-            createdAt: message.createdAt,
-        };
-    }
-
-    return {
-        messageId: message.messageId,
-        role: 'assistant',
-        content: message.parts.map((part) => {
-            if (part.type === 'text') {
-                return {
-                    messageId: part.partId,
-                    role: 'assistant' as const,
-                    content: part.content,
-                    createdAt: part.createdAt,
-                };
-            }
-            return {
-                toolCallId: part.toolCallId || part.partId,
-                runId: part.runId,
-                role: 'tool' as const,
-                name: part.toolName,
-                args: {},
-                input: part.input as unknown as string,
-                output: part.output as string,
-                content: part.status ?? part.content ?? '',
-                createdAt: part.createdAt,
-            };
-        }),
-        createdAt: message.createdAt,
-    };
-}
-
-/** 后端如果暂未保存 modelContent，则从本地备份按 messageId 合并回来。 */
-function mergeLocalModelContent(
-    session: LocalChatSession,
-    localSession: LocalChatSession | null,
-) {
-    if (!localSession) return session;
-
-    const localUserMessages = new Map(
-        localSession.messages
-            .filter(
-                (
-                    message,
-                ): message is Extract<
-                    ChatSessionChatMessage,
-                    { role: 'user' }
-                > => message.role === 'user',
-            )
-            .map((message) => [message.messageId, message.modelContent]),
-    );
-
-    session.messages = session.messages.map((message) => {
-        if (message.role !== 'user' || message.modelContent) return message;
-        const modelContent = localUserMessages.get(message.messageId);
-        return modelContent ? { ...message, modelContent } : message;
-    });
-
-    return session;
-}
-
-/** 将后端会话详情落成本地备份格式，保留现有 convertMessages 链路。 */
-function toLocalSession(session: BackendChatSession): LocalChatSession {
-    return {
-        schemaVersion: 1,
-        sessionId: session.sessionId,
-        ...(session.docId ? { docId: session.docId } : {}),
-        userId: session.userId,
-        title: session.title,
-        messages: session.messages.map(toLocalMessage),
-        ...(session.docUpdatedAt !== undefined
-            ? { docUpdatedAt: session.docUpdatedAt }
-            : {}),
-        createdAt: session.createdAt,
-        updatedAt: session.updatedAt,
-    };
-}
-
-/** 对后端主写接口使用无缓存请求，并把失败显式抛出给调用方处理。 */
-async function requiredServerFetch<Data>(api: FetchRequest<Data>) {
-    const result = await serverFetch(api, false, false);
-    if (!result) {
-        throw new Error('请求失败');
-    }
-    return result;
-}
-
-/** 将单条聊天消息追加到后端会话；失败时不能静默降级为仅本地保存。 */
-async function appendBackendMessage(
-    sessionId: string,
-    message: ChatSessionChatMessage,
-) {
-    await requiredServerFetch(
-        API.luoye.ai.chat.appendMessage(sessionId, {
-            message: toBackendMessage(message),
-        }),
-    );
 }
 
 /** 处理聊天发送请求：恢复/创建会话、同步消息、并以 SSE 流式返回 agent 输出。 */
@@ -504,7 +321,7 @@ export async function POST(request: NextRequest) {
     });
     streamControllers.set(sessionId, abortController);
 
-    let assistantMessage = ChatFile.newAssistantMessage();
+    const assistantMessage = ChatFile.newAssistantMessage();
     const encoder = new TextEncoder();
 
     const stream = new ReadableStream({
@@ -537,122 +354,14 @@ export async function POST(request: NextRequest) {
                     },
                 );
 
-                let assistantChatMessage: ChatSessionAssistantChatMessage | null =
-                    null;
-
+                const translator = new ChatStreamTranslator(assistantMessage);
                 for await (const event of eventStream) {
-                    switch (event.event) {
-                        case SseEventStreamEvent.OnChatModelStart: {
-                            assistantChatMessage =
-                                ChatFile.newAssistantChatMessage();
-                            break;
-                        }
-
-                        // 当正在返回 AI 回复时，持续发送消息块给前端展示
-                        case SseEventStreamEvent.OnChatModelStream: {
-                            const chunk = event.data.chunk;
-                            if (!chunk) break;
-                            if (typeof chunk.content !== 'string') {
-                                console.warn(
-                                    '[chat] OnChatModelStream: unexpected non-string chunk content, type:',
-                                    typeof chunk.content,
-                                );
-                                break;
-                            }
-                            if (!assistantChatMessage) {
-                                console.error(
-                                    '[chat] OnChatModelStream: missing assistantChatMessage, skipping chunk',
-                                );
-                                break;
-                            }
-                            assistantChatMessage.content += chunk.content;
-                            controller.enqueue(
-                                encoder.encode(
-                                    sseEvent({
-                                        type: 'message',
-                                        messageId:
-                                            assistantChatMessage.messageId,
-                                        content: chunk.content,
-                                    }),
-                                ),
-                            );
-                            break;
-                        }
-
-                        case SseEventStreamEvent.OnChatModelEnd: {
-                            if (!assistantChatMessage) {
-                                console.error(
-                                    '[chat] OnChatModelEnd: missing assistantChatMessage, skipping',
-                                );
-                                assistantChatMessage = null;
-                                break;
-                            }
-
-                            assistantMessage.content.push(assistantChatMessage);
-
-                            const output = event.data.output;
-                            if (output?.tool_calls?.length > 0) {
-                                const toolCalls = output.tool_calls.map(
-                                    (tc: {
-                                        id?: string;
-                                        name: string;
-                                        args: Record<string, unknown>;
-                                    }) => ({
-                                        id: tc.id,
-                                        name: tc.name,
-                                        args: tc.args,
-                                    }),
-                                );
-
-                                assistantChatMessage.toolCalls = toolCalls;
-                            }
-                            break;
-                        }
-
-                        case SseEventStreamEvent.OnToolStart: {
-                            controller.enqueue(
-                                encoder.encode(
-                                    sseEvent({
-                                        type: 'tool_start',
-                                        name: event.name,
-                                        run_id: event.run_id,
-                                        input: event.data.input,
-                                    }),
-                                ),
-                            );
-                            break;
-                        }
-
-                        case SseEventStreamEvent.OnToolEnd: {
-                            const output = event.data.output;
-
-                            const toolCallMessage =
-                                ChatFile.newToolCallMessage();
-                            toolCallMessage.name = event.name;
-                            toolCallMessage.runId = event.run_id;
-                            toolCallMessage.input = event.data.input;
-                            toolCallMessage.output = output;
-                            toolCallMessage.content = output?.content;
-                            toolCallMessage.toolCallId = output?.tool_call_id;
-
-                            assistantMessage.content.push(toolCallMessage);
-
-                            controller.enqueue(
-                                encoder.encode(
-                                    sseEvent({
-                                        type: 'tool_end',
-                                        run_id: event.run_id,
-                                        name: event.name,
-                                        input: event.data.input,
-                                        content: output?.content,
-                                    }),
-                                ),
-                            );
-                            break;
-                        }
+                    for (const data of translator.consume(event)) {
+                        controller.enqueue(encoder.encode(sseEvent(data)));
                     }
                 }
 
+                abortController.signal.throwIfAborted();
                 await ChatFile.appendAssistantMessage(
                     userId,
                     sessionId,
@@ -669,6 +378,7 @@ export async function POST(request: NextRequest) {
                     ),
                 );
             } catch (err: unknown) {
+                abortController.abort();
                 // 被中断时不写入错误事件（中断接口会处理状态恢复）
                 // Node.js 18+ 中 DOMException extends Error，instanceof Error 已覆盖两者
                 if (err instanceof Error && err.name === 'AbortError') {

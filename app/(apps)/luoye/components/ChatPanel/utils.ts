@@ -8,6 +8,7 @@ function isInitialReadDocMessage(message: ChatSessionMessage, index: number) {
         message.parts.length === 2 &&
         textPart?.type === 'text' &&
         textPart.content === '' &&
+        textPart.reasoningContent === undefined &&
         toolPart?.type === 'tool_call' &&
         toolPart.toolName === 'read_doc'
     );
@@ -38,6 +39,7 @@ export function convertSessionToMessages(session: ChatSession): Message[] {
                             id: item.partId,
                             role: 'assistant' as const,
                             content: item.content,
+                            reasoningContent: item.reasoningContent,
                             createdAt: item.createdAt,
                         };
                     }
