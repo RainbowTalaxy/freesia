@@ -7,8 +7,9 @@ import AssistantContent from './AssistantContent';
 import MessageLoading from './MessageLoading';
 import Welcome from './Welcome';
 import styles from './ChatPanel.module.css';
+import type { ReasoningControls } from './ReasoningContent';
 
-interface ChatMessageListProps {
+interface ChatMessageListProps extends ReasoningControls {
     docId?: string;
     isLoading: boolean;
     messages: Message[];
@@ -26,6 +27,8 @@ export default function ChatMessageList({
     onScroll,
     pendingMessages,
     sessionId,
+    reasoningExpanded,
+    onReasoningToggle,
 }: ChatMessageListProps) {
     return (
         <div className={styles.messageList} ref={messageListRef} onScroll={onScroll}>
@@ -44,7 +47,7 @@ export default function ChatMessageList({
                             >
                                 <div className={styles.messageContent}>
                                     {msg.role === 'assistant' ? (
-                                        <AssistantContent content={msg.content} sessionId={sessionId} />
+                                        <AssistantContent content={msg.content} sessionId={sessionId} reasoningExpanded={reasoningExpanded} onReasoningToggle={onReasoningToggle} />
                                     ) : (
                                         <>
                                             {msg.content}
@@ -77,7 +80,7 @@ export default function ChatMessageList({
                     {isLoading && (
                         <div className={`${styles.message} ${styles.assistantMessage}`}>
                             <div className={styles.messageContent}>
-                                <AssistantContent content={pendingMessages} sessionId={sessionId} />
+                                <AssistantContent content={pendingMessages} sessionId={sessionId} reasoningExpanded={reasoningExpanded} onReasoningToggle={onReasoningToggle} />
                             </div>
                             <MessageLoading visible />
                         </div>

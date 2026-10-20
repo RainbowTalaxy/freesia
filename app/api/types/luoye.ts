@@ -130,7 +130,16 @@ export interface ChatSessionUserMessage {
     createdAt: number;
 }
 
-export interface ChatSessionTextPart {
+export interface ChatAssistantFields {
+    reasoningContent?: string;
+    toolCalls?: Array<{
+        id: string;
+        name: string;
+        args: Record<string, unknown>;
+    }>;
+}
+
+export interface ChatSessionTextPart extends ChatAssistantFields {
     schemaVersion: 1;
     partId: string;
     type: 'text';

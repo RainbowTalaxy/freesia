@@ -615,7 +615,7 @@ describe('ChatFile', () => {
             expect(result[0].content).toBe('回答内容');
         });
 
-        it('应将工具调用消息转换为 ToolMessage', () => {
+        it('应将含推理的完整工具调用消息转换为 ToolMessage', () => {
             const result = convertMessages([
                 {
                     messageId: 'msg-3',
@@ -625,6 +625,7 @@ describe('ChatFile', () => {
                             messageId: 'sub-1',
                             role: 'assistant',
                             content: '',
+                            reasoningContent: '需要搜索',
                             toolCalls: [
                                 {
                                     id: 'tc-1',
@@ -652,6 +653,7 @@ describe('ChatFile', () => {
 
             expect(result).toHaveLength(2);
             expect(result[0]).toBeInstanceOf(AIMessage);
+            expect(result[0].additional_kwargs.reasoning_content).toBe('需要搜索');
             expect(result[1]).toBeInstanceOf(ToolMessage);
             expect(result[1].content).toBe('结果');
         });
@@ -708,6 +710,7 @@ describe('ChatFile', () => {
                             messageId: 'sub-1',
                             role: 'assistant',
                             content: '好的，让我搜索一下',
+                            reasoningContent: '先检索关键词',
                             toolCalls: [
                                 {
                                     id: 'tc-1',
@@ -756,6 +759,33 @@ describe('ChatFile', () => {
         it('空消息列表应返回空数组', () => {
             const result = convertMessages([]);
             expect(result).toEqual([]);
+        });
+
+        it.each(['missing-reasoning', 'orphan-tool', 'missing-result'])('旧工具历史 %s 应降级且不改写存储', (mode) => {
+            const assistant = ChatFile.newAssistantMessage();
+            const text = ChatFile.newAssistantChatMessage();
+            text.content = '原始正文';
+            if (mode !== 'orphan-tool') text.toolCalls = [{ id: 'call', name: 'read_doc', args: { docId: 'doc' } }];
+            if (mode !== 'missing-reasoning') text.reasoningContent = '已记录推理';
+            const tool = ChatFile.newToolCallMessage();
+            Object.assign(tool, { toolCallId: 'call', name: 'read_doc', input: { docId: 'doc' }, content: '文档内容' });
+            assistant.content.push(text);
+            if (mode !== 'missing-result') assistant.content.push(tool);
+            const original = JSON.stringify(assistant);
+            const result = convertMessages([assistant]);
+            expect(result).toHaveLength(1);
+            expect(result[0]).toBeInstanceOf(AIMessage);
+            expect(result[0].content).toContain('原始正文');
+            expect(result[0].additional_kwargs.reasoning_content).toBeUndefined();
+            if (mode !== 'orphan-tool') {
+                expect(result[0].content).toContain('[历史工具调用：read_doc]');
+                expect(result[0].content).toContain('"docId":"doc"');
+            }
+            if (mode !== 'missing-result') {
+                expect(result[0].content).toContain('[历史工具结果：read_doc]');
+                expect(result[0].content).toContain('文档内容');
+            }
+            expect(JSON.stringify(assistant)).toBe(original);
         });
     });
 });

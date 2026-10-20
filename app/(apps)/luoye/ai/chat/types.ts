@@ -5,9 +5,13 @@ export type SseEventData =
           messageId?: string;
       }
     | {
-          type: 'message';
+          type: 'message' | 'reasoning';
           messageId: string;
           content: string;
+      }
+    | {
+          type: 'message_end';
+          messageId: string;
       }
     | {
           type: 'tool_start';
@@ -63,6 +67,8 @@ export interface AssistantChatMessage {
     id: string;
     role: 'assistant';
     content: string;
+    reasoningContent?: string;
+    isThinking?: boolean;
     createdAt: number;
 }
 

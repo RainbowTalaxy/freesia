@@ -15,6 +15,7 @@ import ChatInput from './ChatInput';
 import ChatMessageList from './ChatMessageList';
 import { useChatAttachments } from './useChatAttachments';
 import { convertSessionToMessages } from './utils';
+import { ChatStreamState } from './stream-state';
 
 function toSerializableAttachments(attachments: ChatImageAttachment[]) {
     return attachments.map(({ id, url, name, mimeType, size }) => ({
@@ -64,6 +65,9 @@ const ChatPanel = ({
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState('');
     const [pendingMessages, setPendingMessages] = useState<Array<AssistantChatMessage | ToolCallMessage>>([]);
+    const [reasoningExpanded, setReasoningExpanded] = useState<Record<string, boolean>>({});
+    const streamFrameRef = useRef<number | null>(null);
+    const suppressScrollRef = useRef(false);
     const {
         attachments,
         clearAttachments,
@@ -131,6 +135,7 @@ const ChatPanel = ({
     }, [syncSessionPath]);
 
     const scrollToBottom = useCallback((force = false) => {
+        if (!force && suppressScrollRef.current) return;
         if (force) {
             userScrolledRef.current = false;
             if (scrollTimerRef.current) {
@@ -146,12 +151,29 @@ const ChatPanel = ({
         scrollTimerRef.current = requestAnimationFrame(() => {
             scrollTimerRef.current = null;
             if (!messageListRef.current) return;
+            if (!force && suppressScrollRef.current) return;
             // Double check: if user scrolled up while waiting for RAF, don't auto scroll unless forced
             if (!force && userScrolledRef.current) return;
 
             messageListRef.current.scrollTop = messageListRef.current.scrollHeight;
         });
     }, []);
+
+    const handleReasoningToggle = useCallback((id: string, expanded: boolean) => {
+        suppressScrollRef.current = true;
+        if (scrollTimerRef.current !== null) {
+            cancelAnimationFrame(scrollTimerRef.current);
+            scrollTimerRef.current = null;
+        }
+        setReasoningExpanded((prev) => ({ ...prev, [id]: expanded }));
+    }, []);
+
+    useEffect(() => {
+        const frame = requestAnimationFrame(() => {
+            suppressScrollRef.current = false;
+        });
+        return () => cancelAnimationFrame(frame);
+    }, [reasoningExpanded]);
 
     useEffect(() => {
         const previousPathSessionId = previousPathSessionIdRef.current;
@@ -161,6 +183,7 @@ const ChatPanel = ({
         if (!previousPathSessionId) return;
 
         setMessages([]);
+        setReasoningExpanded({});
         setPendingMessages([]);
         setInput('');
         pendingSelectedSessionRef.current = null;
@@ -224,10 +247,15 @@ const ChatPanel = ({
             if (scrollTimerRef.current) {
                 cancelAnimationFrame(scrollTimerRef.current);
             }
+            if (streamFrameRef.current !== null) cancelAnimationFrame(streamFrameRef.current);
         };
     }, []);
 
     const handleAbort = useCallback(async () => {
+        if (streamFrameRef.current !== null) {
+            cancelAnimationFrame(streamFrameRef.current);
+            streamFrameRef.current = null;
+        }
         if (abortControllerRef.current) {
             abortControllerRef.current.abort();
             abortControllerRef.current = null;
@@ -250,6 +278,7 @@ const ChatPanel = ({
             return;
         }
         setMessages([]);
+        setReasoningExpanded({});
         setPendingMessages([]);
         setInput('');
         pendingSelectedSessionRef.current = null;
@@ -263,6 +292,7 @@ const ChatPanel = ({
 
     const applySession = useCallback(
         (session: ChatSession) => {
+            setReasoningExpanded({});
             setSessionId(session.sessionId);
             setMessages(convertSessionToMessages(session));
             setPendingMessages([]);
@@ -363,6 +393,32 @@ const ChatPanel = ({
             scrollToBottom(true);
 
             abortControllerRef.current = new AbortController();
+            const requestController = abortControllerRef.current;
+            const streamState = new ChatStreamState();
+            let committed = false;
+            const cancelFrame = () => {
+                if (streamFrameRef.current !== null) cancelAnimationFrame(streamFrameRef.current);
+                streamFrameRef.current = null;
+            };
+            const commit = () => {
+                if (committed || requestController.signal.aborted) return;
+                committed = true;
+                cancelFrame();
+                const content = streamState.snapshot();
+                setPendingMessages([]);
+                if (content.length) setMessages((prev) => [...prev, {
+                    id: streamState.messageId, role: 'assistant', content, createdAt: Date.now(),
+                }]);
+                setSessionRefreshKey((prev) => prev + 1);
+                setIsLoading(false);
+            };
+            const scheduleSnapshot = () => {
+                if (streamFrameRef.current !== null) return;
+                streamFrameRef.current = requestAnimationFrame(() => {
+                    streamFrameRef.current = null;
+                    if (!requestController.signal.aborted) setPendingMessages(streamState.snapshot());
+                });
+            };
 
             try {
                 const response = await clientFetch(
@@ -393,143 +449,17 @@ const ChatPanel = ({
                 const decoder = new TextDecoder();
                 let buffer = '';
 
-                const _pendingMessages: Array<AssistantChatMessage | ToolCallMessage> = [];
-                let pendingAssistantChatMessage: AssistantChatMessage | null = null;
-                let pendingToolCallMessages: Map<string, ToolCallMessage> = new Map(); // <run_id, ToolCallMessage>
-                let receivedTerminalEvent = false;
-
                 const processSSELine = (line: string) => {
-                    if (!line.startsWith('data: ')) return;
+                    if (!line.startsWith('data: ') || streamState.terminal || requestController.signal.aborted) return;
                     try {
                         const data = JSON.parse(line.slice(6)) as SseEventData;
-                        switch (data.type) {
-                            case 'session': {
-                                setSessionId(data.sessionId);
-                                replaceSessionPath(data.sessionId);
-                                break;
-                            }
-                            case 'message': {
-                                if (!pendingAssistantChatMessage) {
-                                    pendingAssistantChatMessage = {
-                                        id: data.messageId,
-                                        role: 'assistant',
-                                        content: data.content,
-                                        createdAt: Date.now(),
-                                    };
-                                } else if (pendingAssistantChatMessage.id === data.messageId) {
-                                    pendingAssistantChatMessage.content += data.content;
-                                } else {
-                                    if (pendingAssistantChatMessage.content.trim()) {
-                                        _pendingMessages.push(pendingAssistantChatMessage);
-                                    }
-                                    pendingAssistantChatMessage = {
-                                        id: data.messageId,
-                                        role: 'assistant',
-                                        content: data.content,
-                                        createdAt: Date.now(),
-                                    };
-                                }
-                                setPendingMessages([..._pendingMessages, { ...pendingAssistantChatMessage }]);
-                                break;
-                            }
-                            case 'tool_start': {
-                                if (pendingAssistantChatMessage) {
-                                    if (pendingAssistantChatMessage.content.trim()) {
-                                        _pendingMessages.push(pendingAssistantChatMessage);
-                                    }
-                                    pendingAssistantChatMessage = null;
-                                }
-                                const toolMessage: ToolCallMessage = {
-                                    run_id: data.run_id,
-                                    role: 'tool',
-                                    name: data.name,
-                                    input: data.input,
-                                };
-                                pendingToolCallMessages.set(data.run_id, toolMessage);
-                                setPendingMessages([
-                                    ..._pendingMessages,
-                                    ...Array.from(pendingToolCallMessages.values()),
-                                ]);
-                                break;
-                            }
-                            case 'tool_end': {
-                                const toolMessage: ToolCallMessage = {
-                                    run_id: data.run_id,
-                                    role: 'tool',
-                                    name: data.name,
-                                    input: data.input,
-                                    content: data.content,
-                                };
-                                pendingToolCallMessages.delete(data.run_id);
-                                _pendingMessages.push(toolMessage);
-                                setPendingMessages([
-                                    ..._pendingMessages,
-                                    ...Array.from(pendingToolCallMessages.values()),
-                                ]);
-                                break;
-                            }
-                            case 'done':
-                                receivedTerminalEvent = true;
-                                if (pendingAssistantChatMessage) {
-                                    if (pendingAssistantChatMessage.content.trim()) {
-                                        _pendingMessages.push(pendingAssistantChatMessage);
-                                    }
-                                    pendingAssistantChatMessage = null;
-                                }
-                                if (pendingToolCallMessages.size > 0) {
-                                    _pendingMessages.push(...Array.from(pendingToolCallMessages.values()));
-                                    pendingToolCallMessages.clear();
-                                }
-                                setPendingMessages([]);
-                                if (_pendingMessages.length > 0) {
-                                    setMessages((prev) => [
-                                        ...prev,
-                                        {
-                                            id: data.messageId,
-                                            role: 'assistant',
-                                            content: _pendingMessages,
-                                            createdAt: Date.now(),
-                                        },
-                                    ]);
-                                }
-                                setSessionRefreshKey((prev) => prev + 1);
-                                setIsLoading(false);
-                                abortControllerRef.current = null;
-                                break;
-                            case 'error':
-                                receivedTerminalEvent = true;
-                                if (pendingAssistantChatMessage) {
-                                    if (pendingAssistantChatMessage.content.trim()) {
-                                        _pendingMessages.push(pendingAssistantChatMessage);
-                                    }
-                                    pendingAssistantChatMessage = null;
-                                }
-                                if (pendingToolCallMessages.size > 0) {
-                                    _pendingMessages.push(...Array.from(pendingToolCallMessages.values()));
-                                    pendingToolCallMessages.clear();
-                                }
-                                // 将错误作为独立块追加到消息列表末尾
-                                _pendingMessages.push({
-                                    id: generateMessageId(),
-                                    role: 'assistant',
-                                    content: `错误：${data.message}`,
-                                    createdAt: Date.now(),
-                                });
-                                setPendingMessages([]);
-                                setMessages((prev) => [
-                                    ...prev,
-                                    {
-                                        id: generateMessageId(),
-                                        role: 'assistant',
-                                        content: _pendingMessages,
-                                        createdAt: Date.now(),
-                                    },
-                                ]);
-                                setSessionRefreshKey((prev) => prev + 1);
-                                setIsLoading(false);
-                                abortControllerRef.current = null;
-                                break;
+                        if (data.type === 'session') {
+                            setSessionId(data.sessionId);
+                            replaceSessionPath(data.sessionId);
                         }
+                        streamState.consume(data);
+                        if (streamState.terminal) commit();
+                        else scheduleSnapshot();
                     } catch (e) {
                         console.error('Failed to parse SSE data', e);
                     }
@@ -554,53 +484,33 @@ const ChatPanel = ({
                 }
 
                 // 防御：流正常结束但未收到 done/error 事件（如服务端提前关闭连接）
-                if (abortControllerRef.current && !receivedTerminalEvent) {
-                    const interruptedMessage: AssistantChatMessage = {
-                        id: generateMessageId(),
-                        role: 'assistant',
-                        content: '连接已中断，以下回答可能不完整，请重试。',
-                        createdAt: Date.now(),
-                    };
-
-                    if (_pendingMessages.length > 0) {
-                        setMessages((prev) => [
-                            ...prev,
-                            {
-                                id: generateMessageId(),
-                                role: 'assistant',
-                                content: [..._pendingMessages, interruptedMessage],
-                                createdAt: Date.now(),
-                            },
-                        ]);
-                    } else {
-                        setMessages((prev) => [
-                            ...prev,
-                            {
-                                id: generateMessageId(),
-                                role: 'assistant',
-                                content: [interruptedMessage],
-                                createdAt: Date.now(),
-                            },
-                        ]);
-                    }
+                if (!requestController.signal.aborted && !streamState.terminal) {
+                    streamState.finish('连接已中断，回答可能不完整，请重试。');
+                    commit();
                     Toast.notify('连接中断，回答可能不完整，请重试');
-                    setPendingMessages([]);
-                    setIsLoading(false);
-                    abortControllerRef.current = null;
                 }
             } catch (error) {
-                if (error instanceof Error && error.name === 'AbortError') {
+                if (requestController.signal.aborted || (error instanceof Error && error.name === 'AbortError')) {
                     // Handled in handleAbort
                     return;
                 }
                 console.error('Chat error:', error);
                 Toast.notify(error instanceof Error ? error.message : '发送失败');
-                setMessages((prev) => prev.filter((item) => item.id !== userMessage.id));
-                setInput(userInput);
-                setAttachments(displayAttachments);
-                setPendingMessages([]);
-                setIsLoading(false);
-                abortControllerRef.current = null;
+                if (streamState.snapshot().length) {
+                    streamState.finish('连接已中断，回答可能不完整，请重试。');
+                    commit();
+                } else {
+                    setMessages((prev) => prev.filter((item) => item.id !== userMessage.id));
+                    setInput(userInput);
+                    setAttachments(displayAttachments);
+                    setPendingMessages([]);
+                    setIsLoading(false);
+                }
+            } finally {
+                if (abortControllerRef.current === requestController) {
+                    cancelFrame();
+                    abortControllerRef.current = null;
+                }
             }
         },
         [attachments, clearAttachments, doc?.id, isSessionRestoring, isUploadingAttachment, replaceSessionPath, sessionId, scrollToBottom, setAttachments],
@@ -652,6 +562,8 @@ const ChatPanel = ({
                     onScroll={handleScroll}
                     pendingMessages={isSessionBindingPending ? [] : pendingMessages}
                     sessionId={sessionId}
+                    reasoningExpanded={reasoningExpanded}
+                    onReasoningToggle={handleReasoningToggle}
                 />
                 <ChatInput
                     attachments={attachments}

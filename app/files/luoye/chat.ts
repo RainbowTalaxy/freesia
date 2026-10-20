@@ -1,7 +1,7 @@
 import path from 'path';
 import FileHandler from '../FileHandler';
 import { AIMessage, HumanMessage, ToolMessage } from 'langchain';
-import type { ChatImageAttachment } from '@/api/types/luoye';
+import type { ChatAssistantFields, ChatImageAttachment } from '@/api/types/luoye';
 
 /** 聊天会话数据存储根目录 */
 const CHAT_DIR = path.join(process.cwd(), 'temp/luoye/chat');
@@ -25,15 +25,10 @@ interface ChatSessionUserChatMessage {
     createdAt: number;
 }
 
-export interface ChatSessionAssistantChatMessage {
+export interface ChatSessionAssistantChatMessage extends ChatAssistantFields {
     messageId: string;
     role: 'assistant';
     content: string;
-    toolCalls?: Array<{
-        id: string;
-        name: string;
-        args: Record<string, unknown>;
-    }>;
     createdAt: number;
 }
 
@@ -43,8 +38,10 @@ export interface ChatSessionToolCallMessage {
     role: 'tool';
     name: string;
     args: Record<string, unknown>;
-    input: string;
-    output: string;
+    /** 工具输入：运行期为对象，旧本地记录中可能是字符串 */
+    input: unknown;
+    /** 工具输出：运行期为 LangChain ToolMessage 的输出对象，旧记录中可能是字符串 */
+    output: unknown;
     content: string;
     createdAt: number;
 }
@@ -153,6 +150,7 @@ function isInitialReadDocMessage(
         message.content.length === 2 &&
         assistantMessage?.role === 'assistant' &&
         assistantMessage.content === '' &&
+        assistantMessage.reasoningContent === undefined &&
         assistantMessage.toolCalls?.some((tool) => tool.name === 'read_doc') &&
         toolMessage?.role === 'tool' &&
         toolMessage.name === 'read_doc'
@@ -467,6 +465,18 @@ export function convertMessages(messages: ChatSessionChatMessage[]) {
                 break;
             }
             case 'assistant': {
+                // 旧记录和预置文档没有完整的思考/工具协议，仅在模型上下文中转为带来源的文本。
+                if (!hasCompleteToolProtocol(msg.content)) {
+                    result.push(new AIMessage(msg.content.map((item) => {
+                        if (item.role === 'assistant') return [
+                            item.content,
+                            ...(item.toolCalls ?? []).map((call) =>
+                                `[历史工具调用：${call.name}]\n输入：${JSON.stringify(call.args)}`),
+                        ].filter(Boolean).join('\n');
+                        return `[历史工具结果：${item.name}]\n输入：${JSON.stringify(item.input || item.args)}\n输出：${item.content}`;
+                    }).filter(Boolean).join('\n\n')));
+                    break;
+                }
                 const pendingMessages: Array<AIMessage | ToolMessage> = [];
                 for (const item of msg.content) {
                     switch (item.role) {
@@ -475,6 +485,9 @@ export function convertMessages(messages: ChatSessionChatMessage[]) {
                                 new AIMessage({
                                     content: item.content,
                                     tool_calls: item.toolCalls,
+                                    additional_kwargs: item.reasoningContent !== undefined
+                                        ? { reasoning_content: item.reasoningContent }
+                                        : {},
                                 }),
                             );
                             break;
@@ -497,4 +510,23 @@ export function convertMessages(messages: ChatSessionChatMessage[]) {
         }
     }
     return result;
+}
+
+function hasCompleteToolProtocol(parts: ChatSessionAssistantMessage['content']) {
+    const pending = new Set<string>();
+    for (const part of parts) {
+        if (part.role === 'assistant') {
+            if (pending.size) return false;
+            if (part.toolCalls?.length) {
+                if (typeof part.reasoningContent !== 'string') return false;
+                for (const call of part.toolCalls) {
+                    if (!call.id || pending.has(call.id)) return false;
+                    pending.add(call.id);
+                }
+            }
+        } else {
+            if (!pending.delete(part.toolCallId)) return false;
+        }
+    }
+    return pending.size === 0;
 }
