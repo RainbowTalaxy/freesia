@@ -761,12 +761,36 @@ describe('ChatFile', () => {
             expect(result).toEqual([]);
         });
 
-        it.each(['missing-reasoning', 'orphan-tool', 'missing-result'])('旧工具历史 %s 应降级且不改写存储', (mode) => {
+        it('工具历史缺少 reasoning 时仍按工具协议结构化重建且不改写存储', () => {
+            const assistant = ChatFile.newAssistantMessage();
+            const text = ChatFile.newAssistantChatMessage();
+            text.content = '原始正文';
+            text.toolCalls = [{ id: 'call', name: 'read_doc', args: { docId: 'doc' } }];
+            // 模型这一轮未产出推理：故意不设置 reasoningContent
+            const tool = ChatFile.newToolCallMessage();
+            Object.assign(tool, { toolCallId: 'call', name: 'read_doc', input: { docId: 'doc' }, content: '文档内容' });
+            assistant.content.push(text, tool);
+            const original = JSON.stringify(assistant);
+            const result = convertMessages([assistant]);
+            expect(result).toHaveLength(2);
+            expect(result[0]).toBeInstanceOf(AIMessage);
+            expect(result[0].content).toBe('原始正文');
+            expect((result[0] as AIMessage).tool_calls).toEqual([
+                { id: 'call', name: 'read_doc', args: { docId: 'doc' } },
+            ]);
+            expect(result[0].additional_kwargs.reasoning_content).toBeUndefined();
+            expect(result[1]).toBeInstanceOf(ToolMessage);
+            expect((result[1] as ToolMessage).tool_call_id).toBe('call');
+            expect(result[1].content).toBe('文档内容');
+            expect(JSON.stringify(assistant)).toBe(original);
+        });
+
+        it.each(['orphan-tool', 'missing-result'])('旧工具历史 %s 应降级且不改写存储', (mode) => {
             const assistant = ChatFile.newAssistantMessage();
             const text = ChatFile.newAssistantChatMessage();
             text.content = '原始正文';
             if (mode !== 'orphan-tool') text.toolCalls = [{ id: 'call', name: 'read_doc', args: { docId: 'doc' } }];
-            if (mode !== 'missing-reasoning') text.reasoningContent = '已记录推理';
+            text.reasoningContent = '已记录推理';
             const tool = ChatFile.newToolCallMessage();
             Object.assign(tool, { toolCallId: 'call', name: 'read_doc', input: { docId: 'doc' }, content: '文档内容' });
             assistant.content.push(text);

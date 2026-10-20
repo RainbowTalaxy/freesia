@@ -34,9 +34,8 @@ export class ChatStreamTranslator {
                 this.complete(part, 'reasoning', output?.additional_kwargs?.reasoning_content, events);
                 this.complete(part, 'message', output?.content, events);
                 if (event.data.output?.tool_calls?.length) {
-                    if (typeof part.reasoningContent !== 'string') {
-                        throw new Error('MiMo 工具调用缺少 reasoning_content，已停止本轮回复，请重试。');
-                    }
+                    // reasoning_content 是可选的：模型可能不经过推理直接调用工具，
+                    // 不能因其缺失而中断本轮；工具调用与结果的配对只依赖 tool call id。
                     part.toolCalls = event.data.output.tool_calls.map(
                         (call: { id: string; name: string; args: Record<string, unknown> }) => ({
                             id: call.id, name: call.name, args: call.args,

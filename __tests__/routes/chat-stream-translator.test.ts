@@ -54,14 +54,32 @@ describe('ChatStreamTranslator', () => {
         expect(translator.message.content[0]).toHaveProperty('toolCalls', calls);
     });
 
-    it('fails explicitly when new tool output lacks reasoning or final content diverges', () => {
+    it('keeps tool calls when the model acts without reasoning', () => {
         const translator = new ChatStreamTranslator(ChatFile.newAssistantMessage());
         translator.consume(event('on_chat_model_start', 'a'));
-        expect(() => translator.consume(event('on_chat_model_end', 'a', {
-            output: { tool_calls: [{ id: '1', name: 'lookup', args: {} }] },
-        }))).toThrow('缺少 reasoning_content');
-        translator.consume(event('on_chat_model_stream', 'a', { chunk: { content: 'original' } }));
-        expect(() => translator.consume(event('on_chat_model_end', 'a', { output: { content: 'different' } })))
+        const calls = [{ id: '1', name: 'lookup', args: {} }];
+        let chunks: { type: string }[] = [];
+        expect(() => {
+            chunks = translator.consume(event('on_chat_model_end', 'a', {
+                output: { content: '', tool_calls: calls },
+            }));
+        }).not.toThrow();
+        expect(chunks.map((chunk) => chunk.type)).toEqual(['message_end']);
+        expect(translator.message.content[0]).toMatchObject({ content: '', toolCalls: calls });
+        expect(translator.message.content[0]).not.toHaveProperty('reasoningContent');
+    });
+
+    it('still rejects tool calls without id or divergent final content', () => {
+        const noId = new ChatStreamTranslator(ChatFile.newAssistantMessage());
+        noId.consume(event('on_chat_model_start', 'a'));
+        expect(() => noId.consume(event('on_chat_model_end', 'a', {
+            output: { tool_calls: [{ name: 'lookup', args: {} }] },
+        }))).toThrow('缺少关联 ID');
+
+        const diverged = new ChatStreamTranslator(ChatFile.newAssistantMessage());
+        diverged.consume(event('on_chat_model_start', 'b'));
+        diverged.consume(event('on_chat_model_stream', 'b', { chunk: { content: 'original' } }));
+        expect(() => diverged.consume(event('on_chat_model_end', 'b', { output: { content: 'different' } })))
             .toThrow('最终输出与流式内容不一致');
     });
 

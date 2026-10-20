@@ -1,6 +1,6 @@
 # 落页 AI 聊天：MiMo 推理内容（reasoning_content）技术文档
 
-> 最后核对日期：2026-10-20，对应工作区未提交的 MiMo 特性代码（freesia 版本 1.0.1）。
+> 最后核对日期：2026-10-21（freesia 版本 1.0.1）。
 > 涉及两个仓库：**freesia**（本仓，Next.js 14 聊天前端 + BFF 路由 + 本地 JSON 存储）与 **blog**（独立后端仓，Express + JSON 文件的权威存储，逻辑路径 `server/modules/luoye/chat-session.js`）。
 > 聊天接口代码位于 `app/(apps)/luoye/ai/chat`。
 
@@ -68,7 +68,7 @@ convertMessages()：重建 AIMessage(additional_kwargs.reasoning_content + tool_
 
 - `ai/model.ts`：`getMimoModel()` 工厂，返回经自定义 completions 包装的 `ChatOpenAI`。
 - `ai/mimo-chat-model.ts`：`MimoChatCompletions extends ChatOpenAICompletions`，解决两件事：
-  - **出站回传推理内容**：MiMo 多轮工具对话要求「带 `tool_calls` 的 assistant 消息」回传同轮 `reasoning_content`。LangChain 把它放在 `additional_kwargs` 里，默认不会进入请求体。适配层用一个 **Symbol 元数据**（`collectReasoning`）按 assistant 消息顺序收集推理文本与工具 ID，在真正发请求的 `completionWithRetry` 里克隆 `request.messages`，把 `reasoning_content` 加到对应 assistant 消息上。
+  - **出站回传推理内容**：MiMo 多轮工具对话建议在「带 `tool_calls` 的 assistant 消息」上回传同轮 `reasoning_content`（API 目前并不强制，缺失也不会报错）。LangChain 把它放在 `additional_kwargs` 里，默认不会进入请求体。适配层用一个 **Symbol 元数据**（`collectReasoning`）按 assistant 消息顺序收集推理文本与工具 ID，在真正发请求的 `completionWithRetry` 里克隆 `request.messages`，有推理时才把 `reasoning_content` 加到对应 assistant 消息上。
   - **不污染 SDK 请求**：内部元数据通过 Symbol 挂在 options 上（含 `_generate` 的嵌套 `options.options`），在 `completionWithRetry` 中显式剥离后才调用父类，保证不会泄漏给 OpenAI SDK。
   - **一致性校验**：重建时按顺序比对请求体内 assistant 消息的工具 ID 与收集到的 `toolIds`，数量/顺序/ID 任一不匹配直接抛错（`MiMo 工具调用与推理消息不匹配` 等），避免错误地把 A 轮推理挂到 B 轮。
 
@@ -138,7 +138,7 @@ done
 translator 关键规则：
 
 - `on_chat_model_stream`：分别读取 `chunk.additional_kwargs.reasoning_content` 与 `chunk.content`，非字符串忽略，非空才推送增量。
-- `on_chat_model_end`：用最终 `output` 补齐/校验流式累积；若 `output.tool_calls` 非空，**必须**已有字符串类型的 `reasoningContent`，且每个工具调用都要有 `id`，否则抛错终止本轮（见第 8 节）。
+- `on_chat_model_end`：用最终 `output` 补齐/校验流式累积；若 `output.tool_calls` 非空则记录工具调用。`reasoning_content` 是**可选**的——模型可能不经过推理直接调用工具，缺失时照常落盘工具调用、不阻断；但每个工具调用都必须有 `id`（用于与 tool 结果配对），缺失才抛错终止本轮（见第 8 节）。
 - 空产出：model run 结束时若正文、推理、工具调用三者皆空，则**不落盘该 part、也不发 `message_end`**，避免孤儿空片段。
 - tool part 在 `on_tool_start` 即进入落盘消息，`on_tool_end` 回填 `output` 与 `tool_call_id`。
 
@@ -191,8 +191,8 @@ translator 关键规则：
 - **完整协议**（`hasCompleteToolProtocol` 返回真）：严格按 `assistant(text+tool_calls)` → 若干 `tool` 的交替结构重建：
   - `AIMessage({ content, tool_calls, additional_kwargs: { reasoning_content } })`
   - `ToolMessage({ tool_call_id, name, content })`
-  - 完整性要求：assistant 的工具集合与其后的 tool part 一一对应、不交叉、无悬空；且带工具的 assistant part 必须有字符串 `reasoningContent`。
-- **不完整协议（降级）**：旧记录、预置 `read_doc` 注入等没有完整思考/工具协议的消息，折叠为**带来源标注的单条文本** `AIMessage`（`[历史工具调用：name]` / `[历史工具结果：name]`），既不丢上下文，也不会向 MiMo 发送缺字段的非法工具序列。
+  - 完整性要求：assistant 的工具集合与其后的 tool part 通过 `id` / `toolCallId` 一一对应、不交叉、无悬空。**与 `reasoningContent` 无关**：模型未产出推理时该字段缺省，仍按完整工具协议重建（此时 `AIMessage` 不带 `reasoning_content`）。
+- **不完整协议（降级）**：仅当工具配对本身残缺（孤立 tool part、有调用无结果、ID 对不上等）时，折叠为**带来源标注的单条文本** `AIMessage`（`[历史工具调用：name]` / `[历史工具结果：name]`），既不丢上下文，也不会向 MiMo 发送非法工具序列。注意预置的 `read_doc` 注入虽无推理文本，但工具配对完整，仍走结构化重建。
 
 ## 6. 历史数据兼容与降级
 
@@ -201,7 +201,7 @@ translator 关键规则：
 三条读路径对旧数据都安全：
 
 1. **blog 读时规范化**（`normalizeTextPart` / `normalizeToolPart`）：`reasoningContent` 仅在为字符串时保留、`toolCalls` 仅在是数组且每项含合法 `id/name/args` 时保留；`toolCallId` 兼容 `part.tool_call_id`。旧数据缺字段即省略，不报错；下次该会话保存时自然升级为新结构（lazy migration）。
-2. **freesia 模型回放**：旧 assistant part 没有 `toolCalls`，`hasCompleteToolProtocol` 判定为不完整 → 走文本降级，因此旧会话继续对话不会触发 MiMo「工具调用缺少 reasoning_content」的新校验，历史工具结果也不会丢失。
+2. **freesia 模型回放**：旧 assistant part 没有 `toolCalls`，`hasCompleteToolProtocol` 判定为不完整 → 走文本降级，历史工具结果不丢失。是否降级只取决于工具 ID 配对是否完整、与有无推理无关，旧会话继续对话不会被新逻辑拒绝。
 3. **前端渲染**：历史 text part 无 `reasoningContent` 时 `ReasoningContent` 返回 `null`；`isInitialReadDocMessage` 仍会隐藏会话开头预置的空 `read_doc` 消息（要求其 `reasoningContent === undefined`）。
 
 ## 7. 部署与发布
@@ -218,6 +218,7 @@ translator 关键规则：
 - **推理内容滚动跟随**：展开且用户贴近底部时，新增推理自动滚到底部；用户上滑后停止跟随，避免强制抢滚动。
 - **正文严格、推理宽容**：`complete()` 中最终 `output.content` 必须是流式累积的前缀，否则抛错避免落盘与展示不一致；而 `reasoning_content` 是非标字段，最终聚合形态可能随模型/框架版本变化，与其流式值不一致时**保留流式累积值**，不因此丢弃整轮回复。
 - **空 model run 不落盘**：避免未配对/空产出在历史里留下空白片段；空轮不发 `message_end`，而前端 part 是惰性创建的（收到 chunk 才建），故对前端是等价 no-op。
+- **reasoning 缺失不阻断工具调用**：`reasoning_content` 在入站翻译、出站回传、历史协议判定三处都视为**可选**。线上曾因「工具轮必须有 reasoning_content」的过严校验，在模型不思考直接调工具时整轮报错（`MiMo 工具调用缺少 reasoning_content`，搜索等工具不可用）；现已解耦——有推理则展示/落盘/回传，无推理时工具调用照常进行，严格校验只保留在真正影响工具配对的 `tool call id` 与正文一致性上。
 - **已知低优先边界**：
   - 若 LangChain 对某次工具只发 `on_tool_start` 不发 `on_tool_end`，会留下 `toolCallId` 缺失的孤儿 tool part；因整流产出仅在成功结束后才落盘、且下轮 `hasCompleteToolProtocol` 会自动降级为文本，不影响正确性。
   - SSE 类型声明 `tool_end.content: string`，取值源于 LangChain `output?.content`，理论上可能是非字符串 content blocks；当前 MiMo 工具均返回字符串，属重构前即存在的类型宽松。
