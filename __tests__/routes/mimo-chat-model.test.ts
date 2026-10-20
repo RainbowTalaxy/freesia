@@ -96,11 +96,17 @@ describe('MiMo HTTP request adaptation', () => {
         expect(requests[1].messages[0]).not.toHaveProperty('reasoning_content');
     });
 
-    it('rejects a new tool round without reasoning before HTTP transport', async () => {
+    it('sends a tool round without reasoning_content when the model produced none', async () => {
         const { model, requests } = transport();
         const input = history('missing');
         delete input[1].additional_kwargs.reasoning_content;
-        await expect(model.invoke(input)).rejects.toThrow('缺少 reasoning_content');
-        expect(requests).toHaveLength(0);
+        const result = await model.invoke(input);
+        expect(result.content).toBe('42');
+        expect(requests).toHaveLength(1);
+        const assistant = requests[0].messages[1];
+        expect(assistant.tool_calls[0]).toMatchObject({ id: 'call-missing' });
+        // 历史没有推理时不回传该字段，而不是报错中断
+        expect(assistant).not.toHaveProperty('reasoning_content');
+        expect(input[1].additional_kwargs.reasoning_content).toBeUndefined();
     });
 });

@@ -8,16 +8,14 @@ type ReasoningEntry = { reasoning?: string; toolIds: (string | undefined)[] };
 type RequestOptions = OpenAI.RequestOptions & { [reasoningMetadata]?: ReasoningEntry[] };
 
 function collectReasoning(messages: BaseMessage[]): ReasoningEntry[] {
-    return messages.filter(isAIMessage).map((message) => {
-        const reasoning = message.additional_kwargs.reasoning_content;
-        if (message.tool_calls?.length && typeof reasoning !== 'string') {
-            throw new Error('MiMo 工具调用缺少 reasoning_content，已停止本轮回复，请重试。');
-        }
-        return {
-            reasoning: typeof reasoning === 'string' ? reasoning : undefined,
-            toolIds: (message.tool_calls ?? []).map((call) => call.id),
-        };
-    });
+    // reasoning_content 可选：模型/历史未产出推理时仅不回传该字段，不阻断工具调用（MiMo 不强制）。
+    return messages.filter(isAIMessage).map((message) => ({
+        reasoning:
+            typeof message.additional_kwargs.reasoning_content === 'string'
+                ? message.additional_kwargs.reasoning_content
+                : undefined,
+        toolIds: (message.tool_calls ?? []).map((call) => call.id),
+    }));
 }
 
 export class MimoChatCompletions extends ChatOpenAICompletions {

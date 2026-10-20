@@ -518,7 +518,6 @@ function hasCompleteToolProtocol(parts: ChatSessionAssistantMessage['content']) 
         if (part.role === 'assistant') {
             if (pending.size) return false;
             if (part.toolCalls?.length) {
-                if (typeof part.reasoningContent !== 'string') return false;
                 for (const call of part.toolCalls) {
                     if (!call.id || pending.has(call.id)) return false;
                     pending.add(call.id);
