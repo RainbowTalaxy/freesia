@@ -17,6 +17,10 @@
 
 .reasoningToggle:hover {
     color: #785617;
+}
+
+/* 折叠态按钮没有左右 padding，加背景会紧贴文字；仅展开态（卡片内、有横向内边距）显示 hover 背景 */
+.reasoningExpanded .reasoningToggle:hover {
     background: rgba(208, 157, 62, 0.06);
 }
 
