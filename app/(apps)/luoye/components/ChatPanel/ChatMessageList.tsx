@@ -45,6 +45,17 @@ export default function ChatMessageList({
                                     isUserMessage ? styles.userMessage : styles.assistantMessage
                                 }`}
                             >
+                                {msg.role === 'user' && msg.selection && (
+                                    <div
+                                        className={styles.messageSelection}
+                                        title={msg.selection.text}
+                                    >
+                                        <strong>选中</strong>
+                                        <span>
+                                            {msg.selection.text.replace(/\s+/g, ' ').slice(0, 80)}
+                                        </span>
+                                    </div>
+                                )}
                                 <div className={styles.messageContent}>
                                     {msg.role === 'assistant' ? (
                                         <AssistantContent content={msg.content} sessionId={sessionId} reasoningExpanded={reasoningExpanded} onReasoningToggle={onReasoningToggle} />

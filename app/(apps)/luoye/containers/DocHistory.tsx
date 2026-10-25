@@ -23,6 +23,7 @@ const REASON_LABELS: Record<DocHistoryEntry['reason'], string> = {
     restore: '恢复前版本',
     delete: '删除前版本',
     manual: '手动版本',
+    ai: 'AI 修改前版本',
 };
 
 const DocHistory = ({ doc, onClose, onRestore }: Props) => {

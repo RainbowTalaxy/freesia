@@ -22,3 +22,35 @@ it('hides legacy document preload, but preserves real reasoning and restores his
     expect(result[0].content[0]).toMatchObject({ id: 'p', reasoningContent: '真实推理' });
     expect(result[0].content[0]).not.toHaveProperty('isThinking', true);
 });
+
+it('restores selected document content on user messages', () => {
+    const session: ChatSession = {
+        schemaVersion: 1,
+        sessionId: 's-selection',
+        userId: 'u',
+        title: '',
+        createdAt: 1,
+        updatedAt: 1,
+        messages: [
+            {
+                schemaVersion: 1,
+                messageId: 'm-selection',
+                type: 'user_message',
+                content: '改得平实一点',
+                modelContent:
+                    '改得平实一点\n\n用户选中的文档内容：\n<selected_text>\n花正开着，树叶被风吹得沙沙作响。\n</selected_text>',
+                createdAt: 1,
+            },
+        ],
+    };
+
+    const [message] = convertSessionToMessages(session);
+    expect(message.role).toBe('user');
+    if (message.role !== 'user') throw new Error();
+    expect(message.content).toBe('改得平实一点');
+    expect(message.selection).toEqual({
+        text: '花正开着，树叶被风吹得沙沙作响。',
+        start: 0,
+        end: 16,
+    });
+});

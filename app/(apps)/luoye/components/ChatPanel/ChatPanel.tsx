@@ -6,7 +6,7 @@ import { DocContext } from '../../doc/[docId]/context';
 import styles from './ChatPanel.module.css';
 import Toast from '../Notification/Toast';
 import API, { clientFetch } from '@/api';
-import { ChatSession } from '@/api/types/luoye';
+import { ChatSelection, ChatSession } from '@/api/types/luoye';
 import { BASE_PATH } from '@/constants';
 import { AssistantChatMessage, ChatImageAttachment, Message, SseEventData, ToolCallMessage } from '../../ai/chat/types';
 import { generateMessageId } from '../../ai/chat/utils';
@@ -59,7 +59,7 @@ const ChatPanel = ({
     showCloseButton = true,
     syncSessionPath = false,
 }: ChatPanelProps = {}) => {
-    const { setChatVisible, doc } = useContext(DocContext);
+    const { setChatVisible, setSelection, selection, doc } = useContext(DocContext);
     const pathname = usePathname();
     const panelRef = useRef<HTMLDivElement>(null);
     const [messages, setMessages] = useState<Message[]>([]);
@@ -380,6 +380,7 @@ const ChatPanel = ({
                 id: generateMessageId(),
                 role: 'user',
                 content: userInput,
+                ...(selection ? { selection } : {}),
                 ...(displayAttachments.length ? { attachments: displayAttachments } : {}),
                 createdAt: Date.now(),
             };
@@ -387,6 +388,7 @@ const ChatPanel = ({
             // 提交用户消息
             setMessages((prev) => [...prev, userMessage]);
             setInput('');
+            setSelection(null);
             clearAttachments({ preservePreviews: true });
             setIsLoading(true);
             setPendingMessages([]);
@@ -426,6 +428,7 @@ const ChatPanel = ({
                         ...(doc?.id ? { docId: doc.id } : {}),
                         message: userMessage.content,
                         ...(selectedAttachments.length ? { attachments: selectedAttachments } : {}),
+                        ...(selection ? { selection } : {}),
                         sessionId: sessionId || undefined,
                     }),
                     abortControllerRef.current,
@@ -513,7 +516,7 @@ const ChatPanel = ({
                 }
             }
         },
-        [attachments, clearAttachments, doc?.id, isSessionRestoring, isUploadingAttachment, replaceSessionPath, sessionId, scrollToBottom, setAttachments],
+        [attachments, clearAttachments, doc?.id, isSessionRestoring, isUploadingAttachment, replaceSessionPath, sessionId, scrollToBottom, selection, setAttachments, setSelection],
     );
 
     return (
@@ -567,6 +570,8 @@ const ChatPanel = ({
                 />
                 <ChatInput
                     attachments={attachments}
+                    selection={selection}
+                    onRemoveSelection={() => setSelection(null)}
                     fileInputRef={fileInputRef}
                     input={input}
                     isDraggingAttachment={isDraggingAttachment}

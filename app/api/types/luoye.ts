@@ -50,7 +50,13 @@ export interface DocItem {
     updatedAt: number; // 更新时间
 }
 
-export type DocHistoryReason = 'save' | 'edit-start' | 'restore' | 'delete' | 'manual';
+export type DocHistoryReason =
+    | 'save'
+    | 'edit-start'
+    | 'restore'
+    | 'delete'
+    | 'manual'
+    | 'ai';
 
 export interface DocHistoryEntry {
     id: string;
@@ -59,6 +65,12 @@ export interface DocHistoryEntry {
     savedAt: number;
     savedBy: string;
     reason: DocHistoryReason;
+}
+
+export interface ChatSelection {
+    text: string;
+    start: number;
+    end: number;
 }
 
 export interface DocHistoryResponse {

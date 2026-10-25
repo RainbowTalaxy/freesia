@@ -1,0 +1,41 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+    background: #fffcf6;
+}
+
+.diffBody {
+    flex: 1;
+    min-height: 0;
+}
+
+.diffBody :global(.monaco-editor) {
+    background: transparent !important;
+}
+
+.diffBody :global(.monaco-diff-editor .editor),
+.diffBody :global(.monaco-diff-editor .editor .overflow-guard) {
+    background: #fffcf6;
+}
+
+.diffBody :global(.diffOverviewRuler),
+.diffBody :global(.decorationsOverviewRuler),
+.diffBody :global(.overviewRuler) {
+    display: none !important;
+}
+
+.diffBody :global(.diffOverview),
+.diffBody :global(.diffViewport) {
+    display: none !important;
+}
+
+.diffBody :global(.monaco-scrollable-element > .scrollbar) {
+    width: 8px !important;
+}
+
+.diffBody :global(.monaco-scrollable-element > .scrollbar > .slider) {
+    border-radius: 8px !important;
+    background: rgba(208, 157, 62, 0.28) !important;
+}

@@ -426,7 +426,12 @@ describe('POST /luoye/ai/chat (发送消息)', () => {
         const agentMessages = mockStreamEvents.mock.calls[0][0].messages;
         expect(agentMessages[0].content).toContain('当前时间：');
         expect(agentMessages[0].content).toContain('(UTC+8)');
-        expect(mockCreateChatAgent).toHaveBeenCalledWith();
+        expect(agentMessages[0].content).toContain(
+            '直接调用 edit_doc_request',
+        );
+        expect(mockCreateChatAgent).toHaveBeenCalledWith(
+            expect.objectContaining({ docId: 'doc-1' }),
+        );
     });
 
     it('带图片附件发送时应保存附件并以图片消息发送给模型', async () => {
@@ -849,6 +854,77 @@ describe('POST /luoye/ai/chat (发送消息)', () => {
             true,
             false,
             { cache: 'no-store' },
+        );
+    });
+
+    it('文档更新后的下一轮会注入最新正文并延后更新时间基线', async () => {
+        const session = makeSession({
+            sessionId: 'updated-session',
+            docUpdatedAt: 1,
+        });
+        const backendSession = makeBackendSession({
+            sessionId: 'updated-session',
+            docUpdatedAt: 1,
+            messages: [],
+        });
+
+        mockServerFetch.mockImplementation(
+            (request: { url?: string; method?: string }) => {
+                const url = request.url ?? '';
+                if (url === '/api/user') {
+                    return Promise.resolve({ id: 'user-1' });
+                }
+                if (url.includes('/api/luoye/doc/doc-1')) {
+                    return Promise.resolve({
+                        id: 'doc-1',
+                        name: '测试文档',
+                        content: 'NEW DOCUMENT CONTENT',
+                        updatedAt: 2,
+                    });
+                }
+                if (url === '/api/luoye/chat-sessions/updated-session') {
+                    return Promise.resolve(backendSession);
+                }
+                return Promise.resolve({});
+            },
+        );
+        mockChatFile.getSession.mockResolvedValue(session);
+        mockChatFile.appendUserMessage.mockResolvedValue(
+            withUserMessage(session, '继续'),
+        );
+        mockChatFile.appendAssistantMessage.mockResolvedValue(undefined);
+        mockChatFile.saveSession.mockResolvedValue(undefined);
+        mockStreamEvents.mockReturnValue(fakeAgentEvents(['好的']));
+
+        const res = await POST(
+            makeRequest({
+                docId: 'doc-1',
+                sessionId: 'updated-session',
+                message: '继续',
+            }),
+        );
+        expect(res.status).toBe(200);
+        await readSSEStream(res);
+
+        const agentMessages = mockStreamEvents.mock.calls[0][0].messages;
+        const updateMessage = agentMessages[agentMessages.length - 1];
+        expect(updateMessage.content).toContain('以下是最新文档内容');
+        expect(updateMessage.content).toContain('NEW DOCUMENT CONTENT');
+        expect(mockCreateChatAgent).toHaveBeenCalledWith({
+            docId: 'doc-1',
+            baseUpdatedAt: 2,
+        });
+        expect(mockChatFile.saveSession).toHaveBeenCalledWith(
+            expect.objectContaining({ docUpdatedAt: 2 }),
+        );
+        expect(mockServerFetch).toHaveBeenCalledWith(
+            expect.objectContaining({
+                url: '/api/luoye/chat-sessions/updated-session',
+                method: 'PATCH',
+                data: { docUpdatedAt: 2 },
+            }),
+            true,
+            false,
         );
     });
 

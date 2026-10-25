@@ -1,0 +1,19 @@
+.button {
+    position: fixed;
+    z-index: 220;
+    transform: translate(0, -100%);
+    padding: 5px 10px;
+    border: 1px solid var(--ly-secondary);
+    border-radius: 6px;
+    background: var(--ly-primary);
+    color: white;
+    box-shadow: 0 4px 12px rgb(74, 51, 14 / 0.18);
+    font-size: 13px;
+    line-height: 1.5;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.button:hover {
+    opacity: 0.9;
+}

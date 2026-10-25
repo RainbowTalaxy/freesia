@@ -1,6 +1,11 @@
-import { SaveDocRequestToolCallMessage, ToolCallMessage } from '../../ai/chat/types';
+import {
+    EditDocRequestToolCallMessage,
+    SaveDocRequestToolCallMessage,
+    ToolCallMessage,
+} from '../../ai/chat/types';
 import { isSearchDocsEmptyResult } from '../../ai/chat/searchResult';
 import SaveDocRequest from './SaveDocRequest';
+import EditDocRequest from './EditDocRequest';
 import styles from './ChatPanel.module.css';
 
 function parseToolArgs(input: Record<string, unknown>): Record<string, unknown> {
@@ -89,6 +94,10 @@ function getReadDocText(tool: ToolCallMessage) {
 const ToolStatus = ({ tool, sessionId }: { tool: ToolCallMessage; sessionId: string | null }) => {
     if (tool.name === 'save_doc_request') {
         return <SaveDocRequest tool={tool as SaveDocRequestToolCallMessage} sessionId={sessionId} />;
+    }
+
+    if (tool.name === 'edit_doc_request') {
+        return <EditDocRequest tool={tool as EditDocRequestToolCallMessage} sessionId={sessionId} />;
     }
 
     let text: string;

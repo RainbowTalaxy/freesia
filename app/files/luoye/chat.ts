@@ -1,7 +1,11 @@
 import path from 'path';
 import FileHandler from '../FileHandler';
 import { AIMessage, HumanMessage, ToolMessage } from 'langchain';
-import type { ChatAssistantFields, ChatImageAttachment } from '@/api/types/luoye';
+import type {
+    ChatAssistantFields,
+    ChatImageAttachment,
+    ChatSelection,
+} from '@/api/types/luoye';
 
 /** 聊天会话数据存储根目录 */
 const CHAT_DIR = path.join(process.cwd(), 'temp/luoye/chat');
@@ -333,6 +337,7 @@ const ChatFile = {
         sessionId: string,
         content: string,
         attachments?: ChatImageAttachment[],
+        selection?: ChatSelection,
     ): Promise<ChatSession | null> {
         const session = await this.getSession(userId, sessionId);
         if (!session) return null;
@@ -343,8 +348,14 @@ const ChatFile = {
             messageId: this.generateMessageId(),
             role: 'user',
             content,
-            ...(attachments?.length
-                ? { modelContent: createUserModelContent(content, attachments) }
+            ...(attachments?.length || selection
+                ? {
+                      modelContent: createUserModelContent(
+                          content,
+                          attachments,
+                          selection,
+                      ),
+                  }
                 : {}),
             ...(attachments?.length ? { attachments } : {}),
             createdAt: Date.now(),
@@ -425,13 +436,20 @@ function formatAttachmentText(attachments: ChatImageAttachment[]) {
 function createUserModelContent(
     content: string,
     attachments?: ChatImageAttachment[],
+    selection?: ChatSelection,
 ) {
-    if (!attachments?.length) return content;
-    return [
-        content || '请看图片。',
-        '图片附件信息：',
-        formatAttachmentText(attachments),
-    ].join('\n');
+    const sections = [content || '请看图片。'];
+    if (selection) {
+        sections.push(
+            '用户选中的文档内容：\n<selected_text>\n' +
+                selection.text +
+                '\n</selected_text>',
+        );
+    }
+    if (attachments?.length) {
+        sections.push('图片附件信息：', formatAttachmentText(attachments));
+    }
+    return sections.join('\n');
 }
 
 export function convertMessages(messages: ChatSessionChatMessage[]) {
@@ -460,7 +478,7 @@ export function convertMessages(messages: ChatSessionChatMessage[]) {
                         }),
                     );
                 } else {
-                    result.push(new HumanMessage(msg.content));
+                    result.push(new HumanMessage(msg.modelContent ?? msg.content));
                 }
                 break;
             }
