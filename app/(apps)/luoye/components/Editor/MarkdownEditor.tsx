@@ -8,7 +8,11 @@ import { MONACO_TOKEN_CONFIG, MONACO_COLOR_CONFIG, MONACO_OPTIONS } from './conf
 import Toast from '../Notification/Toast';
 import { PLACE_HOLDER, countText } from './configs';
 import PlaceholderContentWidget from './PlaceholderContentWidget';
-import { EditorProps } from './configs/types';
+import {
+    EditorProps,
+    EditorSelection,
+    EditorSelectionState,
+} from './configs/types';
 import styles from './editor.module.css';
 
 // 用于页面判断编辑器是否加载完毕
@@ -25,7 +29,56 @@ loader.init().then((monaco) => {
     monacoLoaded = true;
 });
 
-const MarkdownEditor = ({ className, visible, keyId, onSave, textRef, defaultValue }: EditorProps) => {
+function readSelection(
+    editor: monaco.editor.IStandaloneCodeEditor,
+): EditorSelection | null {
+    const model = editor.getModel();
+    const selection = editor.getSelection();
+    if (!model || !selection || selection.isEmpty()) return null;
+    const text = model.getValueInRange(selection);
+    if (!text.trim()) return null;
+    return {
+        text,
+        start: model.getOffsetAt(selection.getStartPosition()),
+        end: model.getOffsetAt(selection.getEndPosition()),
+    };
+}
+
+function readSelectionState(
+    editor: monaco.editor.IStandaloneCodeEditor,
+): EditorSelectionState | null {
+    const selection = readSelection(editor);
+    if (!selection) return null;
+    const range = editor.getSelection();
+    const domNode = editor.getDomNode();
+    if (!range || !domNode) return null;
+    const startPosition = editor.getScrolledVisiblePosition(range.getStartPosition());
+    const endPosition = editor.getScrolledVisiblePosition(range.getEndPosition());
+    if (!startPosition || !endPosition) return null;
+    const rect = domNode.getBoundingClientRect();
+    return {
+        ...selection,
+        x:
+            rect.left +
+            (range.startLineNumber === range.endLineNumber
+                ? endPosition.left
+                : Math.max(
+                      endPosition.left,
+                      editor.getLayoutInfo().contentWidth,
+                  )),
+        y: rect.top + startPosition.top - 10,
+    };
+}
+
+const MarkdownEditor = ({
+    className,
+    visible,
+    keyId,
+    onSave,
+    textRef,
+    defaultValue,
+    onSelectionChange,
+}: EditorProps) => {
     const editorRef = useRef<monaco.editor.IStandaloneCodeEditor>();
 
     useKeyboard(
@@ -44,6 +97,8 @@ const MarkdownEditor = ({ className, visible, keyId, onSave, textRef, defaultVal
             focus: () => editorRef.current?.focus(),
             setText: (text: string) => editorRef.current?.setValue(text),
             getText: () => editorRef.current?.getValue() || '',
+            getSelection: () =>
+                editorRef.current ? readSelection(editorRef.current) : null,
             loaded: () => monacoLoaded,
         }),
         [],
@@ -73,6 +128,16 @@ const MarkdownEditor = ({ className, visible, keyId, onSave, textRef, defaultVal
                     editor.setValue(defaultValue);
                     if (visible) Toast.notify('字数：' + countText(defaultValue), false);
                 }
+
+                const emitSelection = () => {
+                    onSelectionChange?.(readSelectionState(editor));
+                };
+                editor.onDidChangeCursorSelection(emitSelection);
+                editor.onDidScrollChange(emitSelection);
+                editor.onDidChangeModelContent(() => {
+                    onSelectionChange?.(null);
+                });
+                emitSelection();
             }}
             onChange={(value) => {
                 if (value !== undefined) Toast.notify('字数：' + countText(value), false);

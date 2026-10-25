@@ -5,11 +5,13 @@ import { useRef, type ChangeEvent, type DragEvent, type KeyboardEvent, type RefO
 import SVG from '../SVG';
 import { Button, TextArea } from '@/components/form';
 import type { ChatImageAttachment } from '../../ai/chat/types';
+import type { ChatSelection } from '@/api/types/luoye';
 import styles from './ChatPanel.module.css';
 import { ATTACHMENT_ACCEPT } from './useChatAttachments';
 
 interface ChatInputProps {
     attachments: ChatImageAttachment[];
+    selection: ChatSelection | null;
     fileInputRef: RefObject<HTMLInputElement>;
     input: string;
     isDraggingAttachment: boolean;
@@ -24,11 +26,13 @@ interface ChatInputProps {
     onAttachmentDrop: (event: DragEvent<HTMLElement>) => void;
     onInputChange: (value: string) => void;
     onRemoveAttachment: (id: string) => void;
+    onRemoveSelection: () => void;
     onSend: (input: string) => void;
 }
 
 export default function ChatInput({
     attachments,
+    selection,
     fileInputRef,
     input,
     isDraggingAttachment,
@@ -43,6 +47,7 @@ export default function ChatInput({
     onAttachmentDrop,
     onInputChange,
     onRemoveAttachment,
+    onRemoveSelection,
     onSend,
 }: ChatInputProps) {
     const isComposingRef = useRef(false);
@@ -64,6 +69,21 @@ export default function ChatInput({
             onDragOver={onAttachmentDragOver}
             onDrop={onAttachmentDrop}
         >
+            {selection && (
+                <div className={styles.selectionPreview}>
+                    <div className={styles.selectionPreviewContent}>
+                        <strong>选中内容</strong>
+                        <span>{selection.text.replace(/\s+/g, ' ').slice(0, 80)}</span>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={onRemoveSelection}
+                        aria-label="移除选中内容"
+                    >
+                        <SVG.Close />
+                    </button>
+                </div>
+            )}
             {!!attachments.length && (
                 <div className={styles.attachmentPreviewList}>
                     {attachments.map((attachment) => (

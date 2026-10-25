@@ -196,6 +196,37 @@ describe('ChatFile', () => {
             }
         });
 
+        it('选中内容应保存到 modelContent 并传给模型', async () => {
+            const created = await ChatFile.createSession(
+                TEST_USER,
+                'doc-selection',
+                Date.now(),
+            );
+            const selection = {
+                text: '需要改写的选中内容',
+                start: 2,
+                end: 10,
+            };
+
+            const result = await ChatFile.appendUserMessage(
+                TEST_USER,
+                created.sessionId,
+                '改得更简洁',
+                undefined,
+                selection,
+            );
+
+            const message = result!.messages[0];
+            expect(message.role).toBe('user');
+            if (message.role !== 'user') throw new Error();
+            expect(message.content).toBe('改得更简洁');
+            expect(message.modelContent).toContain('用户选中的文档内容');
+            expect(message.modelContent).toContain(selection.text);
+
+            const modelMessages = convertMessages(result!.messages);
+            expect(modelMessages[0].content).toContain(selection.text);
+        });
+
         it('向不存在的会话追加消息应返回 null', async () => {
             const result = await ChatFile.appendUserMessage(
                 TEST_USER,

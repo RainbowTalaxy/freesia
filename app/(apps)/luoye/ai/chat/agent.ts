@@ -202,6 +202,36 @@ const getCurrentTimeTool = tool(
     },
 );
 
+function createEditDocRequestTool(docId: string, baseUpdatedAt: number) {
+    return tool(
+        async ({ content, summary }) => {
+            return JSON.stringify({
+                status: 'pending',
+                docId,
+                baseUpdatedAt,
+                content,
+                ...(summary ? { summary } : {}),
+            });
+        },
+        {
+            name: 'edit_doc_request',
+            description:
+                '主动发起当前文档的修改请求。凡是续写、补充、润色、改写、纠错或整理现有正文，都应直接调用此工具返回完整修改后内容，不要先输出完整草稿等待用户同意提交。用户仍会在页面上查看差异并选择接受或放弃，调用后不会立即修改文档。',
+            schema: z.object({
+                content: z
+                    .string()
+                    .describe(
+                        '修改后的完整文档正文，Markdown 格式，不要包含文档标题或元数据标题',
+                    ),
+                summary: z
+                    .string()
+                    .optional()
+                    .describe('一句话说明本次修改的主要内容'),
+            }),
+        },
+    );
+}
+
 const saveDocRequestTool = tool(
     async ({ title, content }) => {
         // 非阻塞请求，返回 pending 状态；前端会显示此 tool 调用信息，由用户决定是否保存
@@ -222,8 +252,11 @@ const saveDocRequestTool = tool(
     },
 );
 
-export function createChatAgent() {
+export function createChatAgent(
+    options: { docId?: string; baseUpdatedAt?: number } = {},
+) {
     const model = getMimoModel();
+    const { docId, baseUpdatedAt } = options;
     return createAgent({
         model,
         tools: [
@@ -231,6 +264,9 @@ export function createChatAgent() {
             readDocTool,
             saveDocRequestTool,
             getCurrentTimeTool,
+            ...(docId && baseUpdatedAt !== undefined
+                ? [createEditDocRequestTool(docId, baseUpdatedAt)]
+                : []),
         ],
     });
 }

@@ -1,0 +1,184 @@
+.editDocRequest {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 0 0 10px;
+    padding: 6px 14px 6px 16px;
+    border: 1px solid var(--ly-active-background);
+    border-radius: 6px;
+    background: var(--ly-background);
+    color: var(--ly-primary);
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.editDocLabel {
+    flex-shrink: 0;
+    font-weight: 600;
+}
+
+.editDocTitle {
+    flex: 1;
+    min-width: 120px;
+    overflow: hidden;
+    padding: 0;
+    border: none;
+    background: none;
+    color: var(--ly-primary);
+    font-size: inherit;
+    text-align: left;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.editDocTitle:hover {
+    color: var(--ly-secondary);
+}
+
+.editDocAccept,
+.editDocReject {
+    padding: 3px 10px;
+    border: none;
+    border-radius: 6px;
+    background: none;
+    cursor: pointer;
+    transition: background-color 0.15s;
+}
+
+.editDocAccept {
+    background: var(--ly-primary);
+    color: white;
+}
+
+.editDocAccept:hover {
+    opacity: 0.9;
+}
+
+.editDocReject {
+    color: var(--ly-secondary);
+}
+
+.editDocReject:hover {
+    background: var(--ly-active-background);
+}
+
+.editDocAccept:disabled,
+.editDocReject:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+}
+
+.conflict {
+    color: #b42318;
+    font-size: 12px;
+}
+
+.previewOverlay {
+    --primary: var(--ly-primary);
+    --secondary: var(--ly-secondary);
+    --border: var(--ly-secondary);
+    --shadow: var(--ly-inactive-background);
+    --background: var(--ly-active-background);
+    --page: var(--ly-background);
+
+    position: fixed;
+    inset: 0;
+    z-index: 300;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.previewCard {
+    display: flex;
+    flex-direction: column;
+    width: min(1180px, 94vw);
+    height: min(820px, 88vh);
+    overflow: hidden;
+    border: 1px solid var(--ly-active-background);
+    border-radius: var(--ly-modal-border-radius);
+    background: var(--ly-background);
+    color: var(--ly-primary);
+}
+
+.previewHeader {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 18px 22px;
+    border-bottom: 1px solid var(--ly-active-background);
+}
+
+.previewHeader > div {
+    flex: 1;
+}
+
+.previewHeader h2 {
+    margin: 0;
+    font-size: 20px;
+}
+
+.previewHeader p {
+    margin: 3px 0 0;
+    color: var(--ly-secondary);
+    font-size: 13px;
+}
+
+.previewClose {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 6px;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--ly-secondary);
+    cursor: pointer;
+}
+
+.previewClose:hover {
+    background: var(--ly-active-background);
+}
+
+.diffContainer {
+    flex: 1;
+    min-height: 0;
+}
+
+.previewFooter {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 12px 18px;
+    border-top: 1px solid var(--ly-active-background);
+}
+
+.previewFooter button {
+    margin: 0;
+}
+
+.previewFooter > span {
+    flex: 1;
+    color: #b42318;
+    font-size: 13px;
+}
+
+@media screen and (max-width: 720px) {
+    .previewOverlay {
+        padding: 0;
+    }
+
+    .previewCard {
+        width: 100%;
+        height: 100%;
+        border: none;
+        border-radius: 0;
+    }
+}

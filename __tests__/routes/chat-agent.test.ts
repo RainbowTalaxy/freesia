@@ -139,6 +139,36 @@ describe('chat agent search_docs', () => {
         );
     });
 
+    it('文档上下文应提供固定的 edit_doc_request 参数', async () => {
+        const { createChatAgent } =
+            await import('../../app/(apps)/luoye/ai/chat/agent');
+        createChatAgent({ docId: 'doc-edit', baseUpdatedAt: 42 });
+
+        const lastCreateAgentCall =
+            mocks.createAgent.mock.calls[mocks.createAgent.mock.calls.length - 1];
+        const agentConfig = lastCreateAgentCall?.[0] as
+            | TestAgentConfig
+            | undefined;
+        const editTool = agentConfig?.tools.find(
+            (item) => item.name === 'edit_doc_request',
+        );
+        if (!editTool) throw new Error('edit_doc_request tool not found');
+
+        const result = JSON.parse(
+            await editTool.invoke({
+                content: '修改后的正文',
+                summary: '精简摘要',
+            }),
+        );
+        expect(result).toMatchObject({
+            status: 'pending',
+            docId: 'doc-edit',
+            baseUpdatedAt: 42,
+            content: '修改后的正文',
+            summary: '精简摘要',
+        });
+    });
+
     it('matches 不是数组时不应导致 search_docs 异常', async () => {
         mocks.serverFetch.mockResolvedValueOnce({
             total: 1,

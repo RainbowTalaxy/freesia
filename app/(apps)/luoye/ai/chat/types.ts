@@ -1,3 +1,5 @@
+import type { ChatSelection } from '@/api/types/luoye';
+
 export type SseEventData =
     | {
           type: 'session';
@@ -59,6 +61,7 @@ export interface UserMessage {
     id: string;
     role: 'user';
     content: string;
+    selection?: ChatSelection;
     attachments?: ChatImageAttachment[];
     createdAt: number;
 }
@@ -81,6 +84,8 @@ export interface ToolCallMessage {
     input: Record<string, unknown>;
     /** 调用结果 */
     content?: string;
+    /** 序列化后的工具输出，可用于恢复请求元数据 */
+    output?: unknown;
 }
 
 /** `save_doc_request` tool 的输入参数，表示 agent 发起的文档保存请求 */
@@ -95,7 +100,22 @@ export interface SaveDocRequestToolCallMessage extends ToolCallMessage {
     name: 'save_doc_request';
     input: SaveDocRequestToolInput;
     /** pending: 待用户确认；confirmed: 用户已确认；cancelled: 用户已取消 */
-    content?: 'pending' | 'confirmed' | 'cancelled';
+    content?: string;
+}
+
+/** edit_doc_request tool 的输入参数，表示 agent 发起的现有文档修改请求 */
+export interface EditDocRequestToolInput {
+    [key: string]: unknown;
+    docId: string;
+    baseUpdatedAt: number;
+    content: string;
+    summary?: string;
+}
+
+export interface EditDocRequestToolCallMessage extends ToolCallMessage {
+    name: 'edit_doc_request';
+    input: Record<string, unknown>;
+    content?: string;
 }
 
 export interface AssistantMessage {

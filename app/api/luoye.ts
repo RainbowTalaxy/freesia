@@ -17,6 +17,7 @@ import {
     ChatImageAttachment,
     ImageUploadResponse,
     SearchDocsQuery,
+    ChatSelection,
     DocHistoryReason,
     DocHistoryResponse,
 } from './types/luoye';
@@ -73,6 +74,8 @@ const LuoyeAPI = {
             date?: number;
             workspaces?: string[];
             tags?: string[];
+            baseUpdatedAt?: number;
+            changeSource?: 'user' | 'ai';
         },
     ) => Rocket.put<Doc>(`${API_PREFIX}/luoye/doc/${id}`, props),
     docHistory: (id: string) =>
@@ -115,6 +118,7 @@ const LuoyeAPI = {
                 message: string;
                 attachments?: ChatImageAttachment[];
                 sessionId?: string;
+                selection?: ChatSelection;
             }) => Rocket.post(`${BASE_PATH}/luoye/ai/chat`, props),
             uploadAttachment: () =>
                 Rocket.post<ImageUploadResponse>(

@@ -1,5 +1,15 @@
-import { ChatSession, ChatSessionMessage } from '@/api/types/luoye';
+import { ChatSelection, ChatSession, ChatSessionMessage } from '@/api/types/luoye';
 import { Message } from '../../ai/chat/types';
+
+function extractSelection(modelContent?: string): ChatSelection | null {
+    if (!modelContent) return null;
+    const match = modelContent.match(
+        /用户选中的文档内容：\n<selected_text>\n([\s\S]*?)\n<\/selected_text>/,
+    );
+    if (!match) return null;
+    const text = match[1];
+    return { text, start: 0, end: text.length };
+}
 
 function isInitialReadDocMessage(message: ChatSessionMessage, index: number) {
     if (index !== 0 || message.type !== 'assistant_message') return false;
@@ -19,10 +29,12 @@ export function convertSessionToMessages(session: ChatSession): Message[] {
         .filter((message, index) => !isInitialReadDocMessage(message, index))
         .map((message) => {
             if (message.type === 'user_message') {
+                const selection = extractSelection(message.modelContent);
                 return {
                     id: message.messageId,
                     role: 'user' as const,
                     content: message.content,
+                    ...(selection ? { selection } : {}),
                     ...(message.attachments?.length
                         ? { attachments: message.attachments }
                         : {}),

@@ -2,7 +2,7 @@
 import { ReactNode, createContext, useCallback, useEffect, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import API, { clientFetch } from '@/api';
-import { Doc, Workspace, WorkspaceItem } from '@/api/luoye';
+import { ChatSelection, Doc, Workspace, WorkspaceItem } from '@/api/luoye';
 import useHydrationState from '@/hooks/useHydrationState';
 import { Logger, Path } from '@/utils';
 import { LEAVE_EDITING_TEXT, generateDocPageTitle } from '../../configs';
@@ -13,11 +13,13 @@ export const DocContext = createContext<{
     isLoading: boolean;
     isEditing: boolean;
     isChatVisible: boolean;
+    selection: ChatSelection | null;
     doc: Doc | null;
     workspace: Workspace | null;
     workspaceItems: WorkspaceItem[] | null;
     setEditing: (editing: boolean) => void;
     setChatVisible: (visible: boolean) => void;
+    setSelection: (selection: ChatSelection | null) => void;
     setWorkspace: (newWorkspace: Workspace) => void;
     updateWorkspace: (workspaceId: string) => Promise<void>;
     updateDoc: (newDoc: Doc, needUpdateWorkspace?: boolean) => void;
@@ -27,11 +29,13 @@ export const DocContext = createContext<{
     isLoading: false,
     isEditing: false,
     isChatVisible: false,
+    selection: null,
     doc: null,
     workspace: null,
     workspaceItems: null,
     setEditing: () => {},
     setChatVisible: () => {},
+    setSelection: () => {},
     setWorkspace: () => {},
     updateWorkspace: async () => {},
     updateDoc: () => {},
@@ -67,6 +71,7 @@ export const DocContextProvider = ({
     const editingRequest = useRef(false);
     const [isEditing, setEditing] = useState(doc?.content.length === 0);
     const [isChatVisible, setChatVisible] = useState(false);
+    const [selection, setSelection] = useState<ChatSelection | null>(null);
     const abortController = useRef<AbortController | null>(null);
 
     const changeDoc = useCallback(
@@ -83,6 +88,7 @@ export const DocContextProvider = ({
                 abortController.current = new AbortController();
                 const newDoc = await clientFetch(API.luoye.doc(id), abortController.current);
                 setDoc(newDoc);
+                setSelection(null);
                 setLoading(false);
             } catch (error: any) {
                 if (error === ABORT_MESSAGE) return;
@@ -114,12 +120,14 @@ export const DocContextProvider = ({
                 isLoading,
                 isEditing,
                 isChatVisible,
+                selection,
                 doc,
                 workspace,
                 workspaceItems,
                 setWorkspace,
                 setEditing,
                 setChatVisible,
+                setSelection,
                 updateWorkspace: async (workspaceId: string) => {
                     const newWorkspace = await clientFetch(API.luoye.workspace(workspaceId));
                     setWorkspace(newWorkspace);

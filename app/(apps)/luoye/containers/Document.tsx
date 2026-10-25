@@ -14,19 +14,39 @@ import Placeholder from '../components/PlaceHolder';
 import Toast from '../components/Notification/Toast';
 import Markdown from '../components/Markdown';
 import { DocContext } from '../doc/[docId]/context';
-import { TextEditor, MarkdownEditor, EditorRef } from '../components/Editor';
+import {
+    TextEditor,
+    MarkdownEditor,
+    EditorRef,
+    EditorSelectionState,
+} from '../components/Editor';
+import SelectionChatButton from '../components/Editor/SelectionChatButton';
+import { readRenderedSelection } from '../components/Editor/readRenderedSelection';
 import styles from '../styles/document.module.css';
 import { MenuButton } from '@/components/MenuButton';
 import DocHistory from './DocHistory';
 
 const Document = () => {
     const router = useRouter();
-    const { userId, doc, workspace, workspaceItems, isLoading, isEditing, isChatVisible, setEditing, updateDoc } =
-        useContext(DocContext);
+    const {
+        userId,
+        doc,
+        workspace,
+        workspaceItems,
+        isLoading,
+        isEditing,
+        isChatVisible,
+        setEditing,
+        setChatVisible,
+        setSelection,
+        updateDoc,
+    } = useContext(DocContext);
 
     const [isDocFormVisible, setDocFormVisible] = useState(false);
     const [isHistoryVisible, setHistoryVisible] = useState(false);
+    const [selectionState, setSelectionState] = useState<EditorSelectionState | null>(null);
     const textRef = useRef<EditorRef>(null);
+    const contentRef = useRef<HTMLElement>(null);
 
     const docAuth = checkAuth(doc, userId);
     const isDeleted = Boolean(doc?.deletedAt);
@@ -50,6 +70,31 @@ const Document = () => {
             Toast.notify('正在加载编辑器');
         }
     }, [isEditing]);
+
+    useEffect(() => {
+        const container = contentRef.current;
+        if (isEditing || !container) {
+            setSelectionState(null);
+            return;
+        }
+
+        const emitSelection = () => {
+            setSelectionState(readRenderedSelection(container));
+        };
+        document.addEventListener('selectionchange', emitSelection);
+        window.addEventListener('mouseup', emitSelection);
+        window.addEventListener('keyup', emitSelection);
+        window.addEventListener('scroll', emitSelection, true);
+        emitSelection();
+
+        return () => {
+            document.removeEventListener('selectionchange', emitSelection);
+            window.removeEventListener('mouseup', emitSelection);
+            window.removeEventListener('keyup', emitSelection);
+            window.removeEventListener('scroll', emitSelection, true);
+            setSelectionState(null);
+        };
+    }, [isEditing, doc?.id]);
 
     if (isLoading)
         return (
@@ -93,6 +138,19 @@ const Document = () => {
                 Toast.notify(error.message || '创建编辑前版本失败');
             }
         }
+    };
+
+    const handleAddSelectionToChat = () => {
+        const selected = isEditing
+            ? textRef.current?.getSelection()
+            : selectionState;
+        if (!selected?.text.trim()) {
+            Toast.notify('请先选择要添加的内容');
+            return;
+        }
+        setSelection(selected);
+        setSelectionState(null);
+        setChatVisible(true);
     };
 
     const handleRecover = async () => {
@@ -160,6 +218,7 @@ const Document = () => {
                 )}
             </header>
             <main
+                ref={contentRef}
                 className={clsx(
                     styles.document,
                     !isSidebarVisible && styles.centeredDoc,
@@ -187,12 +246,17 @@ const Document = () => {
                         </p>
                     </>
                 )}
+                <SelectionChatButton
+                    selection={selectionState}
+                    onClick={handleAddSelectionToChat}
+                />
                 <Editor
                     textRef={textRef}
                     defaultValue={doc.content}
                     visible={isEditing}
                     keyId={doc.id}
                     onSave={onSaveContent}
+                    onSelectionChange={setSelectionState}
                 />
             </main>
             {isHistoryVisible && (
