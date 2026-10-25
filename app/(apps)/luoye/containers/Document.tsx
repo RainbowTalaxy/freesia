@@ -17,6 +17,7 @@ import { DocContext } from '../doc/[docId]/context';
 import { TextEditor, MarkdownEditor, EditorRef } from '../components/Editor';
 import styles from '../styles/document.module.css';
 import { MenuButton } from '@/components/MenuButton';
+import DocHistory from './DocHistory';
 
 const Document = () => {
     const router = useRouter();
@@ -24,6 +25,7 @@ const Document = () => {
         useContext(DocContext);
 
     const [isDocFormVisible, setDocFormVisible] = useState(false);
+    const [isHistoryVisible, setHistoryVisible] = useState(false);
     const textRef = useRef<EditorRef>(null);
 
     const docAuth = checkAuth(doc, userId);
@@ -83,8 +85,13 @@ const Document = () => {
                 return Toast.notify(error.message);
             }
         } else {
-            textRef.current?.setText(doc.content);
-            setEditing(true);
+            try {
+                await clientFetch(API.luoye.createDocHistory(doc.id, 'edit-start'));
+                textRef.current?.setText(doc.content);
+                setEditing(true);
+            } catch (error: any) {
+                Toast.notify(error.message || '创建编辑前版本失败');
+            }
         }
     };
 
@@ -131,6 +138,7 @@ const Document = () => {
                                     items={[
                                         { label: '复制此文档', onClick: handleCopyDocument },
                                         { label: '下载此文档', onClick: () => downloadDocument(doc) },
+                                        { label: '历史版本', onClick: () => setHistoryVisible(true) },
                                     ]}
                                 >
                                     更 多
@@ -187,6 +195,17 @@ const Document = () => {
                     onSave={onSaveContent}
                 />
             </main>
+            {isHistoryVisible && (
+                <DocHistory
+                    doc={doc}
+                    onClose={() => setHistoryVisible(false)}
+                    onRestore={(newDoc) => {
+                        updateDoc(newDoc, false);
+                        setHistoryVisible(false);
+                        Toast.notify('已恢复历史版本');
+                    }}
+                />
+            )}
             {isDocFormVisible && (
                 <DocForm
                     userId={userId!}

@@ -40,7 +40,7 @@
     width: 90vw;
     max-width: 600px;
     max-height: 80%;
-    border-radius: 0.25rem;
+    border-radius: var(--ly-modal-border-radius);
     border: 1px solid var(--background);
     color: var(--primary);
     background: var(--ly-background);

@@ -50,6 +50,22 @@ export interface DocItem {
     updatedAt: number; // 更新时间
 }
 
+export type DocHistoryReason = 'save' | 'edit-start' | 'restore' | 'delete' | 'manual';
+
+export interface DocHistoryEntry {
+    id: string;
+    name: string;
+    content: string;
+    savedAt: number;
+    savedBy: string;
+    reason: DocHistoryReason;
+}
+
+export interface DocHistoryResponse {
+    previous: DocHistoryEntry | null;
+    history: DocHistoryEntry[];
+}
+
 export interface Doc {
     id: string; // 文档 id
     name: string; // 文档名称

@@ -6,14 +6,16 @@ interface Props {
     style?: CSSProperties;
     children: ReactNode;
     type?: 'primary' | 'danger';
+    disabled?: boolean;
     onClick?: () => void;
 }
 
-const Button = ({ className, children, style, type, onClick }: Props) => {
+const Button = ({ className, children, style, type, disabled, onClick }: Props) => {
     return (
         <button
             className={clsx('btn', type, className)}
             style={style}
+            disabled={disabled}
             onClick={onClick}
         >
             {children}

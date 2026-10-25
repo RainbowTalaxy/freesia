@@ -49,6 +49,7 @@
     --ly-inactive-background: #c8bba4;
     --ly-active-background: #ffedcc;
     --ly-page-background: #fffcf6;
+    --ly-modal-border-radius: 12px;
 
     /* safe area */
     --safe-area-inset-bottom: constant(safe-area-inset-bottom);

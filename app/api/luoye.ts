@@ -17,6 +17,8 @@ import {
     ChatImageAttachment,
     ImageUploadResponse,
     SearchDocsQuery,
+    DocHistoryReason,
+    DocHistoryResponse,
 } from './types/luoye';
 
 const LuoyeAPI = {
@@ -73,6 +75,24 @@ const LuoyeAPI = {
             tags?: string[];
         },
     ) => Rocket.put<Doc>(`${API_PREFIX}/luoye/doc/${id}`, props),
+    docHistory: (id: string) =>
+        Rocket.get<DocHistoryResponse>(
+            API_PREFIX + '/luoye/doc/' + id + '/history',
+        ),
+    createDocHistory: (id: string, reason: DocHistoryReason = 'manual') =>
+        Rocket.post<DocHistoryResponse>(
+            API_PREFIX + '/luoye/doc/' + id + '/history',
+            { reason },
+        ),
+    restoreDocHistory: (id: string, historyId: string) =>
+        Rocket.post<Doc>(
+            API_PREFIX +
+                '/luoye/doc/' +
+                id +
+                '/history/' +
+                historyId +
+                '/restore',
+        ),
     deleteDoc: (id: string) =>
         Rocket.delete<ActionResult>(`${API_PREFIX}/luoye/doc/${id}`),
     docBin: () => Rocket.get<DocBinItem[]>(`${API_PREFIX}/luoye/doc-bin`),
