@@ -7,6 +7,7 @@ interface Props {
     children: ReactNode;
     type?: 'primary' | 'danger';
     buttonType?: 'button' | 'submit' | 'reset';
+    disabled?: boolean;
     onClick?: () => void;
 }
 
@@ -16,6 +17,7 @@ const Button = ({
     style,
     type,
     buttonType,
+    disabled,
     onClick,
 }: Props) => {
     return (
@@ -23,6 +25,7 @@ const Button = ({
             className={clsx('btn', type, className)}
             style={style}
             type={buttonType}
+            disabled={disabled}
             onClick={onClick}
         >
             {children}

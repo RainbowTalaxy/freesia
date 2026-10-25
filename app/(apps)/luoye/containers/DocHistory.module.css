@@ -1,0 +1,284 @@
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.overlay {
+    --primary: var(--ly-primary);
+    --secondary: var(--ly-secondary);
+    --border: var(--ly-secondary);
+    --shadow: var(--ly-inactive-background);
+    --background: var(--ly-active-background);
+    --page: var(--ly-background);
+
+    position: fixed;
+    inset: 0;
+    z-index: 300;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(0, 0, 0, 0.5);
+    animation: fadeIn 0.15s ease-in-out;
+}
+
+.panel {
+    --primary: var(--ly-primary);
+    --secondary: var(--ly-secondary);
+    --border: var(--ly-secondary);
+    --shadow: var(--ly-inactive-background);
+    --background: var(--ly-active-background);
+
+    display: flex;
+    flex-direction: column;
+    width: min(960px, 90vw);
+    height: min(680px, 82vh);
+    overflow: hidden;
+    border: 1px solid var(--ly-active-background);
+    border-radius: var(--ly-modal-border-radius);
+    background: var(--ly-background);
+    color: var(--ly-primary);
+}
+
+.header {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--ly-active-background);
+}
+
+.header > div {
+    flex: 1;
+}
+
+.header h2 {
+    margin: 0;
+    font-size: 20px;
+    line-height: 1.5;
+}
+
+.header p {
+    margin: 2px 0 0;
+    color: var(--ly-secondary);
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 6px;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--ly-secondary);
+    cursor: pointer;
+    transition: background-color 0.15s;
+}
+
+.close:hover {
+    background: var(--ly-active-background);
+}
+
+.body {
+    display: grid;
+    grid-template-columns: 260px minmax(0, 1fr);
+    min-height: 0;
+    flex: 1;
+}
+
+.list {
+    overflow: auto;
+    padding: 12px;
+    border-right: 1px solid var(--ly-active-background);
+}
+
+.item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    width: 100%;
+    margin-bottom: 6px;
+    padding: 10px 11px;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--ly-primary);
+    text-align: left;
+    cursor: pointer;
+    transition:
+        border-color 0.15s,
+        background-color 0.15s;
+}
+
+.item:hover,
+.item.selected {
+    border-color: var(--ly-secondary);
+    background: var(--ly-active-background);
+}
+
+.itemTitle {
+    overflow: hidden;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.5;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.itemMeta {
+    color: var(--ly-secondary);
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.preview {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+}
+
+.previewHeader {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--ly-active-background);
+}
+
+.previewHeader > div {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+}
+
+.previewHeader strong {
+    overflow: hidden;
+    font-size: 15px;
+    line-height: 1.5;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.previewHeader span {
+    color: var(--ly-secondary);
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.previewHeader button {
+    background: var(--ly-primary);
+}
+
+.previewBody {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+    padding: 24px 28px 40px;
+    font-size: 15px;
+    line-height: 1.7;
+}
+
+.previewBody h1 {
+    margin: 0 0 18px;
+    font-size: 24px;
+    line-height: 1.35;
+}
+
+.previewBody h2 {
+    margin: 24px 0 10px;
+    font-size: 19px;
+    line-height: 1.4;
+}
+
+.previewBody h3 {
+    margin: 20px 0 8px;
+    font-size: 16px;
+    line-height: 1.5;
+}
+
+.previewBody p {
+    margin: 0 0 12px;
+}
+
+.previewBody ul,
+.previewBody ol {
+    margin: 0 0 14px;
+    padding-left: 1.5em;
+}
+
+.previewBody li {
+    margin: 4px 0;
+}
+
+.previewBody blockquote {
+    margin: 0 0 16px;
+    padding: 2px 0 2px 14px;
+    border-left: 3px solid var(--ly-inactive-background);
+    color: var(--ly-secondary);
+}
+
+.previewBody pre {
+    margin: 0;
+    font: inherit;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.state {
+    padding: 28px 16px;
+    color: var(--ly-secondary);
+    font-size: 14px;
+    text-align: center;
+}
+
+@media screen and (max-width: 720px) {
+    .overlay {
+        padding: 0;
+    }
+
+    .panel {
+        width: 100%;
+        height: 100%;
+        border: none;
+        border-radius: 0;
+    }
+
+    .header {
+        padding: 16px 18px;
+    }
+
+    .body {
+        grid-template-columns: 1fr;
+        grid-template-rows: 210px minmax(0, 1fr);
+    }
+
+    .list {
+        border-right: none;
+        border-bottom: 1px solid var(--ly-active-background);
+    }
+
+    .previewHeader {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .previewHeader button {
+        width: 100%;
+    }
+
+    .previewBody {
+        padding: 20px 18px 36px;
+    }
+}

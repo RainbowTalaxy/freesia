@@ -88,14 +88,14 @@
     max-width: 1000px;
     height: 94vh;
     background: var(--ly-page-background);
-    border-radius: 8px;
+    border-radius: var(--ly-modal-border-radius);
     overflow-y: hidden;
 }
 
 .previewCardBody {
     position: relative;
     background: var(--ly-page-background);
-    border-radius: 8px;
+    border-radius: var(--ly-modal-border-radius);
     padding: 48px 44px;
     height: 100%;
     overflow-y: auto;
