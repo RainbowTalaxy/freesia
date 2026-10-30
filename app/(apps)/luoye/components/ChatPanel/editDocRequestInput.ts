@@ -87,6 +87,9 @@ export function parseEditDocRequestInput(
         docId: record.docId,
         baseUpdatedAt: record.baseUpdatedAt,
         content: record.content,
+        ...(typeof record.originalContent === 'string'
+            ? { originalContent: record.originalContent }
+            : {}),
         ...(typeof record.summary === 'string'
             ? { summary: record.summary }
             : {}),

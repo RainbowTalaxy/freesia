@@ -139,10 +139,14 @@ describe('chat agent search_docs', () => {
         );
     });
 
-    it('文档上下文应提供固定的 edit_doc_request 参数', async () => {
+    it('edit_doc_request 应从目标文档获取最新版本', async () => {
         const { createChatAgent } =
             await import('../../app/(apps)/luoye/ai/chat/agent');
-        createChatAgent({ docId: 'doc-edit', baseUpdatedAt: 42 });
+        mocks.serverFetch.mockResolvedValue({
+            id: 'doc-edit',
+            updatedAt: 42,
+        });
+        createChatAgent();
 
         const lastCreateAgentCall =
             mocks.createAgent.mock.calls[mocks.createAgent.mock.calls.length - 1];
@@ -156,6 +160,7 @@ describe('chat agent search_docs', () => {
 
         const result = JSON.parse(
             await editTool.invoke({
+                docId: 'doc-edit',
                 content: '修改后的正文',
                 summary: '精简摘要',
             }),

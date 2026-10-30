@@ -202,22 +202,37 @@ const getCurrentTimeTool = tool(
     },
 );
 
-function createEditDocRequestTool(docId: string, baseUpdatedAt: number) {
+function createEditDocRequestTool() {
     return tool(
-        async ({ content, summary }) => {
+        async ({ docId, content, summary }) => {
+            const doc = await serverFetch(API.luoye.doc(docId), true, false, {
+                cache: 'no-store',
+            });
+            if (!doc) {
+                return JSON.stringify({
+                    status: 'error',
+                    message: '目标文档不存在或无法读取',
+                });
+            }
             return JSON.stringify({
                 status: 'pending',
-                docId,
-                baseUpdatedAt,
+                docId: doc.id,
+                baseUpdatedAt: doc.updatedAt,
                 content,
+                originalContent: doc.content,
                 ...(summary ? { summary } : {}),
             });
         },
         {
             name: 'edit_doc_request',
             description:
-                '主动发起当前文档的修改请求。凡是续写、补充、润色、改写、纠错或整理现有正文，都应直接调用此工具返回完整修改后内容，不要先输出完整草稿等待用户同意提交。用户仍会在页面上查看差异并选择接受或放弃，调用后不会立即修改文档。',
+                '主动发起文档修改请求。凡是续写、补充、润色、改写、纠错或整理现有正文，都应直接调用此工具返回完整修改后内容，不要先输出完整草稿等待用户同意提交。修改前如果不知道目标文档，先用 read_doc 获取文档 ID，再将该 ID 传给此工具；工具会在服务端读取最新版本并生成修改请求，用户仍会在页面上查看差异并选择接受或放弃。',
             schema: z.object({
+                docId: z
+                    .string()
+                    .describe(
+                        '要修改的文档 ID；文档页面应使用当前文档 ID，首页聊天应使用 read_doc 返回的文档 ID',
+                    ),
                 content: z
                     .string()
                     .describe(
@@ -252,11 +267,8 @@ const saveDocRequestTool = tool(
     },
 );
 
-export function createChatAgent(
-    options: { docId?: string; baseUpdatedAt?: number } = {},
-) {
+export function createChatAgent() {
     const model = getMimoModel();
-    const { docId, baseUpdatedAt } = options;
     return createAgent({
         model,
         tools: [
@@ -264,9 +276,7 @@ export function createChatAgent(
             readDocTool,
             saveDocRequestTool,
             getCurrentTimeTool,
-            ...(docId && baseUpdatedAt !== undefined
-                ? [createEditDocRequestTool(docId, baseUpdatedAt)]
-                : []),
+            createEditDocRequestTool(),
         ],
     });
 }

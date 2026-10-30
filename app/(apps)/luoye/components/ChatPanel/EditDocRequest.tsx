@@ -1,5 +1,6 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import { useContext, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import API, { clientFetch } from '@/api';
@@ -13,7 +14,9 @@ import { DocContext } from '../../doc/[docId]/context';
 import SVG from '../SVG';
 import Toast from '../Notification/Toast';
 import styles from './EditDocRequest.module.css';
-import DocumentDiff from './DocumentDiff';
+const DocumentDiff = dynamic(() => import('./DocumentDiff'), {
+    ssr: false,
+});
 import { parseEditDocRequestInput } from './editDocRequestInput';
 
 interface Props {
@@ -163,7 +166,7 @@ const EditDocRequest = ({ tool, sessionId }: Props) => {
                             </header>
                             <div className={styles.diffContainer}>
                                 <DocumentDiff
-                                    original={doc?.content ?? ''}
+                                    original={input.originalContent ?? doc?.content ?? ''}
                                     modified={input.content}
                                     language={
                                         doc?.docType === DocType.Markdown

@@ -109,6 +109,7 @@ export interface EditDocRequestToolInput {
     docId: string;
     baseUpdatedAt: number;
     content: string;
+    originalContent?: string;
     summary?: string;
 }
 

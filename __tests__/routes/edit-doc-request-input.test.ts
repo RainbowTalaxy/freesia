@@ -14,6 +14,7 @@ const requestPayload = {
     docId: 'doc-edit',
     baseUpdatedAt: 42,
     content: '你好\n\n新的内容',
+    originalContent: '你好',
     summary: '补充内容',
 };
 
@@ -31,6 +32,7 @@ describe('parseEditDocRequestInput', () => {
             docId: 'doc-edit',
             baseUpdatedAt: 42,
             content: '你好\n\n新的内容',
+            originalContent: '你好',
             summary: '补充内容',
         });
     });

@@ -314,7 +314,7 @@ export async function POST(request: NextRequest) {
     if (doc) {
         systemPrompt = `当前时间：${currentTime}。用户正在一个文档页面向你发起提问。文档 ID 为 "${doc.id}"。当前文档内容已在对话开头通过 read_doc 工具读取，请直接使用对话中已有的文档内容回答问题，无需重复调用 read_doc 读取同一文档，除非你被告知文档内容已更新。用户要求修改正文时，直接调用 edit_doc_request 返回完整的修改后正文，不要先在普通文本里输出完整草稿、也不要等待用户再次确认是否提交修改。续写、补充、润色、改写、纠错、整理等意图明确时均应主动发起修改请求，因为页面会由用户选择接受或放弃；只有在任务目标存在关键歧义时才最多询问一个问题。保持文档标题、权限、工作区和标签不变。`;
     } else {
-        systemPrompt = `当前时间：${currentTime}。你是一个智能助手，可以回答用户的各种问题。你可以使用 search_docs 工具搜索用户的文档库，使用 read_doc 工具读取文档内容。`;
+        systemPrompt = `当前时间：${currentTime}。你是一个智能助手，可以回答用户的各种问题。你可以使用 search_docs 工具搜索用户的文档库，使用 read_doc 工具读取文档内容。需要修改文档时，先用 read_doc 获取目标文档 ID，再调用 edit_doc_request；工具会读取最新版本并生成待确认的修改请求。`;
     }
 
     // 检测文档变更（仅在有文档时）。更新标记在本轮成功完成后才提交，
@@ -367,14 +367,7 @@ export async function POST(request: NextRequest) {
                     );
                 }
 
-                const agent = doc
-                    ? createChatAgent({
-                          docId: doc.id,
-                          ...(doc.updatedAt !== undefined
-                              ? { baseUpdatedAt: doc.updatedAt }
-                              : {}),
-                      })
-                    : createChatAgent();
+                const agent = createChatAgent();
                 const eventStream = agent.streamEvents(
                     { messages },
                     {

@@ -429,9 +429,7 @@ describe('POST /luoye/ai/chat (发送消息)', () => {
         expect(agentMessages[0].content).toContain(
             '直接调用 edit_doc_request',
         );
-        expect(mockCreateChatAgent).toHaveBeenCalledWith(
-            expect.objectContaining({ docId: 'doc-1' }),
-        );
+        expect(mockCreateChatAgent).toHaveBeenCalledWith();
     });
 
     it('带图片附件发送时应保存附件并以图片消息发送给模型', async () => {
@@ -910,10 +908,7 @@ describe('POST /luoye/ai/chat (发送消息)', () => {
         const updateMessage = agentMessages[agentMessages.length - 1];
         expect(updateMessage.content).toContain('以下是最新文档内容');
         expect(updateMessage.content).toContain('NEW DOCUMENT CONTENT');
-        expect(mockCreateChatAgent).toHaveBeenCalledWith({
-            docId: 'doc-1',
-            baseUpdatedAt: 2,
-        });
+        expect(mockCreateChatAgent).toHaveBeenCalledWith();
         expect(mockChatFile.saveSession).toHaveBeenCalledWith(
             expect.objectContaining({ docUpdatedAt: 2 }),
         );

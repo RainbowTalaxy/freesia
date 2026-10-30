@@ -30,6 +30,7 @@ export function formatCurrentTimeForPrompt() {
 
 export function formatDocForReadDoc(doc: Doc) {
     return [
+        `文档 ID：${doc.id}`,
         `文档标题：${doc.name || '无标题'}`,
         `文档日期：${formatShanghaiDate(doc.date)}`,
         '文档内容：',
