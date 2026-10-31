@@ -76,6 +76,13 @@ const DocumentDiff = ({ original, modified, language }: Props) => {
                         minimap: { enabled: false },
                         folding: false,
                         guides: { indentation: false },
+                        unicodeHighlight: {
+                            nonBasicASCII: false,
+                            ambiguousCharacters: false,
+                            invisibleCharacters: false,
+                            includeComments: false,
+                            includeStrings: false,
+                        },
                         overviewRulerLanes: 0,
                         renderLineHighlight: 'none',
                         scrollBeyondLastLine: false,

@@ -44,7 +44,11 @@ export const MONACO_OPTIONS: monaco.editor.IStandaloneEditorConstructionOptions 
         },
         // unicode 高亮
         unicodeHighlight: {
+            nonBasicASCII: false,
             ambiguousCharacters: false,
+            invisibleCharacters: false,
+            includeComments: false,
+            includeStrings: false,
         },
         // 禁用建议
         quickSuggestions: {
